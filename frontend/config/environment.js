@@ -23,6 +23,8 @@ module.exports = function(environment) {
     }
   };
 
+  ENV.apiBaseUrl = 'http://localhost:8000';
+
   if (environment === 'development') {
     // ENV.APP.LOG_RESOLVER = true;
     // ENV.APP.LOG_ACTIVE_GENERATION = true;
@@ -47,5 +49,18 @@ module.exports = function(environment) {
     // here you can enable a production-specific feature
   }
 
+  ENV['ember-simple-auth'] = {
+    authorizer: 'authorizer:token'
+  };
+  ENV['ember-simple-auth-token'] = {
+    refreshAccessTokens: true,
+    timeFactor: 1000,
+    refreshLeeway: 300,
+    serverTokenEndpoint: ENV.apiBaseUrl + '/api/auth/login',
+    serverTokenRefreshEndpoint: ENV.apiBaseUrl + '/api/auth/token-refresh',
+    identificationField: 'email'
+  };
+
   return ENV;
 };
+
