@@ -1,0 +1,42 @@
+.todo {
+  width: 400px;
+  .head {
+    height: 30px;
+    line-height: 30px;
+    padding: 0 20px;
+    background: rgb(255,182,14);
+    background: linear-gradient(0deg, rgba(255,182,14,1) 0%, rgba(228,193,88,1) 100%);
+    plus {
+      float: left;
+    }
+  }
+}
+
+
+.list {
+  .list-item {
+    height: 30px;
+    line-height: 30px;
+    border-bottom: 1px solid #ccc;
+    display: flex;
+    padding: 0 20px;
+
+    &:nth-child(1) {
+      background: beige;
+    }
+    .done {
+      width: 10px;
+    }
+
+    .title {
+      flex: 1;
+      padding: 0 20px;
+      overflow: hidden;
+    }
+
+    .remove {
+      width: 10px;
+      text-align: left;
+    }
+  }
+}

@@ -1,0 +1,11 @@
+@import "components/todo.scss";
+
+body, head {
+  direction: rtl;
+  text-align: right;
+  margin: 0;
+}
+
+ul, ol {
+  list-style: none;
+}
