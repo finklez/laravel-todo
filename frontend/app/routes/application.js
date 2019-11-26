@@ -9,12 +9,12 @@ export default Route.extend({
     //   {"name": "oi3ji3", "age": 11}
     // ];
 
-    // return this.get('store').findAll('todo');
+    return this.get('store').findAll('todo');
 
     // return this.store.query('song', { album: album_id });
 
-    return fetch('/api/v1/todos').then(function(response) {
-      return response.json();
-    });
+    // return fetch('/api/todos').then(function(response) {
+    //   return response.json();
+    // });
   }
 });

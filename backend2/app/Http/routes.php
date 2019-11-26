@@ -18,7 +18,12 @@ Route::get('/', function () {
 });
 
 $api->version('v1',function($api) {
-    $api->get('hello', function() {
-        return "Hello";
+    header('Access-Control-Allow-Origin: http://localhost:4200');
+    header('Access-Control-Allow-Headers: Origin, Content-Type, Authorization');
+    header('Access-Control-Allow-Methods: POST, GET, OPTIONS, PUT, PATCH, DELETE');
+
+    // API
+    $api->group(['namespace'=>'App\Http\Controllers'],function($api){
+        $api->get('todos', "TodoController@index");
     });
 });
