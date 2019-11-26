@@ -1,4 +1,4 @@
-{{outlet}}
+{{!--outlet--}}
 
 <div class="head">
   <span class="title">משימות</span>
@@ -10,19 +10,11 @@
     <div class="list-item">
       <span class="done">[]</span>
       <span class="title">{{person.name}}</span>
-      <span class="remove">X</span>
+      <span class="remove"
+            onclick={{action "remove"}}>
+        X
+      </span>
     </div>
   {{/each}}
 
 </div>
-
-{{!-- {{#if errorMessage}} --}}
-{{!--   {{errorMessage}} --}}
-{{!-- {{/if}} --}}
-{{!-- <form {{action 'authenticate' on='submit'}}> --}}
-{{!--   <label for="identification">Login</label> --}}
-{{!--   {{input id='identification' placeholder='Enter Login' value=identification}} --}}
-{{!--   <label for="password">Password</label> --}}
-{{!--   {{input id='password' placeholder='Enter Password' type='password' value=password}} --}}
-{{!--   <button type="submit">Login</button> --}}
-{{!-- </form> --}}

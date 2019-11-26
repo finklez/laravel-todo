@@ -12,28 +12,47 @@
 */
 
 // API Routes come first
-$api = app('Dingo\Api\Routing\Router');
-$api->version('v1',function($api){
-    header('Access-Control-Allow-Origin: http://localhost:4200');
-    header('Access-Control-Allow-Headers: Origin, Content-Type, Authorization');
-    header('Access-Control-Allow-Methods: POST, GET, OPTIONS, PUT, PATCH, DELETE');
+//$api = app('Dingo\Api\Routing\Router');
+//$api->version('v1',function($api){
+//    $api->get('App\Http\Controllers\Api\todos','TodoController@get');
+//    header('Access-Control-Allow-Origin: http://localhost:4200');
+//    header('Access-Control-Allow-Headers: Origin, Content-Type, Authorization');
+//    header('Access-Control-Allow-Methods: POST, GET, OPTIONS, PUT, PATCH, DELETE');
+//
+//    // API
+//    $api->group(['namespace'=>'App\Http\Controllers\Api'],function($api){
+//        // Auth
+////        $api->post('auth/login','Auth\AuthController@postLogin');
+////        $api->post('auth/token-refresh','Auth\AuthController@refreshToken');
+////        $api->post('users','Auth\UsersController@store');
+//        $api->post('todo.json','TodoController@add');
+//        $api->get('api/v1/todos','TodoController@get');
+//
+//        // Protected methods (require auth)
+//        $api->group(['middleware'=>'api.auth'],function($api){
+//
+//        });
+//
+//        // Public methods
+//
+//    });
+//});
+//$params = [
+//    'version' => 'v1',
+//    'prefix' => 'api',
+//    'namespace' => 'App\\Http\\Controllers',
+////    'domain' => 'localhost:4200'
+//];
 
-    // API
-    $api->group(['namespace'=>'App\Http\Controllers\Api'],function($api){
-        // Auth
-        $api->post('auth/login','Auth\AuthController@postLogin');
-        $api->post('auth/token-refresh','Auth\AuthController@refreshToken');
-        $api->post('users','Auth\UsersController@store');
+//$api->group($params, function($api)
+//{
+//    $api->get('test', function() {
+//        return ['foo' => 'bar'];
+//    });
+////    $api->get('todos', 'Api\TodoController@index');
+//});
 
-        // Protected methods (require auth)
-        $api->group(['middleware'=>'api.auth'],function($api){
-            
-        });
-
-        // Public methods
-        
-    });
-});
+//app('Dingo\Api\Routing\UrlGenerator')->version('v1')->route('todo');
 
 // Catchall - Displays Ember app
 //Route::any('{catchall}',function(){
@@ -41,6 +60,6 @@ $api->version('v1',function($api){
 //})->where('catchall', '(.*)');
 
 
-Route::get('/', function () {
-    return view('welcome');
-});
+//Route::get('/', function () {
+//    return view('welcome');
+//});
