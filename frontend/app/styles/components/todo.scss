@@ -1,42 +1,77 @@
-.todo {
-  width: 400px;
-  .head {
-    height: 30px;
-    line-height: 30px;
-    padding: 0 20px;
-    background: rgb(255,182,14);
-    background: linear-gradient(0deg, rgba(255,182,14,1) 0%, rgba(228,193,88,1) 100%);
-    .plus {
-      float: left;
+.ember-view {
+  &.todo-container {
+    width: 400px;
+    border-bottom: 1px solid #ccc;
+    .head {
+      height: 30px;
+      line-height: 30px;
+      padding: 0 20px;
+      background: rgb(255, 182, 14);
+      background: linear-gradient(0deg, rgba(255, 182, 14, 1) 0%, rgba(228, 193, 88, 1) 100%);
+
+      .add {
+        float: left;
+        line-height: 30px;
+      }
     }
   }
 }
 
-
-.list {
-  .list-item {
+.todos {
+  height: 300px;
+  overflow-y: auto;
+  background: #eee;
+  .todo {
     height: 30px;
     line-height: 30px;
     border-bottom: 1px solid #ccc;
     display: flex;
     padding: 0 20px;
-
+    background: white;
     &:nth-child(1) {
       background: beige;
     }
     .done {
-      width: 10px;
+      width: 30px;
+      line-height: 30px;
+      background: transparent;
     }
 
-    .title {
+    .text-wrap {
+      position: relative;
       flex: 1;
       padding: 0 20px;
+    }
+    .text-edit, .text {
+      position: absolute;
+      right: 0;
+      top: 0
+    }
+    .text-edit {
+      border: 0;
+      background: transparent;
+      display: none;
+    }
+
+    .text {
       overflow: hidden;
     }
 
     .remove {
-      width: 10px;
+      width: 30px;
       text-align: left;
+      line-height: 30px;
     }
+  }
+}
+
+.status {
+  display: flex;
+  padding: 0 20px;
+  .st {
+    flex: 1;
+  }
+  .num {
+    font-weight: bold;
   }
 }

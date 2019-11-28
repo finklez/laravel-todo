@@ -2,12 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use http\Env\Response;
 use Illuminate\Http\Request;
-
-use App\Http\Requests;
-use Illuminate\Support\Facades\DB;
-use App\Http\Controllers\Controller;
 use App\Todo;
 
 class TodoController extends Controller
@@ -114,6 +109,6 @@ class TodoController extends Controller
     {
         Todo::destroy($id);
 
-        return response()->json(['id' => $id]);
+        return response()->json(['todo' => ['id' => $id]]);
     }
 }

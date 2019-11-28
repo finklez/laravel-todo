@@ -2,19 +2,24 @@
 
 <div class="head">
   <span class="title">משימות</span>
-  <i class="plus">+</i>
+  {{fa-icon "plus-square" click=(action "add") class="add" size="lg"}}
 </div>
 
-<div class="list">
-  {{#each this.model as |person|}}
-    <div class="list-item">
-      <span class="done">[]</span>
-      <span class="title">{{person.name}}</span>
-      <span class="remove"
-            onclick={{action "remove"}}>
-        X
-      </span>
+<div class="todos">
+  {{#each this.model as |todo|}}
+    <div class="todo" data-id={{todo.id}}>
+      {{fa-icon (if todo.done "square" "square-o") click=(action "toggleDone" todo) class="done" size="lg" }}
+      <div class="text-wrap {{if isEditComp "edit" "ddd"}}">
+        <span class="text" {{action "rename" todo}}>{{todo.text}}</span>
+        <input type="text" class="text-edit">
+      </div>
+      {{fa-icon "times" click=(action "remove" todo) class="remove" size="lg"}}
     </div>
   {{/each}}
+</div>
 
+<div class="status">
+    <span class="st">לסיום: <span class="num">{{incomplete}}</span></span>
+    <span class="st">הושלמו: <span class="num">{{completed}}</span></span>
+    <span class="st">סה"כ: <span class="num">{{todos.length}}</span></span>
 </div>

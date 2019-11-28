@@ -4,10 +4,6 @@ import { inject as service } from '@ember/service';
 export default Route.extend({
   store: service(),
   model() {
-    // return [
-    //   {"name": "dfkj", "age": 23},
-    //   {"name": "oi3ji3", "age": 11}
-    // ];
 
     return this.get('store').findAll('todo');
 
