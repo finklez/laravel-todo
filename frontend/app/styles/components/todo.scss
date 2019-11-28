@@ -21,46 +21,77 @@
   height: 300px;
   overflow-y: auto;
   background: #eee;
-  .todo {
-    height: 30px;
-    line-height: 30px;
-    border-bottom: 1px solid #ccc;
-    display: flex;
-    padding: 0 20px;
-    background: white;
-    &:nth-child(1) {
-      background: beige;
-    }
-    .done {
-      width: 30px;
-      line-height: 30px;
-      background: transparent;
-    }
+}
 
-    .text-wrap {
-      position: relative;
-      flex: 1;
-      padding: 0 20px;
+.todo {
+  height: 30px;
+  line-height: 30px;
+  border-bottom: 1px solid #ccc;
+  display: flex;
+  padding: 0 20px;
+  background: white;
+
+  &:nth-child(odd) {
+    background: beige;
+  }
+
+  .done {
+    width: 30px;
+    line-height: 30px;
+    background: transparent;
+    cursor: pointer;
+
+    &:hover {
+      color: darkblue;
     }
-    .text-edit, .text {
-      position: absolute;
-      right: 0;
-      top: 0
+  }
+
+  .text-wrap {
+    position: relative;
+    flex: 1;
+    padding: 0 20px;
+  }
+
+  .text-edit, .text {
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 100%;
+  }
+
+  .text-edit {
+    border: 0;
+    background: transparent;
+    display: none;
+    line-height: 28px;
+    outline: 0;
+    font-size: 16px;
+    font-style: italic;
+    &:focus {
+      background: aliceblue;
     }
+  }
+  &.editing {
     .text-edit {
-      border: 0;
-      background: transparent;
+      display: block;
+    }
+    .text {
       display: none;
     }
+  }
 
-    .text {
-      overflow: hidden;
-    }
+  .text {
+    overflow: hidden;
+  }
 
-    .remove {
-      width: 30px;
-      text-align: left;
-      line-height: 30px;
+  .remove {
+    width: 30px;
+    text-align: left;
+    line-height: 30px;
+    cursor: pointer;
+
+    &:hover {
+      color: red;
     }
   }
 }

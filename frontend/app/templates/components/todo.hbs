@@ -7,11 +7,11 @@
 
 <div class="todos">
   {{#each this.model as |todo|}}
-    <div class="todo" data-id={{todo.id}}>
+    <div class="todo {{if todo.isEditing "editing"}}" data-id={{todo.id}}>
       {{fa-icon (if todo.done "square" "square-o") click=(action "toggleDone" todo) class="done" size="lg" }}
-      <div class="text-wrap {{if isEditComp "edit" "ddd"}}">
-        <span class="text" {{action "rename" todo}}>{{todo.text}}</span>
-        <input type="text" class="text-edit">
+      <div class="text-wrap">
+        <span class="text" onclick={{action "edit" todo}}>{{todo.text}}</span>
+        <input type="text" class="text-edit" onchange={{action "changeText" todo}} {{action "setFocus" todo}}>
       </div>
       {{fa-icon "times" click=(action "remove" todo) class="remove" size="lg"}}
     </div>

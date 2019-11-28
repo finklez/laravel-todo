@@ -88,10 +88,6 @@ class TodoController extends Controller
         ]);
 
         $todo = Todo::find($id);
-        if($todo->done == $request->input('todo.done')) {
-            error_log('mismatch done value');
-            abort(500);
-        }
         $todo->text = $request->input('todo.text');
         $todo->done = $request->input('todo.done');
         $todo->save();

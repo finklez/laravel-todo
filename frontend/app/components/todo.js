@@ -11,24 +11,13 @@ export default Component.extend({
     return this.get('store').findAll('todo');
   }),
   incomplete: computed('todos.@each.done', function () {
-    // console.log('incomplete');
-    // let todos = this.get('store').peekAll('todo');
     return this.todos.filterBy('done', false).map(item => item.id).length;
   }),
   completed: computed('todos.@each.done', function () {
     return this.total - this.incomplete;
-    // let todos = this.get('store').peekAll('todo');
-    // return todos.filterBy('done', true).map(item => item.id).length;
   }),
   total: computed('todos.@each.done', function () {
-    // console.log('total');
-    // let todos = this.get('store').peekAll('todo');
     return this.todos.map(item => item.id).length;
-  }),
-  isEditing: false,
-  isEditComp: computed('isEditing', function () {
-    console.log(this.isEditing);
-    return this.isEditing
   }),
   actions: {
     remove(todo) {
@@ -45,14 +34,16 @@ export default Component.extend({
         text: newTodoText,
         done: false
       });
-
       todo.save();
     },
-    rename(todo) {
-      console.log('rename');
-      // let text = prompt("new text");
-      // console.log(text);
+    edit(todo, event) {
+      setTimeout(function() {event.target.nextElementSibling.focus()}, 0); // ugly hack
       todo.set('isEditing', true);
+    },
+    changeText(todo, event) {
+      todo.set('isEditing', false);
+      todo.set('text', event.target.value);
+      todo.save();
     }
   }
 });
