@@ -12,13 +12,8 @@
 */
 
 $api = app('Dingo\Api\Routing\Router');
-//Route::get('{data?}', function() {
-//    // Serve the "index.html" file that controls the whole frontend.
-//    return View::file('app/index.html');
-//})->where('data', '.*');
 Route::get('/', function () {
-    return View::file('app/index.html');
-    return view('welcome');
+    return File::get(public_path() . '/dist/index.html'); // serve ember
 });
 
 $api->version('v1',function($api) {

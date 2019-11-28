@@ -1,0 +1,106 @@
+.ember-view.todo-container {
+  width: 400px;
+  border-bottom: 1px solid #ccc;
+}
+.ember-view.todo-container .head {
+  height: 30px;
+  line-height: 30px;
+  padding: 0 20px;
+  background: #ffb60e;
+  background: linear-gradient(0deg, #ffb60e 0%, #e4c158 100%);
+}
+.ember-view.todo-container .head .add {
+  float: left;
+  line-height: 30px;
+}
+
+.todos {
+  height: 300px;
+  overflow-y: auto;
+  background: #eee;
+}
+
+.todo {
+  height: 30px;
+  line-height: 30px;
+  border-bottom: 1px solid #ccc;
+  display: flex;
+  padding: 0 20px;
+  background: white;
+}
+.todo:nth-child(odd) {
+  background: beige;
+}
+.todo .done {
+  width: 30px;
+  line-height: 30px;
+  background: transparent;
+  cursor: pointer;
+}
+.todo .done:hover {
+  color: darkblue;
+}
+.todo .text-wrap {
+  position: relative;
+  flex: 1;
+  padding: 0 20px;
+}
+.todo .text-edit, .todo .text {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 100%;
+}
+.todo .text-edit {
+  border: 0;
+  background: transparent;
+  display: none;
+  line-height: 28px;
+  outline: 0;
+  font-size: 16px;
+  font-style: italic;
+}
+.todo .text-edit:focus {
+  background: aliceblue;
+}
+.todo.editing .text-edit {
+  display: block;
+}
+.todo.editing .text {
+  display: none;
+}
+.todo .text {
+  overflow: hidden;
+}
+.todo .remove {
+  width: 30px;
+  text-align: left;
+  line-height: 30px;
+  cursor: pointer;
+}
+.todo .remove:hover {
+  color: red;
+}
+
+.status {
+  display: flex;
+  padding: 0 20px;
+}
+.status .st {
+  flex: 1;
+}
+.status .num {
+  font-weight: bold;
+}
+
+body, head {
+  direction: rtl;
+  text-align: right;
+  margin: 0;
+}
+
+ul, ol {
+  list-style: none;
+}
+
+/*# sourceMappingURL=frontend.css.map */
