@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use http\Env\Response;
 use Illuminate\Http\Request;
 
 use App\Http\Requests;
@@ -18,11 +19,9 @@ class TodoController extends Controller
      */
     public function index()
     {
-//        $todos = DB::select('select * from todos');
-//        $todos = DB::table('todos')->get();
-
         $todos = Todo::all();
-        return $todos;
+
+        return response()->json(['todos' => $todos]);
     }
 
     /**
@@ -43,7 +42,17 @@ class TodoController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        // Validate the request...
+        $this->validate($request, [
+            'todo.text' => 'required|max:255',
+            'todo.done' => 'required|boolean',
+        ]);
+        $todo = new Todo;
+        $todo->text = $request->input('todo.text');
+        $todo->done = $request->input('todo.done', false);
+        $todo->save();
+
+        return response()->json(['todo' => $todo]);
     }
 
     /**
@@ -78,6 +87,21 @@ class TodoController extends Controller
     public function update(Request $request, $id)
     {
         //
+        $this->validate($request, [
+            'todo.text' => 'required|max:255',
+            'todo.done' => 'required|boolean',
+        ]);
+
+        $todo = Todo::find($id);
+        if($todo->done == $request->input('todo.done')) {
+            error_log('mismatch done value');
+            abort(500);
+        }
+        $todo->text = $request->input('todo.text');
+        $todo->done = $request->input('todo.done');
+        $todo->save();
+
+        return response()->json(['todo' => $todo]);
     }
 
     /**
@@ -88,6 +112,8 @@ class TodoController extends Controller
      */
     public function destroy($id)
     {
-        //
+        Todo::destroy($id);
+
+        return response()->json(['id' => $id]);
     }
 }
