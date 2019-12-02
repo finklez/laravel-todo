@@ -4,11 +4,21 @@
 
     cd backend
     
-Install packages
+- Install packages
 
-    composer install
+      composer install
     
-Run server
+- Update key (automatically added to .env)
 
-    php artisan serve
+        php artisan key:generate
+    
+- Update DB credentials in .env
+
+        DB_DATABASE=
+        DB_USERNAME=
+        DB_PASSWORD=
+    
+- Run server
+
+        php artisan serve
     
