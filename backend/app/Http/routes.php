@@ -23,6 +23,6 @@ $api->version('v1',function($api) {
 
     // API
     $api->group(['namespace'=>'App\Http\Controllers'],function($api){
-        $api->resource('todos', "TodoController");
+        $api->resource('mainTodos', "TodoController");
     });
 });

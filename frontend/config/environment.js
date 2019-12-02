@@ -9,7 +9,7 @@ module.exports = function(environment) {
     EmberENV: {
       FEATURES: {
         // Here you can enable experimental features on an ember canary build
-        // e.g. EMBER_NATIVE_DECORATOR_SUPPORT: true
+        // e.g. 'with-controller': true
       },
       EXTEND_PROTOTYPES: {
         // Prevent Ember Data from overriding Date.parse.
@@ -49,18 +49,5 @@ module.exports = function(environment) {
     // here you can enable a production-specific feature
   }
 
-  ENV['ember-simple-auth'] = {
-    authorizer: 'authorizer:token'
-  };
-  ENV['ember-simple-auth-token'] = {
-    refreshAccessTokens: true,
-    timeFactor: 1000,
-    refreshLeeway: 300,
-    serverTokenEndpoint: ENV.apiBaseUrl + '/api/auth/login',
-    serverTokenRefreshEndpoint: ENV.apiBaseUrl + '/api/auth/token-refresh',
-    identificationField: 'email'
-  };
-
   return ENV;
 };
-

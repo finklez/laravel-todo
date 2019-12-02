@@ -2,7 +2,9 @@
 
 ## Instructions:
 
-    cd backend
+- Change dir
+
+      cd backend
     
 - Install packages
 
@@ -10,15 +12,19 @@
     
 - Update key (automatically added to .env)
 
-        php artisan key:generate
+      php artisan key:generate
     
 - Update DB credentials in .env
 
-        DB_DATABASE=
-        DB_USERNAME=
-        DB_PASSWORD=
+      DB_DATABASE=
+      DB_USERNAME=
+      DB_PASSWORD=
     
 - Run server
 
-        php artisan serve
+      php artisan serve
+        
+- Browse local server
+
+      http://localhost:8000
     

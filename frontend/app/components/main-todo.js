@@ -1,36 +1,36 @@
 import Component from '@ember/component';
 import { computed } from '@ember/object';
-import { inject }  from '@ember/service';
+import { inject as service }  from '@ember/service';
 
 export default Component.extend({
   classNames: ['todo-container'],
-  store: inject(), //Ember.inject.service(),
+  store: service(),
   ASCIILetterA: 65,
   // src: https://stackoverflow.com/questions/47741231/ember-computed-property-on-ember-data-store
   todos: computed(function () {
-    return this.get('store').findAll('todo');
+    return this.get('store').findAll('main-todo');
   }),
   incomplete: computed('todos.@each.done', function () {
-    return this.todos.filterBy('done', false).map(item => item.id).length;
+    return this.get('todos').filterBy('done', false).map(item => item.id).length;
   }),
   completed: computed('todos.@each.done', function () {
-    return this.total - this.incomplete;
+    return this.get('total') - this.get('incomplete');
   }),
   total: computed('todos.@each.done', function () {
-    return this.todos.map(item => item.id).length;
+    return this.get('todos').map(item => item.id).length;
   }),
   actions: {
     remove(todo) {
       todo.destroyRecord();
     },
     toggleDone(todo) {
-      todo.set('done', !todo.done);
+      todo.set('done', !todo.get('done'));
       todo.save()
     },
     add() {
-      let todoCount = this.todos.length; // this.store.peekAll('todo').length;
+      let todoCount = this.get('todos').toArray().length;
       let newTodoText = 'משימה ' + String.fromCharCode(todoCount + this.ASCIILetterA);
-      let todo = this.store.createRecord('todo', {
+      let todo = this.get('store').createRecord('mainTodo', {
         text: newTodoText,
         done: false
       });

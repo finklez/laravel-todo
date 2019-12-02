@@ -16,7 +16,7 @@ class TodoController extends Controller
     {
         $todos = Todo::all();
 
-        return response()->json(['todos' => $todos]);
+        return response()->json(['mainTodos' => $todos]);
     }
 
     /**
@@ -39,15 +39,15 @@ class TodoController extends Controller
     {
         // Validate the request...
         $this->validate($request, [
-            'todo.text' => 'required|max:255',
-            'todo.done' => 'required|boolean',
+            'mainTodo.text' => 'required|max:255',
+            'mainTodo.done' => 'required|boolean',
         ]);
         $todo = new Todo;
-        $todo->text = $request->input('todo.text');
-        $todo->done = $request->input('todo.done', false);
+        $todo->text = $request->input('mainTodo.text');
+        $todo->done = $request->input('mainTodo.done', false);
         $todo->save();
 
-        return response()->json(['todo' => $todo]);
+        return response()->json(['mainTodo' => $todo]);
     }
 
     /**
@@ -83,16 +83,16 @@ class TodoController extends Controller
     {
         //
         $this->validate($request, [
-            'todo.text' => 'required|max:255',
-            'todo.done' => 'required|boolean',
+            'mainTodo.text' => 'required|max:255',
+            'mainTodo.done' => 'required|boolean',
         ]);
 
         $todo = Todo::find($id);
-        $todo->text = $request->input('todo.text');
-        $todo->done = $request->input('todo.done');
+        $todo->text = $request->input('mainTodo.text');
+        $todo->done = $request->input('mainTodo.done');
         $todo->save();
 
-        return response()->json(['todo' => $todo]);
+        return response()->json(['mainTodo' => $todo]);
     }
 
     /**
@@ -105,6 +105,6 @@ class TodoController extends Controller
     {
         Todo::destroy($id);
 
-        return response()->json(['todo' => ['id' => $id]]);
+        return response()->json(['mainTodo' => ['id' => $id]]);
     }
 }
