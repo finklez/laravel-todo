@@ -19,6 +19,10 @@
       DB_DATABASE=
       DB_USERNAME=
       DB_PASSWORD=
+      
+- Run migrations
+      
+      php artisan migrate
     
 - Run server
 
