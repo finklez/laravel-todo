@@ -9,7 +9,7 @@
         {{fa-icon (if todo.done "square" "square-o") click=(action "toggleDone" todo) class="done" size="lg" }}
           <div class="text-wrap">
               <span class="text" onclick={{action "edit" todo}}>{{todo.text}}</span>
-              <input type="text" class="text-edit" onchange={{action "changeText" todo}} {{action "setFocus" todo}}>
+              <input type="text" class="text-edit" onchange={{action "changeText" todo}}>
           </div>
         {{fa-icon "times" click=(action "remove" todo) class="remove" size="lg"}}
       </div>

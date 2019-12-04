@@ -22,8 +22,7 @@ module.exports = function(environment) {
       // when it is created
     }
   };
-
-  ENV.apiBaseUrl = 'http://localhost:8000';
+  ENV.apiBaseUrl = null;
 
   if (environment === 'development') {
     // ENV.APP.LOG_RESOLVER = true;
@@ -31,6 +30,7 @@ module.exports = function(environment) {
     // ENV.APP.LOG_TRANSITIONS = true;
     // ENV.APP.LOG_TRANSITIONS_INTERNAL = true;
     // ENV.APP.LOG_VIEW_LOOKUPS = true;
+    ENV.apiBaseUrl = 'http://localhost:8000';
   }
 
   if (environment === 'test') {

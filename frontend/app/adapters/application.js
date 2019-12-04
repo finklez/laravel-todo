@@ -1,8 +1,5 @@
 //import JSONAPIAdapter from '@ember-data/adapter/json-api';
 
-//export default JSONAPIAdapter.extend({
-//});
-
 import DS from 'ember-data';
 import ENV from 'frontend/config/environment';
 // import DataAdapterMixin from 'ember-simple-auth/mixins/data-adapter-mixin';

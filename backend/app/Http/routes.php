@@ -12,6 +12,7 @@
 */
 
 $api = app('Dingo\Api\Routing\Router');
+// src: https://stackoverflow.com/questions/29217937/how-to-route-to-a-static-folder-in-laravel
 Route::get('/', function () {
     return File::get(public_path() . '/dist/index.html'); // serve ember
 });
