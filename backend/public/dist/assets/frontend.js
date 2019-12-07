@@ -43,7 +43,7 @@ define('frontend/components/main-todo', ['exports'], function (exports) {
     ASCIILetterA: 65,
     // src: https://stackoverflow.com/questions/47741231/ember-computed-property-on-ember-data-store
     todos: Ember.computed(function () {
-      return this.get('store').findAll('main-todo');
+      return this.get('store').peekAll('main-todo');
     }),
     incomplete: Ember.computed('todos.@each.done', function () {
       return this.get('todos').filterBy('done', false).map(function (item) {
@@ -413,6 +413,6 @@ catch(err) {
 });
 
 if (!runningTests) {
-  require("frontend/app")["default"].create({"name":"frontend","version":"0.0.0+61aec22e"});
+  require("frontend/app")["default"].create({"name":"frontend","version":"0.0.0+efca3d49"});
 }
 //# sourceMappingURL=frontend.map

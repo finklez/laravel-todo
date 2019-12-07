@@ -8,7 +8,7 @@ export default Component.extend({
   ASCIILetterA: 65,
   // src: https://stackoverflow.com/questions/47741231/ember-computed-property-on-ember-data-store
   todos: computed(function () {
-    return this.get('store').findAll('main-todo');
+    return this.get('store').peekAll('main-todo');
   }),
   incomplete: computed('todos.@each.done', function () {
     return this.get('todos').filterBy('done', false).map(item => item.id).length;
