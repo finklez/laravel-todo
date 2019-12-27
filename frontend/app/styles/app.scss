@@ -1,4 +1,5 @@
 @import "components/main-todo.scss";
+@import "login.scss";
 
 body, head {
   direction: rtl;
@@ -10,6 +11,21 @@ ul, ol {
   list-style: none;
 }
 
-.login-form {
-  direction: ltr;
+.menu {
+  height: 30px;
+  line-height: 30px;
+  width: 400px;
+  padding: 0 10px;
+  color: red;
+  font-size: 12px;
+  border-bottom: 1px solid;
+  box-sizing: border-box;
+  cursor: pointer;
+  &:hover {
+    color: crimson;
+  }
+}
+
+.btn {
+  //
 }

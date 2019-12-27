@@ -24,14 +24,14 @@ $api->version('v1', function($api) {
 
     // API
     $api->group(['namespace'=>'App\Http\Controllers'],function($api){
-        $api->resource('mainTodos', "TodoController");
-    });
+        $api->resource('mainTodos', 'TodoController');
 
-    // API
-    $api->group(['namespace'=>'App\Http\Controllers'],function($api) {
         // Auth
-        $api->post('auth/login', 'Auth\AuthController@authenticate');
-//        $api->post('auth/logout', 'Auth\AuthController@logout');
+        $api->group(['namespace'=>'Auth'],function($api) {
+            $api->post('auth/login', 'AuthController@authenticate');
+        });
 
+        $api->get('users/me', 'Auth\AuthController@getAuthenticatedUser');
     });
+
 });

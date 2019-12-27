@@ -14,6 +14,11 @@
         {{fa-icon "times" click=(action "remove" todo) class="remove" size="lg"}}
       </div>
   {{/each}}
+  {{#unless this.model}}
+    <div class="no-todos">
+      אין משימות
+    </div>
+  {{/unless}}
 </div>
 
 <div class="status">

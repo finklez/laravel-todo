@@ -15,54 +15,19 @@ class TodoController extends Controller
      */
     public function index()
     {
-        $user = $this->getAuthenticatedUser2();
-        $todos = [];
-        if ($user) {
-            $todos = Todo::where('user_id', $user->id)->get();
-//            $todos = Todo::all();
-        }
+        $user = $this->getAuthenticatedUser();
+        $mainTodos = Todo::where('user_id', $user->id)->get();
 
-        return response()->json(['mainTodos' => $todos]);
+        return response()->json(compact('mainTodos'));
     }
 
-    public function getAuthenticatedUser2()
+    // we expect to have user token, else throw
+    private function getAuthenticatedUser()
     {
-        try {
-            if (! $user = JWTAuth::parseToken()->authenticate()) {
-                return null; // response()->json(['user_not_found'], 404);
-            }
-//        } catch (\Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
-//            return response()->json(['token_expired'], $e->getStatusCode());
-//        } catch (\Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
-//            return response()->json(['token_invalid'], $e->getStatusCode());
-        } catch (\Tymon\JWTAuth\Exceptions\JWTException $e) {
-            return null; // response()->json(['token_absent'], $e->getStatusCode());
-        }
-
-        // the token is valid and we have found the user via the sub claim
-//        return response()->json(compact('user'));
-        return $user;
-    }
-    public function getAuthenticatedUser()
-    {
-        try {
-            if (! $user = JWTAuth::parseToken()->authenticate()) {
-                return response()->json(['user_not_found'], 404);
-            }
-        } catch (\Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
-            return response()->json(['token_expired'], $e->getStatusCode());
-        } catch (\Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
-            return response()->json(['token_invalid'], $e->getStatusCode());
-        } catch (\Tymon\JWTAuth\Exceptions\JWTException $e) {
-            return response()->json(['token_absent'], $e->getStatusCode());
-        }
-
-        // the token is valid and we have found the user via the sub claim
-        return response()->json(compact('user'));
-//        return $user;
+        return JWTAuth::parseToken()->authenticate();
     }
 
-    /**
+        /**
      * Show the form for creating a new resource.
      *
      * @return \Illuminate\Http\Response
@@ -85,13 +50,16 @@ class TodoController extends Controller
             'mainTodo.text' => 'required|max:255',
             'mainTodo.done' => 'required|boolean',
         ]);
-        $todo = new Todo;
-        $todo->text = $request->input('mainTodo.text');
-        $todo->done = $request->input('mainTodo.done', false);
-        $todo->user_id = $this->getAuthenticatedUser()->id;
-        $todo->save();
 
-        return response()->json(['mainTodo' => $todo]);
+        $user = $this->getAuthenticatedUser();
+
+        $mainTodos = new Todo;
+        $mainTodos->text = $request->input('mainTodo.text');
+        $mainTodos->done = $request->input('mainTodo.done', false);
+        $mainTodos->user_id = $user->id;
+        $mainTodos->save();
+
+        return response()->json(compact('mainTodos'));
     }
 
     /**
@@ -125,13 +93,17 @@ class TodoController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        // validate
         $this->validate($request, [
             'mainTodo.text' => 'required|max:255',
             'mainTodo.done' => 'required|boolean',
         ]);
 
-        $todo = Todo::find($id);
+        $user = $this->getAuthenticatedUser();
+
+        $todo = Todo::where('id', $id)
+            ->where('user_id', $user->id)
+            ->first();
         $todo->text = $request->input('mainTodo.text');
         $todo->done = $request->input('mainTodo.done');
         $todo->save();

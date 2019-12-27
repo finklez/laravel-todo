@@ -1,18 +1,8 @@
 <form {{action 'authenticate' on='submit'}} class="login-form">
-  {{input id='email' placeholder='Enter Email' value=email}}
-  {{input id='password' placeholder='Enter Password' type='password' value=password}}
-  <button type="submit">Login</button>
+  {{input id='email' placeholder='אימייל' value=email}}
+  {{input id='password' placeholder='סיסמא' type='password' value=password}}
+  <button type="submit" class="btn btn-default">הרשם</button>
   {{#if errorMessage}}
       <p>{{errorMessage}}</p>
   {{/if}}
 </form>
-<!--<form {{action 'authenticate' on='submit'}}>-->
-<!--    <label for="identification">Login</label>-->
-<!--  {{input id='identification' placeholder='Enter Login' value=identification}}-->
-<!--    <label for="password">Password</label>-->
-<!--  {{input id='password' placeholder='Enter Password' type='password' value=password}}-->
-<!--    <button type="submit">Login</button>-->
-<!--  {{#if errorMessage}}-->
-<!--      <p>{{errorMessage}}</p>-->
-<!--  {{/if}}-->
-<!--</form>-->
