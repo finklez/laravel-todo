@@ -20,6 +20,10 @@
   background: #eee;
 }
 
+.no-todos {
+  padding: 20px 10px;
+}
+
 .todo {
   height: 30px;
   line-height: 30px;
@@ -93,6 +97,19 @@
   font-weight: bold;
 }
 
+.login-form {
+  margin: 50px 0;
+}
+
+.err-msg {
+  direction: ltr;
+  text-align: left;
+  color: red;
+  border: 1px solid red;
+  padding: 0 20px;
+  margin: 40px 0 0;
+}
+
 body, head {
   direction: rtl;
   text-align: right;
@@ -101,6 +118,25 @@ body, head {
 
 ul, ol {
   list-style: none;
+}
+
+.menu {
+  height: 30px;
+  line-height: 30px;
+  width: 500px;
+  padding: 0 10px;
+  color: red;
+  font-size: 12px;
+  border-bottom: 1px solid;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+.menu:hover {
+  color: crimson;
+}
+
+.main {
+  width: 500px;
 }
 
 /*# sourceMappingURL=frontend.css.map */

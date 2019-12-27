@@ -339,6 +339,7581 @@ var runningTests = false;
     module.exports = { require: require, define: define };
   }
 })(this);
+;(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
+(function (global){
+"use strict";
+
+_dereq_(327);
+
+_dereq_(328);
+
+_dereq_(2);
+
+if (global._babelPolyfill) {
+  throw new Error("only one instance of babel-polyfill is allowed");
+}
+global._babelPolyfill = true;
+
+var DEFINE_PROPERTY = "defineProperty";
+function define(O, key, value) {
+  O[key] || Object[DEFINE_PROPERTY](O, key, {
+    writable: true,
+    configurable: true,
+    value: value
+  });
+}
+
+define(String.prototype, "padLeft", "".padStart);
+define(String.prototype, "padRight", "".padEnd);
+
+"pop,reverse,shift,keys,values,entries,indexOf,every,some,forEach,map,filter,find,findIndex,includes,join,slice,concat,push,splice,unshift,sort,lastIndexOf,reduce,reduceRight,copyWithin,fill".split(",").forEach(function (key) {
+  [][key] && define(Array, key, Function.call.bind([][key]));
+});
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"2":2,"327":327,"328":328}],2:[function(_dereq_,module,exports){
+_dereq_(130);
+module.exports = _dereq_(23).RegExp.escape;
+
+},{"130":130,"23":23}],3:[function(_dereq_,module,exports){
+module.exports = function (it) {
+  if (typeof it != 'function') throw TypeError(it + ' is not a function!');
+  return it;
+};
+
+},{}],4:[function(_dereq_,module,exports){
+var cof = _dereq_(18);
+module.exports = function (it, msg) {
+  if (typeof it != 'number' && cof(it) != 'Number') throw TypeError(msg);
+  return +it;
+};
+
+},{"18":18}],5:[function(_dereq_,module,exports){
+// 22.1.3.31 Array.prototype[@@unscopables]
+var UNSCOPABLES = _dereq_(128)('unscopables');
+var ArrayProto = Array.prototype;
+if (ArrayProto[UNSCOPABLES] == undefined) _dereq_(42)(ArrayProto, UNSCOPABLES, {});
+module.exports = function (key) {
+  ArrayProto[UNSCOPABLES][key] = true;
+};
+
+},{"128":128,"42":42}],6:[function(_dereq_,module,exports){
+module.exports = function (it, Constructor, name, forbiddenField) {
+  if (!(it instanceof Constructor) || (forbiddenField !== undefined && forbiddenField in it)) {
+    throw TypeError(name + ': incorrect invocation!');
+  } return it;
+};
+
+},{}],7:[function(_dereq_,module,exports){
+var isObject = _dereq_(51);
+module.exports = function (it) {
+  if (!isObject(it)) throw TypeError(it + ' is not an object!');
+  return it;
+};
+
+},{"51":51}],8:[function(_dereq_,module,exports){
+// 22.1.3.3 Array.prototype.copyWithin(target, start, end = this.length)
+'use strict';
+var toObject = _dereq_(119);
+var toAbsoluteIndex = _dereq_(114);
+var toLength = _dereq_(118);
+
+module.exports = [].copyWithin || function copyWithin(target /* = 0 */, start /* = 0, end = @length */) {
+  var O = toObject(this);
+  var len = toLength(O.length);
+  var to = toAbsoluteIndex(target, len);
+  var from = toAbsoluteIndex(start, len);
+  var end = arguments.length > 2 ? arguments[2] : undefined;
+  var count = Math.min((end === undefined ? len : toAbsoluteIndex(end, len)) - from, len - to);
+  var inc = 1;
+  if (from < to && to < from + count) {
+    inc = -1;
+    from += count - 1;
+    to += count - 1;
+  }
+  while (count-- > 0) {
+    if (from in O) O[to] = O[from];
+    else delete O[to];
+    to += inc;
+    from += inc;
+  } return O;
+};
+
+},{"114":114,"118":118,"119":119}],9:[function(_dereq_,module,exports){
+// 22.1.3.6 Array.prototype.fill(value, start = 0, end = this.length)
+'use strict';
+var toObject = _dereq_(119);
+var toAbsoluteIndex = _dereq_(114);
+var toLength = _dereq_(118);
+module.exports = function fill(value /* , start = 0, end = @length */) {
+  var O = toObject(this);
+  var length = toLength(O.length);
+  var aLen = arguments.length;
+  var index = toAbsoluteIndex(aLen > 1 ? arguments[1] : undefined, length);
+  var end = aLen > 2 ? arguments[2] : undefined;
+  var endPos = end === undefined ? length : toAbsoluteIndex(end, length);
+  while (endPos > index) O[index++] = value;
+  return O;
+};
+
+},{"114":114,"118":118,"119":119}],10:[function(_dereq_,module,exports){
+var forOf = _dereq_(39);
+
+module.exports = function (iter, ITERATOR) {
+  var result = [];
+  forOf(iter, false, result.push, result, ITERATOR);
+  return result;
+};
+
+},{"39":39}],11:[function(_dereq_,module,exports){
+// false -> Array#indexOf
+// true  -> Array#includes
+var toIObject = _dereq_(117);
+var toLength = _dereq_(118);
+var toAbsoluteIndex = _dereq_(114);
+module.exports = function (IS_INCLUDES) {
+  return function ($this, el, fromIndex) {
+    var O = toIObject($this);
+    var length = toLength(O.length);
+    var index = toAbsoluteIndex(fromIndex, length);
+    var value;
+    // Array#includes uses SameValueZero equality algorithm
+    // eslint-disable-next-line no-self-compare
+    if (IS_INCLUDES && el != el) while (length > index) {
+      value = O[index++];
+      // eslint-disable-next-line no-self-compare
+      if (value != value) return true;
+    // Array#indexOf ignores holes, Array#includes - not
+    } else for (;length > index; index++) if (IS_INCLUDES || index in O) {
+      if (O[index] === el) return IS_INCLUDES || index || 0;
+    } return !IS_INCLUDES && -1;
+  };
+};
+
+},{"114":114,"117":117,"118":118}],12:[function(_dereq_,module,exports){
+// 0 -> Array#forEach
+// 1 -> Array#map
+// 2 -> Array#filter
+// 3 -> Array#some
+// 4 -> Array#every
+// 5 -> Array#find
+// 6 -> Array#findIndex
+var ctx = _dereq_(25);
+var IObject = _dereq_(47);
+var toObject = _dereq_(119);
+var toLength = _dereq_(118);
+var asc = _dereq_(15);
+module.exports = function (TYPE, $create) {
+  var IS_MAP = TYPE == 1;
+  var IS_FILTER = TYPE == 2;
+  var IS_SOME = TYPE == 3;
+  var IS_EVERY = TYPE == 4;
+  var IS_FIND_INDEX = TYPE == 6;
+  var NO_HOLES = TYPE == 5 || IS_FIND_INDEX;
+  var create = $create || asc;
+  return function ($this, callbackfn, that) {
+    var O = toObject($this);
+    var self = IObject(O);
+    var f = ctx(callbackfn, that, 3);
+    var length = toLength(self.length);
+    var index = 0;
+    var result = IS_MAP ? create($this, length) : IS_FILTER ? create($this, 0) : undefined;
+    var val, res;
+    for (;length > index; index++) if (NO_HOLES || index in self) {
+      val = self[index];
+      res = f(val, index, O);
+      if (TYPE) {
+        if (IS_MAP) result[index] = res;   // map
+        else if (res) switch (TYPE) {
+          case 3: return true;             // some
+          case 5: return val;              // find
+          case 6: return index;            // findIndex
+          case 2: result.push(val);        // filter
+        } else if (IS_EVERY) return false; // every
+      }
+    }
+    return IS_FIND_INDEX ? -1 : IS_SOME || IS_EVERY ? IS_EVERY : result;
+  };
+};
+
+},{"118":118,"119":119,"15":15,"25":25,"47":47}],13:[function(_dereq_,module,exports){
+var aFunction = _dereq_(3);
+var toObject = _dereq_(119);
+var IObject = _dereq_(47);
+var toLength = _dereq_(118);
+
+module.exports = function (that, callbackfn, aLen, memo, isRight) {
+  aFunction(callbackfn);
+  var O = toObject(that);
+  var self = IObject(O);
+  var length = toLength(O.length);
+  var index = isRight ? length - 1 : 0;
+  var i = isRight ? -1 : 1;
+  if (aLen < 2) for (;;) {
+    if (index in self) {
+      memo = self[index];
+      index += i;
+      break;
+    }
+    index += i;
+    if (isRight ? index < 0 : length <= index) {
+      throw TypeError('Reduce of empty array with no initial value');
+    }
+  }
+  for (;isRight ? index >= 0 : length > index; index += i) if (index in self) {
+    memo = callbackfn(memo, self[index], index, O);
+  }
+  return memo;
+};
+
+},{"118":118,"119":119,"3":3,"47":47}],14:[function(_dereq_,module,exports){
+var isObject = _dereq_(51);
+var isArray = _dereq_(49);
+var SPECIES = _dereq_(128)('species');
+
+module.exports = function (original) {
+  var C;
+  if (isArray(original)) {
+    C = original.constructor;
+    // cross-realm fallback
+    if (typeof C == 'function' && (C === Array || isArray(C.prototype))) C = undefined;
+    if (isObject(C)) {
+      C = C[SPECIES];
+      if (C === null) C = undefined;
+    }
+  } return C === undefined ? Array : C;
+};
+
+},{"128":128,"49":49,"51":51}],15:[function(_dereq_,module,exports){
+// 9.4.2.3 ArraySpeciesCreate(originalArray, length)
+var speciesConstructor = _dereq_(14);
+
+module.exports = function (original, length) {
+  return new (speciesConstructor(original))(length);
+};
+
+},{"14":14}],16:[function(_dereq_,module,exports){
+'use strict';
+var aFunction = _dereq_(3);
+var isObject = _dereq_(51);
+var invoke = _dereq_(46);
+var arraySlice = [].slice;
+var factories = {};
+
+var construct = function (F, len, args) {
+  if (!(len in factories)) {
+    for (var n = [], i = 0; i < len; i++) n[i] = 'a[' + i + ']';
+    // eslint-disable-next-line no-new-func
+    factories[len] = Function('F,a', 'return new F(' + n.join(',') + ')');
+  } return factories[len](F, args);
+};
+
+module.exports = Function.bind || function bind(that /* , ...args */) {
+  var fn = aFunction(this);
+  var partArgs = arraySlice.call(arguments, 1);
+  var bound = function (/* args... */) {
+    var args = partArgs.concat(arraySlice.call(arguments));
+    return this instanceof bound ? construct(fn, args.length, args) : invoke(fn, args, that);
+  };
+  if (isObject(fn.prototype)) bound.prototype = fn.prototype;
+  return bound;
+};
+
+},{"3":3,"46":46,"51":51}],17:[function(_dereq_,module,exports){
+// getting tag from 19.1.3.6 Object.prototype.toString()
+var cof = _dereq_(18);
+var TAG = _dereq_(128)('toStringTag');
+// ES3 wrong here
+var ARG = cof(function () { return arguments; }()) == 'Arguments';
+
+// fallback for IE11 Script Access Denied error
+var tryGet = function (it, key) {
+  try {
+    return it[key];
+  } catch (e) { /* empty */ }
+};
+
+module.exports = function (it) {
+  var O, T, B;
+  return it === undefined ? 'Undefined' : it === null ? 'Null'
+    // @@toStringTag case
+    : typeof (T = tryGet(O = Object(it), TAG)) == 'string' ? T
+    // builtinTag case
+    : ARG ? cof(O)
+    // ES3 arguments fallback
+    : (B = cof(O)) == 'Object' && typeof O.callee == 'function' ? 'Arguments' : B;
+};
+
+},{"128":128,"18":18}],18:[function(_dereq_,module,exports){
+var toString = {}.toString;
+
+module.exports = function (it) {
+  return toString.call(it).slice(8, -1);
+};
+
+},{}],19:[function(_dereq_,module,exports){
+'use strict';
+var dP = _dereq_(72).f;
+var create = _dereq_(71);
+var redefineAll = _dereq_(93);
+var ctx = _dereq_(25);
+var anInstance = _dereq_(6);
+var forOf = _dereq_(39);
+var $iterDefine = _dereq_(55);
+var step = _dereq_(57);
+var setSpecies = _dereq_(100);
+var DESCRIPTORS = _dereq_(29);
+var fastKey = _dereq_(66).fastKey;
+var validate = _dereq_(125);
+var SIZE = DESCRIPTORS ? '_s' : 'size';
+
+var getEntry = function (that, key) {
+  // fast case
+  var index = fastKey(key);
+  var entry;
+  if (index !== 'F') return that._i[index];
+  // frozen object case
+  for (entry = that._f; entry; entry = entry.n) {
+    if (entry.k == key) return entry;
+  }
+};
+
+module.exports = {
+  getConstructor: function (wrapper, NAME, IS_MAP, ADDER) {
+    var C = wrapper(function (that, iterable) {
+      anInstance(that, C, NAME, '_i');
+      that._t = NAME;         // collection type
+      that._i = create(null); // index
+      that._f = undefined;    // first entry
+      that._l = undefined;    // last entry
+      that[SIZE] = 0;         // size
+      if (iterable != undefined) forOf(iterable, IS_MAP, that[ADDER], that);
+    });
+    redefineAll(C.prototype, {
+      // 23.1.3.1 Map.prototype.clear()
+      // 23.2.3.2 Set.prototype.clear()
+      clear: function clear() {
+        for (var that = validate(this, NAME), data = that._i, entry = that._f; entry; entry = entry.n) {
+          entry.r = true;
+          if (entry.p) entry.p = entry.p.n = undefined;
+          delete data[entry.i];
+        }
+        that._f = that._l = undefined;
+        that[SIZE] = 0;
+      },
+      // 23.1.3.3 Map.prototype.delete(key)
+      // 23.2.3.4 Set.prototype.delete(value)
+      'delete': function (key) {
+        var that = validate(this, NAME);
+        var entry = getEntry(that, key);
+        if (entry) {
+          var next = entry.n;
+          var prev = entry.p;
+          delete that._i[entry.i];
+          entry.r = true;
+          if (prev) prev.n = next;
+          if (next) next.p = prev;
+          if (that._f == entry) that._f = next;
+          if (that._l == entry) that._l = prev;
+          that[SIZE]--;
+        } return !!entry;
+      },
+      // 23.2.3.6 Set.prototype.forEach(callbackfn, thisArg = undefined)
+      // 23.1.3.5 Map.prototype.forEach(callbackfn, thisArg = undefined)
+      forEach: function forEach(callbackfn /* , that = undefined */) {
+        validate(this, NAME);
+        var f = ctx(callbackfn, arguments.length > 1 ? arguments[1] : undefined, 3);
+        var entry;
+        while (entry = entry ? entry.n : this._f) {
+          f(entry.v, entry.k, this);
+          // revert to the last existing entry
+          while (entry && entry.r) entry = entry.p;
+        }
+      },
+      // 23.1.3.7 Map.prototype.has(key)
+      // 23.2.3.7 Set.prototype.has(value)
+      has: function has(key) {
+        return !!getEntry(validate(this, NAME), key);
+      }
+    });
+    if (DESCRIPTORS) dP(C.prototype, 'size', {
+      get: function () {
+        return validate(this, NAME)[SIZE];
+      }
+    });
+    return C;
+  },
+  def: function (that, key, value) {
+    var entry = getEntry(that, key);
+    var prev, index;
+    // change existing entry
+    if (entry) {
+      entry.v = value;
+    // create new entry
+    } else {
+      that._l = entry = {
+        i: index = fastKey(key, true), // <- index
+        k: key,                        // <- key
+        v: value,                      // <- value
+        p: prev = that._l,             // <- previous entry
+        n: undefined,                  // <- next entry
+        r: false                       // <- removed
+      };
+      if (!that._f) that._f = entry;
+      if (prev) prev.n = entry;
+      that[SIZE]++;
+      // add to index
+      if (index !== 'F') that._i[index] = entry;
+    } return that;
+  },
+  getEntry: getEntry,
+  setStrong: function (C, NAME, IS_MAP) {
+    // add .keys, .values, .entries, [@@iterator]
+    // 23.1.3.4, 23.1.3.8, 23.1.3.11, 23.1.3.12, 23.2.3.5, 23.2.3.8, 23.2.3.10, 23.2.3.11
+    $iterDefine(C, NAME, function (iterated, kind) {
+      this._t = validate(iterated, NAME); // target
+      this._k = kind;                     // kind
+      this._l = undefined;                // previous
+    }, function () {
+      var that = this;
+      var kind = that._k;
+      var entry = that._l;
+      // revert to the last existing entry
+      while (entry && entry.r) entry = entry.p;
+      // get next entry
+      if (!that._t || !(that._l = entry = entry ? entry.n : that._t._f)) {
+        // or finish the iteration
+        that._t = undefined;
+        return step(1);
+      }
+      // return step by kind
+      if (kind == 'keys') return step(0, entry.k);
+      if (kind == 'values') return step(0, entry.v);
+      return step(0, [entry.k, entry.v]);
+    }, IS_MAP ? 'entries' : 'values', !IS_MAP, true);
+
+    // add [@@species], 23.1.2.2, 23.2.2.2
+    setSpecies(NAME);
+  }
+};
+
+},{"100":100,"125":125,"25":25,"29":29,"39":39,"55":55,"57":57,"6":6,"66":66,"71":71,"72":72,"93":93}],20:[function(_dereq_,module,exports){
+// https://github.com/DavidBruant/Map-Set.prototype.toJSON
+var classof = _dereq_(17);
+var from = _dereq_(10);
+module.exports = function (NAME) {
+  return function toJSON() {
+    if (classof(this) != NAME) throw TypeError(NAME + "#toJSON isn't generic");
+    return from(this);
+  };
+};
+
+},{"10":10,"17":17}],21:[function(_dereq_,module,exports){
+'use strict';
+var redefineAll = _dereq_(93);
+var getWeak = _dereq_(66).getWeak;
+var anObject = _dereq_(7);
+var isObject = _dereq_(51);
+var anInstance = _dereq_(6);
+var forOf = _dereq_(39);
+var createArrayMethod = _dereq_(12);
+var $has = _dereq_(41);
+var validate = _dereq_(125);
+var arrayFind = createArrayMethod(5);
+var arrayFindIndex = createArrayMethod(6);
+var id = 0;
+
+// fallback for uncaught frozen keys
+var uncaughtFrozenStore = function (that) {
+  return that._l || (that._l = new UncaughtFrozenStore());
+};
+var UncaughtFrozenStore = function () {
+  this.a = [];
+};
+var findUncaughtFrozen = function (store, key) {
+  return arrayFind(store.a, function (it) {
+    return it[0] === key;
+  });
+};
+UncaughtFrozenStore.prototype = {
+  get: function (key) {
+    var entry = findUncaughtFrozen(this, key);
+    if (entry) return entry[1];
+  },
+  has: function (key) {
+    return !!findUncaughtFrozen(this, key);
+  },
+  set: function (key, value) {
+    var entry = findUncaughtFrozen(this, key);
+    if (entry) entry[1] = value;
+    else this.a.push([key, value]);
+  },
+  'delete': function (key) {
+    var index = arrayFindIndex(this.a, function (it) {
+      return it[0] === key;
+    });
+    if (~index) this.a.splice(index, 1);
+    return !!~index;
+  }
+};
+
+module.exports = {
+  getConstructor: function (wrapper, NAME, IS_MAP, ADDER) {
+    var C = wrapper(function (that, iterable) {
+      anInstance(that, C, NAME, '_i');
+      that._t = NAME;      // collection type
+      that._i = id++;      // collection id
+      that._l = undefined; // leak store for uncaught frozen objects
+      if (iterable != undefined) forOf(iterable, IS_MAP, that[ADDER], that);
+    });
+    redefineAll(C.prototype, {
+      // 23.3.3.2 WeakMap.prototype.delete(key)
+      // 23.4.3.3 WeakSet.prototype.delete(value)
+      'delete': function (key) {
+        if (!isObject(key)) return false;
+        var data = getWeak(key);
+        if (data === true) return uncaughtFrozenStore(validate(this, NAME))['delete'](key);
+        return data && $has(data, this._i) && delete data[this._i];
+      },
+      // 23.3.3.4 WeakMap.prototype.has(key)
+      // 23.4.3.4 WeakSet.prototype.has(value)
+      has: function has(key) {
+        if (!isObject(key)) return false;
+        var data = getWeak(key);
+        if (data === true) return uncaughtFrozenStore(validate(this, NAME)).has(key);
+        return data && $has(data, this._i);
+      }
+    });
+    return C;
+  },
+  def: function (that, key, value) {
+    var data = getWeak(anObject(key), true);
+    if (data === true) uncaughtFrozenStore(that).set(key, value);
+    else data[that._i] = value;
+    return that;
+  },
+  ufstore: uncaughtFrozenStore
+};
+
+},{"12":12,"125":125,"39":39,"41":41,"51":51,"6":6,"66":66,"7":7,"93":93}],22:[function(_dereq_,module,exports){
+'use strict';
+var global = _dereq_(40);
+var $export = _dereq_(33);
+var redefine = _dereq_(94);
+var redefineAll = _dereq_(93);
+var meta = _dereq_(66);
+var forOf = _dereq_(39);
+var anInstance = _dereq_(6);
+var isObject = _dereq_(51);
+var fails = _dereq_(35);
+var $iterDetect = _dereq_(56);
+var setToStringTag = _dereq_(101);
+var inheritIfRequired = _dereq_(45);
+
+module.exports = function (NAME, wrapper, methods, common, IS_MAP, IS_WEAK) {
+  var Base = global[NAME];
+  var C = Base;
+  var ADDER = IS_MAP ? 'set' : 'add';
+  var proto = C && C.prototype;
+  var O = {};
+  var fixMethod = function (KEY) {
+    var fn = proto[KEY];
+    redefine(proto, KEY,
+      KEY == 'delete' ? function (a) {
+        return IS_WEAK && !isObject(a) ? false : fn.call(this, a === 0 ? 0 : a);
+      } : KEY == 'has' ? function has(a) {
+        return IS_WEAK && !isObject(a) ? false : fn.call(this, a === 0 ? 0 : a);
+      } : KEY == 'get' ? function get(a) {
+        return IS_WEAK && !isObject(a) ? undefined : fn.call(this, a === 0 ? 0 : a);
+      } : KEY == 'add' ? function add(a) { fn.call(this, a === 0 ? 0 : a); return this; }
+        : function set(a, b) { fn.call(this, a === 0 ? 0 : a, b); return this; }
+    );
+  };
+  if (typeof C != 'function' || !(IS_WEAK || proto.forEach && !fails(function () {
+    new C().entries().next();
+  }))) {
+    // create collection constructor
+    C = common.getConstructor(wrapper, NAME, IS_MAP, ADDER);
+    redefineAll(C.prototype, methods);
+    meta.NEED = true;
+  } else {
+    var instance = new C();
+    // early implementations not supports chaining
+    var HASNT_CHAINING = instance[ADDER](IS_WEAK ? {} : -0, 1) != instance;
+    // V8 ~  Chromium 40- weak-collections throws on primitives, but should return false
+    var THROWS_ON_PRIMITIVES = fails(function () { instance.has(1); });
+    // most early implementations doesn't supports iterables, most modern - not close it correctly
+    var ACCEPT_ITERABLES = $iterDetect(function (iter) { new C(iter); }); // eslint-disable-line no-new
+    // for early implementations -0 and +0 not the same
+    var BUGGY_ZERO = !IS_WEAK && fails(function () {
+      // V8 ~ Chromium 42- fails only with 5+ elements
+      var $instance = new C();
+      var index = 5;
+      while (index--) $instance[ADDER](index, index);
+      return !$instance.has(-0);
+    });
+    if (!ACCEPT_ITERABLES) {
+      C = wrapper(function (target, iterable) {
+        anInstance(target, C, NAME);
+        var that = inheritIfRequired(new Base(), target, C);
+        if (iterable != undefined) forOf(iterable, IS_MAP, that[ADDER], that);
+        return that;
+      });
+      C.prototype = proto;
+      proto.constructor = C;
+    }
+    if (THROWS_ON_PRIMITIVES || BUGGY_ZERO) {
+      fixMethod('delete');
+      fixMethod('has');
+      IS_MAP && fixMethod('get');
+    }
+    if (BUGGY_ZERO || HASNT_CHAINING) fixMethod(ADDER);
+    // weak collections should not contains .clear method
+    if (IS_WEAK && proto.clear) delete proto.clear;
+  }
+
+  setToStringTag(C, NAME);
+
+  O[NAME] = C;
+  $export($export.G + $export.W + $export.F * (C != Base), O);
+
+  if (!IS_WEAK) common.setStrong(C, NAME, IS_MAP);
+
+  return C;
+};
+
+},{"101":101,"33":33,"35":35,"39":39,"40":40,"45":45,"51":51,"56":56,"6":6,"66":66,"93":93,"94":94}],23:[function(_dereq_,module,exports){
+var core = module.exports = { version: '2.5.0' };
+if (typeof __e == 'number') __e = core; // eslint-disable-line no-undef
+
+},{}],24:[function(_dereq_,module,exports){
+'use strict';
+var $defineProperty = _dereq_(72);
+var createDesc = _dereq_(92);
+
+module.exports = function (object, index, value) {
+  if (index in object) $defineProperty.f(object, index, createDesc(0, value));
+  else object[index] = value;
+};
+
+},{"72":72,"92":92}],25:[function(_dereq_,module,exports){
+// optional / simple context binding
+var aFunction = _dereq_(3);
+module.exports = function (fn, that, length) {
+  aFunction(fn);
+  if (that === undefined) return fn;
+  switch (length) {
+    case 1: return function (a) {
+      return fn.call(that, a);
+    };
+    case 2: return function (a, b) {
+      return fn.call(that, a, b);
+    };
+    case 3: return function (a, b, c) {
+      return fn.call(that, a, b, c);
+    };
+  }
+  return function (/* ...args */) {
+    return fn.apply(that, arguments);
+  };
+};
+
+},{"3":3}],26:[function(_dereq_,module,exports){
+'use strict';
+// 20.3.4.36 / 15.9.5.43 Date.prototype.toISOString()
+var fails = _dereq_(35);
+var getTime = Date.prototype.getTime;
+var $toISOString = Date.prototype.toISOString;
+
+var lz = function (num) {
+  return num > 9 ? num : '0' + num;
+};
+
+// PhantomJS / old WebKit has a broken implementations
+module.exports = (fails(function () {
+  return $toISOString.call(new Date(-5e13 - 1)) != '0385-07-25T07:06:39.999Z';
+}) || !fails(function () {
+  $toISOString.call(new Date(NaN));
+})) ? function toISOString() {
+  if (!isFinite(getTime.call(this))) throw RangeError('Invalid time value');
+  var d = this;
+  var y = d.getUTCFullYear();
+  var m = d.getUTCMilliseconds();
+  var s = y < 0 ? '-' : y > 9999 ? '+' : '';
+  return s + ('00000' + Math.abs(y)).slice(s ? -6 : -4) +
+    '-' + lz(d.getUTCMonth() + 1) + '-' + lz(d.getUTCDate()) +
+    'T' + lz(d.getUTCHours()) + ':' + lz(d.getUTCMinutes()) +
+    ':' + lz(d.getUTCSeconds()) + '.' + (m > 99 ? m : '0' + lz(m)) + 'Z';
+} : $toISOString;
+
+},{"35":35}],27:[function(_dereq_,module,exports){
+'use strict';
+var anObject = _dereq_(7);
+var toPrimitive = _dereq_(120);
+var NUMBER = 'number';
+
+module.exports = function (hint) {
+  if (hint !== 'string' && hint !== NUMBER && hint !== 'default') throw TypeError('Incorrect hint');
+  return toPrimitive(anObject(this), hint != NUMBER);
+};
+
+},{"120":120,"7":7}],28:[function(_dereq_,module,exports){
+// 7.2.1 RequireObjectCoercible(argument)
+module.exports = function (it) {
+  if (it == undefined) throw TypeError("Can't call method on  " + it);
+  return it;
+};
+
+},{}],29:[function(_dereq_,module,exports){
+// Thank's IE8 for his funny defineProperty
+module.exports = !_dereq_(35)(function () {
+  return Object.defineProperty({}, 'a', { get: function () { return 7; } }).a != 7;
+});
+
+},{"35":35}],30:[function(_dereq_,module,exports){
+var isObject = _dereq_(51);
+var document = _dereq_(40).document;
+// typeof document.createElement is 'object' in old IE
+var is = isObject(document) && isObject(document.createElement);
+module.exports = function (it) {
+  return is ? document.createElement(it) : {};
+};
+
+},{"40":40,"51":51}],31:[function(_dereq_,module,exports){
+// IE 8- don't enum bug keys
+module.exports = (
+  'constructor,hasOwnProperty,isPrototypeOf,propertyIsEnumerable,toLocaleString,toString,valueOf'
+).split(',');
+
+},{}],32:[function(_dereq_,module,exports){
+// all enumerable object keys, includes symbols
+var getKeys = _dereq_(81);
+var gOPS = _dereq_(78);
+var pIE = _dereq_(82);
+module.exports = function (it) {
+  var result = getKeys(it);
+  var getSymbols = gOPS.f;
+  if (getSymbols) {
+    var symbols = getSymbols(it);
+    var isEnum = pIE.f;
+    var i = 0;
+    var key;
+    while (symbols.length > i) if (isEnum.call(it, key = symbols[i++])) result.push(key);
+  } return result;
+};
+
+},{"78":78,"81":81,"82":82}],33:[function(_dereq_,module,exports){
+var global = _dereq_(40);
+var core = _dereq_(23);
+var hide = _dereq_(42);
+var redefine = _dereq_(94);
+var ctx = _dereq_(25);
+var PROTOTYPE = 'prototype';
+
+var $export = function (type, name, source) {
+  var IS_FORCED = type & $export.F;
+  var IS_GLOBAL = type & $export.G;
+  var IS_STATIC = type & $export.S;
+  var IS_PROTO = type & $export.P;
+  var IS_BIND = type & $export.B;
+  var target = IS_GLOBAL ? global : IS_STATIC ? global[name] || (global[name] = {}) : (global[name] || {})[PROTOTYPE];
+  var exports = IS_GLOBAL ? core : core[name] || (core[name] = {});
+  var expProto = exports[PROTOTYPE] || (exports[PROTOTYPE] = {});
+  var key, own, out, exp;
+  if (IS_GLOBAL) source = name;
+  for (key in source) {
+    // contains in native
+    own = !IS_FORCED && target && target[key] !== undefined;
+    // export native or passed
+    out = (own ? target : source)[key];
+    // bind timers to global for call from export context
+    exp = IS_BIND && own ? ctx(out, global) : IS_PROTO && typeof out == 'function' ? ctx(Function.call, out) : out;
+    // extend global
+    if (target) redefine(target, key, out, type & $export.U);
+    // export
+    if (exports[key] != out) hide(exports, key, exp);
+    if (IS_PROTO && expProto[key] != out) expProto[key] = out;
+  }
+};
+global.core = core;
+// type bitmap
+$export.F = 1;   // forced
+$export.G = 2;   // global
+$export.S = 4;   // static
+$export.P = 8;   // proto
+$export.B = 16;  // bind
+$export.W = 32;  // wrap
+$export.U = 64;  // safe
+$export.R = 128; // real proto method for `library`
+module.exports = $export;
+
+},{"23":23,"25":25,"40":40,"42":42,"94":94}],34:[function(_dereq_,module,exports){
+var MATCH = _dereq_(128)('match');
+module.exports = function (KEY) {
+  var re = /./;
+  try {
+    '/./'[KEY](re);
+  } catch (e) {
+    try {
+      re[MATCH] = false;
+      return !'/./'[KEY](re);
+    } catch (f) { /* empty */ }
+  } return true;
+};
+
+},{"128":128}],35:[function(_dereq_,module,exports){
+module.exports = function (exec) {
+  try {
+    return !!exec();
+  } catch (e) {
+    return true;
+  }
+};
+
+},{}],36:[function(_dereq_,module,exports){
+'use strict';
+var hide = _dereq_(42);
+var redefine = _dereq_(94);
+var fails = _dereq_(35);
+var defined = _dereq_(28);
+var wks = _dereq_(128);
+
+module.exports = function (KEY, length, exec) {
+  var SYMBOL = wks(KEY);
+  var fns = exec(defined, SYMBOL, ''[KEY]);
+  var strfn = fns[0];
+  var rxfn = fns[1];
+  if (fails(function () {
+    var O = {};
+    O[SYMBOL] = function () { return 7; };
+    return ''[KEY](O) != 7;
+  })) {
+    redefine(String.prototype, KEY, strfn);
+    hide(RegExp.prototype, SYMBOL, length == 2
+      // 21.2.5.8 RegExp.prototype[@@replace](string, replaceValue)
+      // 21.2.5.11 RegExp.prototype[@@split](string, limit)
+      ? function (string, arg) { return rxfn.call(string, this, arg); }
+      // 21.2.5.6 RegExp.prototype[@@match](string)
+      // 21.2.5.9 RegExp.prototype[@@search](string)
+      : function (string) { return rxfn.call(string, this); }
+    );
+  }
+};
+
+},{"128":128,"28":28,"35":35,"42":42,"94":94}],37:[function(_dereq_,module,exports){
+'use strict';
+// 21.2.5.3 get RegExp.prototype.flags
+var anObject = _dereq_(7);
+module.exports = function () {
+  var that = anObject(this);
+  var result = '';
+  if (that.global) result += 'g';
+  if (that.ignoreCase) result += 'i';
+  if (that.multiline) result += 'm';
+  if (that.unicode) result += 'u';
+  if (that.sticky) result += 'y';
+  return result;
+};
+
+},{"7":7}],38:[function(_dereq_,module,exports){
+'use strict';
+// https://tc39.github.io/proposal-flatMap/#sec-FlattenIntoArray
+var isArray = _dereq_(49);
+var isObject = _dereq_(51);
+var toLength = _dereq_(118);
+var ctx = _dereq_(25);
+var IS_CONCAT_SPREADABLE = _dereq_(128)('isConcatSpreadable');
+
+function flattenIntoArray(target, original, source, sourceLen, start, depth, mapper, thisArg) {
+  var targetIndex = start;
+  var sourceIndex = 0;
+  var mapFn = mapper ? ctx(mapper, thisArg, 3) : false;
+  var element, spreadable;
+
+  while (sourceIndex < sourceLen) {
+    if (sourceIndex in source) {
+      element = mapFn ? mapFn(source[sourceIndex], sourceIndex, original) : source[sourceIndex];
+
+      spreadable = false;
+      if (isObject(element)) {
+        spreadable = element[IS_CONCAT_SPREADABLE];
+        spreadable = spreadable !== undefined ? !!spreadable : isArray(element);
+      }
+
+      if (spreadable && depth > 0) {
+        targetIndex = flattenIntoArray(target, original, element, toLength(element.length), targetIndex, depth - 1) - 1;
+      } else {
+        if (targetIndex >= 0x1fffffffffffff) throw TypeError();
+        target[targetIndex] = element;
+      }
+
+      targetIndex++;
+    }
+    sourceIndex++;
+  }
+  return targetIndex;
+}
+
+module.exports = flattenIntoArray;
+
+},{"118":118,"128":128,"25":25,"49":49,"51":51}],39:[function(_dereq_,module,exports){
+var ctx = _dereq_(25);
+var call = _dereq_(53);
+var isArrayIter = _dereq_(48);
+var anObject = _dereq_(7);
+var toLength = _dereq_(118);
+var getIterFn = _dereq_(129);
+var BREAK = {};
+var RETURN = {};
+var exports = module.exports = function (iterable, entries, fn, that, ITERATOR) {
+  var iterFn = ITERATOR ? function () { return iterable; } : getIterFn(iterable);
+  var f = ctx(fn, that, entries ? 2 : 1);
+  var index = 0;
+  var length, step, iterator, result;
+  if (typeof iterFn != 'function') throw TypeError(iterable + ' is not iterable!');
+  // fast case for arrays with default iterator
+  if (isArrayIter(iterFn)) for (length = toLength(iterable.length); length > index; index++) {
+    result = entries ? f(anObject(step = iterable[index])[0], step[1]) : f(iterable[index]);
+    if (result === BREAK || result === RETURN) return result;
+  } else for (iterator = iterFn.call(iterable); !(step = iterator.next()).done;) {
+    result = call(iterator, f, step.value, entries);
+    if (result === BREAK || result === RETURN) return result;
+  }
+};
+exports.BREAK = BREAK;
+exports.RETURN = RETURN;
+
+},{"118":118,"129":129,"25":25,"48":48,"53":53,"7":7}],40:[function(_dereq_,module,exports){
+// https://github.com/zloirock/core-js/issues/86#issuecomment-115759028
+var global = module.exports = typeof window != 'undefined' && window.Math == Math
+  ? window : typeof self != 'undefined' && self.Math == Math ? self
+  // eslint-disable-next-line no-new-func
+  : Function('return this')();
+if (typeof __g == 'number') __g = global; // eslint-disable-line no-undef
+
+},{}],41:[function(_dereq_,module,exports){
+var hasOwnProperty = {}.hasOwnProperty;
+module.exports = function (it, key) {
+  return hasOwnProperty.call(it, key);
+};
+
+},{}],42:[function(_dereq_,module,exports){
+var dP = _dereq_(72);
+var createDesc = _dereq_(92);
+module.exports = _dereq_(29) ? function (object, key, value) {
+  return dP.f(object, key, createDesc(1, value));
+} : function (object, key, value) {
+  object[key] = value;
+  return object;
+};
+
+},{"29":29,"72":72,"92":92}],43:[function(_dereq_,module,exports){
+var document = _dereq_(40).document;
+module.exports = document && document.documentElement;
+
+},{"40":40}],44:[function(_dereq_,module,exports){
+module.exports = !_dereq_(29) && !_dereq_(35)(function () {
+  return Object.defineProperty(_dereq_(30)('div'), 'a', { get: function () { return 7; } }).a != 7;
+});
+
+},{"29":29,"30":30,"35":35}],45:[function(_dereq_,module,exports){
+var isObject = _dereq_(51);
+var setPrototypeOf = _dereq_(99).set;
+module.exports = function (that, target, C) {
+  var S = target.constructor;
+  var P;
+  if (S !== C && typeof S == 'function' && (P = S.prototype) !== C.prototype && isObject(P) && setPrototypeOf) {
+    setPrototypeOf(that, P);
+  } return that;
+};
+
+},{"51":51,"99":99}],46:[function(_dereq_,module,exports){
+// fast apply, http://jsperf.lnkit.com/fast-apply/5
+module.exports = function (fn, args, that) {
+  var un = that === undefined;
+  switch (args.length) {
+    case 0: return un ? fn()
+                      : fn.call(that);
+    case 1: return un ? fn(args[0])
+                      : fn.call(that, args[0]);
+    case 2: return un ? fn(args[0], args[1])
+                      : fn.call(that, args[0], args[1]);
+    case 3: return un ? fn(args[0], args[1], args[2])
+                      : fn.call(that, args[0], args[1], args[2]);
+    case 4: return un ? fn(args[0], args[1], args[2], args[3])
+                      : fn.call(that, args[0], args[1], args[2], args[3]);
+  } return fn.apply(that, args);
+};
+
+},{}],47:[function(_dereq_,module,exports){
+// fallback for non-array-like ES3 and non-enumerable old V8 strings
+var cof = _dereq_(18);
+// eslint-disable-next-line no-prototype-builtins
+module.exports = Object('z').propertyIsEnumerable(0) ? Object : function (it) {
+  return cof(it) == 'String' ? it.split('') : Object(it);
+};
+
+},{"18":18}],48:[function(_dereq_,module,exports){
+// check on default Array iterator
+var Iterators = _dereq_(58);
+var ITERATOR = _dereq_(128)('iterator');
+var ArrayProto = Array.prototype;
+
+module.exports = function (it) {
+  return it !== undefined && (Iterators.Array === it || ArrayProto[ITERATOR] === it);
+};
+
+},{"128":128,"58":58}],49:[function(_dereq_,module,exports){
+// 7.2.2 IsArray(argument)
+var cof = _dereq_(18);
+module.exports = Array.isArray || function isArray(arg) {
+  return cof(arg) == 'Array';
+};
+
+},{"18":18}],50:[function(_dereq_,module,exports){
+// 20.1.2.3 Number.isInteger(number)
+var isObject = _dereq_(51);
+var floor = Math.floor;
+module.exports = function isInteger(it) {
+  return !isObject(it) && isFinite(it) && floor(it) === it;
+};
+
+},{"51":51}],51:[function(_dereq_,module,exports){
+module.exports = function (it) {
+  return typeof it === 'object' ? it !== null : typeof it === 'function';
+};
+
+},{}],52:[function(_dereq_,module,exports){
+// 7.2.8 IsRegExp(argument)
+var isObject = _dereq_(51);
+var cof = _dereq_(18);
+var MATCH = _dereq_(128)('match');
+module.exports = function (it) {
+  var isRegExp;
+  return isObject(it) && ((isRegExp = it[MATCH]) !== undefined ? !!isRegExp : cof(it) == 'RegExp');
+};
+
+},{"128":128,"18":18,"51":51}],53:[function(_dereq_,module,exports){
+// call something on iterator step with safe closing on error
+var anObject = _dereq_(7);
+module.exports = function (iterator, fn, value, entries) {
+  try {
+    return entries ? fn(anObject(value)[0], value[1]) : fn(value);
+  // 7.4.6 IteratorClose(iterator, completion)
+  } catch (e) {
+    var ret = iterator['return'];
+    if (ret !== undefined) anObject(ret.call(iterator));
+    throw e;
+  }
+};
+
+},{"7":7}],54:[function(_dereq_,module,exports){
+'use strict';
+var create = _dereq_(71);
+var descriptor = _dereq_(92);
+var setToStringTag = _dereq_(101);
+var IteratorPrototype = {};
+
+// 25.1.2.1.1 %IteratorPrototype%[@@iterator]()
+_dereq_(42)(IteratorPrototype, _dereq_(128)('iterator'), function () { return this; });
+
+module.exports = function (Constructor, NAME, next) {
+  Constructor.prototype = create(IteratorPrototype, { next: descriptor(1, next) });
+  setToStringTag(Constructor, NAME + ' Iterator');
+};
+
+},{"101":101,"128":128,"42":42,"71":71,"92":92}],55:[function(_dereq_,module,exports){
+'use strict';
+var LIBRARY = _dereq_(60);
+var $export = _dereq_(33);
+var redefine = _dereq_(94);
+var hide = _dereq_(42);
+var has = _dereq_(41);
+var Iterators = _dereq_(58);
+var $iterCreate = _dereq_(54);
+var setToStringTag = _dereq_(101);
+var getPrototypeOf = _dereq_(79);
+var ITERATOR = _dereq_(128)('iterator');
+var BUGGY = !([].keys && 'next' in [].keys()); // Safari has buggy iterators w/o `next`
+var FF_ITERATOR = '@@iterator';
+var KEYS = 'keys';
+var VALUES = 'values';
+
+var returnThis = function () { return this; };
+
+module.exports = function (Base, NAME, Constructor, next, DEFAULT, IS_SET, FORCED) {
+  $iterCreate(Constructor, NAME, next);
+  var getMethod = function (kind) {
+    if (!BUGGY && kind in proto) return proto[kind];
+    switch (kind) {
+      case KEYS: return function keys() { return new Constructor(this, kind); };
+      case VALUES: return function values() { return new Constructor(this, kind); };
+    } return function entries() { return new Constructor(this, kind); };
+  };
+  var TAG = NAME + ' Iterator';
+  var DEF_VALUES = DEFAULT == VALUES;
+  var VALUES_BUG = false;
+  var proto = Base.prototype;
+  var $native = proto[ITERATOR] || proto[FF_ITERATOR] || DEFAULT && proto[DEFAULT];
+  var $default = $native || getMethod(DEFAULT);
+  var $entries = DEFAULT ? !DEF_VALUES ? $default : getMethod('entries') : undefined;
+  var $anyNative = NAME == 'Array' ? proto.entries || $native : $native;
+  var methods, key, IteratorPrototype;
+  // Fix native
+  if ($anyNative) {
+    IteratorPrototype = getPrototypeOf($anyNative.call(new Base()));
+    if (IteratorPrototype !== Object.prototype && IteratorPrototype.next) {
+      // Set @@toStringTag to native iterators
+      setToStringTag(IteratorPrototype, TAG, true);
+      // fix for some old engines
+      if (!LIBRARY && !has(IteratorPrototype, ITERATOR)) hide(IteratorPrototype, ITERATOR, returnThis);
+    }
+  }
+  // fix Array#{values, @@iterator}.name in V8 / FF
+  if (DEF_VALUES && $native && $native.name !== VALUES) {
+    VALUES_BUG = true;
+    $default = function values() { return $native.call(this); };
+  }
+  // Define iterator
+  if ((!LIBRARY || FORCED) && (BUGGY || VALUES_BUG || !proto[ITERATOR])) {
+    hide(proto, ITERATOR, $default);
+  }
+  // Plug for library
+  Iterators[NAME] = $default;
+  Iterators[TAG] = returnThis;
+  if (DEFAULT) {
+    methods = {
+      values: DEF_VALUES ? $default : getMethod(VALUES),
+      keys: IS_SET ? $default : getMethod(KEYS),
+      entries: $entries
+    };
+    if (FORCED) for (key in methods) {
+      if (!(key in proto)) redefine(proto, key, methods[key]);
+    } else $export($export.P + $export.F * (BUGGY || VALUES_BUG), NAME, methods);
+  }
+  return methods;
+};
+
+},{"101":101,"128":128,"33":33,"41":41,"42":42,"54":54,"58":58,"60":60,"79":79,"94":94}],56:[function(_dereq_,module,exports){
+var ITERATOR = _dereq_(128)('iterator');
+var SAFE_CLOSING = false;
+
+try {
+  var riter = [7][ITERATOR]();
+  riter['return'] = function () { SAFE_CLOSING = true; };
+  // eslint-disable-next-line no-throw-literal
+  Array.from(riter, function () { throw 2; });
+} catch (e) { /* empty */ }
+
+module.exports = function (exec, skipClosing) {
+  if (!skipClosing && !SAFE_CLOSING) return false;
+  var safe = false;
+  try {
+    var arr = [7];
+    var iter = arr[ITERATOR]();
+    iter.next = function () { return { done: safe = true }; };
+    arr[ITERATOR] = function () { return iter; };
+    exec(arr);
+  } catch (e) { /* empty */ }
+  return safe;
+};
+
+},{"128":128}],57:[function(_dereq_,module,exports){
+module.exports = function (done, value) {
+  return { value: value, done: !!done };
+};
+
+},{}],58:[function(_dereq_,module,exports){
+module.exports = {};
+
+},{}],59:[function(_dereq_,module,exports){
+var getKeys = _dereq_(81);
+var toIObject = _dereq_(117);
+module.exports = function (object, el) {
+  var O = toIObject(object);
+  var keys = getKeys(O);
+  var length = keys.length;
+  var index = 0;
+  var key;
+  while (length > index) if (O[key = keys[index++]] === el) return key;
+};
+
+},{"117":117,"81":81}],60:[function(_dereq_,module,exports){
+module.exports = false;
+
+},{}],61:[function(_dereq_,module,exports){
+// 20.2.2.14 Math.expm1(x)
+var $expm1 = Math.expm1;
+module.exports = (!$expm1
+  // Old FF bug
+  || $expm1(10) > 22025.465794806719 || $expm1(10) < 22025.4657948067165168
+  // Tor Browser bug
+  || $expm1(-2e-17) != -2e-17
+) ? function expm1(x) {
+  return (x = +x) == 0 ? x : x > -1e-6 && x < 1e-6 ? x + x * x / 2 : Math.exp(x) - 1;
+} : $expm1;
+
+},{}],62:[function(_dereq_,module,exports){
+// 20.2.2.16 Math.fround(x)
+var sign = _dereq_(65);
+var pow = Math.pow;
+var EPSILON = pow(2, -52);
+var EPSILON32 = pow(2, -23);
+var MAX32 = pow(2, 127) * (2 - EPSILON32);
+var MIN32 = pow(2, -126);
+
+var roundTiesToEven = function (n) {
+  return n + 1 / EPSILON - 1 / EPSILON;
+};
+
+module.exports = Math.fround || function fround(x) {
+  var $abs = Math.abs(x);
+  var $sign = sign(x);
+  var a, result;
+  if ($abs < MIN32) return $sign * roundTiesToEven($abs / MIN32 / EPSILON32) * MIN32 * EPSILON32;
+  a = (1 + EPSILON32 / EPSILON) * $abs;
+  result = a - (a - $abs);
+  // eslint-disable-next-line no-self-compare
+  if (result > MAX32 || result != result) return $sign * Infinity;
+  return $sign * result;
+};
+
+},{"65":65}],63:[function(_dereq_,module,exports){
+// 20.2.2.20 Math.log1p(x)
+module.exports = Math.log1p || function log1p(x) {
+  return (x = +x) > -1e-8 && x < 1e-8 ? x - x * x / 2 : Math.log(1 + x);
+};
+
+},{}],64:[function(_dereq_,module,exports){
+// https://rwaldron.github.io/proposal-math-extensions/
+module.exports = Math.scale || function scale(x, inLow, inHigh, outLow, outHigh) {
+  if (
+    arguments.length === 0
+      // eslint-disable-next-line no-self-compare
+      || x != x
+      // eslint-disable-next-line no-self-compare
+      || inLow != inLow
+      // eslint-disable-next-line no-self-compare
+      || inHigh != inHigh
+      // eslint-disable-next-line no-self-compare
+      || outLow != outLow
+      // eslint-disable-next-line no-self-compare
+      || outHigh != outHigh
+  ) return NaN;
+  if (x === Infinity || x === -Infinity) return x;
+  return (x - inLow) * (outHigh - outLow) / (inHigh - inLow) + outLow;
+};
+
+},{}],65:[function(_dereq_,module,exports){
+// 20.2.2.28 Math.sign(x)
+module.exports = Math.sign || function sign(x) {
+  // eslint-disable-next-line no-self-compare
+  return (x = +x) == 0 || x != x ? x : x < 0 ? -1 : 1;
+};
+
+},{}],66:[function(_dereq_,module,exports){
+var META = _dereq_(124)('meta');
+var isObject = _dereq_(51);
+var has = _dereq_(41);
+var setDesc = _dereq_(72).f;
+var id = 0;
+var isExtensible = Object.isExtensible || function () {
+  return true;
+};
+var FREEZE = !_dereq_(35)(function () {
+  return isExtensible(Object.preventExtensions({}));
+});
+var setMeta = function (it) {
+  setDesc(it, META, { value: {
+    i: 'O' + ++id, // object ID
+    w: {}          // weak collections IDs
+  } });
+};
+var fastKey = function (it, create) {
+  // return primitive with prefix
+  if (!isObject(it)) return typeof it == 'symbol' ? it : (typeof it == 'string' ? 'S' : 'P') + it;
+  if (!has(it, META)) {
+    // can't set metadata to uncaught frozen object
+    if (!isExtensible(it)) return 'F';
+    // not necessary to add metadata
+    if (!create) return 'E';
+    // add missing metadata
+    setMeta(it);
+  // return object ID
+  } return it[META].i;
+};
+var getWeak = function (it, create) {
+  if (!has(it, META)) {
+    // can't set metadata to uncaught frozen object
+    if (!isExtensible(it)) return true;
+    // not necessary to add metadata
+    if (!create) return false;
+    // add missing metadata
+    setMeta(it);
+  // return hash weak collections IDs
+  } return it[META].w;
+};
+// add metadata on freeze-family methods calling
+var onFreeze = function (it) {
+  if (FREEZE && meta.NEED && isExtensible(it) && !has(it, META)) setMeta(it);
+  return it;
+};
+var meta = module.exports = {
+  KEY: META,
+  NEED: false,
+  fastKey: fastKey,
+  getWeak: getWeak,
+  onFreeze: onFreeze
+};
+
+},{"124":124,"35":35,"41":41,"51":51,"72":72}],67:[function(_dereq_,module,exports){
+var Map = _dereq_(160);
+var $export = _dereq_(33);
+var shared = _dereq_(103)('metadata');
+var store = shared.store || (shared.store = new (_dereq_(266))());
+
+var getOrCreateMetadataMap = function (target, targetKey, create) {
+  var targetMetadata = store.get(target);
+  if (!targetMetadata) {
+    if (!create) return undefined;
+    store.set(target, targetMetadata = new Map());
+  }
+  var keyMetadata = targetMetadata.get(targetKey);
+  if (!keyMetadata) {
+    if (!create) return undefined;
+    targetMetadata.set(targetKey, keyMetadata = new Map());
+  } return keyMetadata;
+};
+var ordinaryHasOwnMetadata = function (MetadataKey, O, P) {
+  var metadataMap = getOrCreateMetadataMap(O, P, false);
+  return metadataMap === undefined ? false : metadataMap.has(MetadataKey);
+};
+var ordinaryGetOwnMetadata = function (MetadataKey, O, P) {
+  var metadataMap = getOrCreateMetadataMap(O, P, false);
+  return metadataMap === undefined ? undefined : metadataMap.get(MetadataKey);
+};
+var ordinaryDefineOwnMetadata = function (MetadataKey, MetadataValue, O, P) {
+  getOrCreateMetadataMap(O, P, true).set(MetadataKey, MetadataValue);
+};
+var ordinaryOwnMetadataKeys = function (target, targetKey) {
+  var metadataMap = getOrCreateMetadataMap(target, targetKey, false);
+  var keys = [];
+  if (metadataMap) metadataMap.forEach(function (_, key) { keys.push(key); });
+  return keys;
+};
+var toMetaKey = function (it) {
+  return it === undefined || typeof it == 'symbol' ? it : String(it);
+};
+var exp = function (O) {
+  $export($export.S, 'Reflect', O);
+};
+
+module.exports = {
+  store: store,
+  map: getOrCreateMetadataMap,
+  has: ordinaryHasOwnMetadata,
+  get: ordinaryGetOwnMetadata,
+  set: ordinaryDefineOwnMetadata,
+  keys: ordinaryOwnMetadataKeys,
+  key: toMetaKey,
+  exp: exp
+};
+
+},{"103":103,"160":160,"266":266,"33":33}],68:[function(_dereq_,module,exports){
+var global = _dereq_(40);
+var macrotask = _dereq_(113).set;
+var Observer = global.MutationObserver || global.WebKitMutationObserver;
+var process = global.process;
+var Promise = global.Promise;
+var isNode = _dereq_(18)(process) == 'process';
+
+module.exports = function () {
+  var head, last, notify;
+
+  var flush = function () {
+    var parent, fn;
+    if (isNode && (parent = process.domain)) parent.exit();
+    while (head) {
+      fn = head.fn;
+      head = head.next;
+      try {
+        fn();
+      } catch (e) {
+        if (head) notify();
+        else last = undefined;
+        throw e;
+      }
+    } last = undefined;
+    if (parent) parent.enter();
+  };
+
+  // Node.js
+  if (isNode) {
+    notify = function () {
+      process.nextTick(flush);
+    };
+  // browsers with MutationObserver
+  } else if (Observer) {
+    var toggle = true;
+    var node = document.createTextNode('');
+    new Observer(flush).observe(node, { characterData: true }); // eslint-disable-line no-new
+    notify = function () {
+      node.data = toggle = !toggle;
+    };
+  // environments with maybe non-completely correct, but existent Promise
+  } else if (Promise && Promise.resolve) {
+    var promise = Promise.resolve();
+    notify = function () {
+      promise.then(flush);
+    };
+  // for other environments - macrotask based on:
+  // - setImmediate
+  // - MessageChannel
+  // - window.postMessag
+  // - onreadystatechange
+  // - setTimeout
+  } else {
+    notify = function () {
+      // strange IE + webpack dev server bug - use .call(global)
+      macrotask.call(global, flush);
+    };
+  }
+
+  return function (fn) {
+    var task = { fn: fn, next: undefined };
+    if (last) last.next = task;
+    if (!head) {
+      head = task;
+      notify();
+    } last = task;
+  };
+};
+
+},{"113":113,"18":18,"40":40}],69:[function(_dereq_,module,exports){
+'use strict';
+// 25.4.1.5 NewPromiseCapability(C)
+var aFunction = _dereq_(3);
+
+function PromiseCapability(C) {
+  var resolve, reject;
+  this.promise = new C(function ($$resolve, $$reject) {
+    if (resolve !== undefined || reject !== undefined) throw TypeError('Bad Promise constructor');
+    resolve = $$resolve;
+    reject = $$reject;
+  });
+  this.resolve = aFunction(resolve);
+  this.reject = aFunction(reject);
+}
+
+module.exports.f = function (C) {
+  return new PromiseCapability(C);
+};
+
+},{"3":3}],70:[function(_dereq_,module,exports){
+'use strict';
+// 19.1.2.1 Object.assign(target, source, ...)
+var getKeys = _dereq_(81);
+var gOPS = _dereq_(78);
+var pIE = _dereq_(82);
+var toObject = _dereq_(119);
+var IObject = _dereq_(47);
+var $assign = Object.assign;
+
+// should work with symbols and should have deterministic property order (V8 bug)
+module.exports = !$assign || _dereq_(35)(function () {
+  var A = {};
+  var B = {};
+  // eslint-disable-next-line no-undef
+  var S = Symbol();
+  var K = 'abcdefghijklmnopqrst';
+  A[S] = 7;
+  K.split('').forEach(function (k) { B[k] = k; });
+  return $assign({}, A)[S] != 7 || Object.keys($assign({}, B)).join('') != K;
+}) ? function assign(target, source) { // eslint-disable-line no-unused-vars
+  var T = toObject(target);
+  var aLen = arguments.length;
+  var index = 1;
+  var getSymbols = gOPS.f;
+  var isEnum = pIE.f;
+  while (aLen > index) {
+    var S = IObject(arguments[index++]);
+    var keys = getSymbols ? getKeys(S).concat(getSymbols(S)) : getKeys(S);
+    var length = keys.length;
+    var j = 0;
+    var key;
+    while (length > j) if (isEnum.call(S, key = keys[j++])) T[key] = S[key];
+  } return T;
+} : $assign;
+
+},{"119":119,"35":35,"47":47,"78":78,"81":81,"82":82}],71:[function(_dereq_,module,exports){
+// 19.1.2.2 / 15.2.3.5 Object.create(O [, Properties])
+var anObject = _dereq_(7);
+var dPs = _dereq_(73);
+var enumBugKeys = _dereq_(31);
+var IE_PROTO = _dereq_(102)('IE_PROTO');
+var Empty = function () { /* empty */ };
+var PROTOTYPE = 'prototype';
+
+// Create object with fake `null` prototype: use iframe Object with cleared prototype
+var createDict = function () {
+  // Thrash, waste and sodomy: IE GC bug
+  var iframe = _dereq_(30)('iframe');
+  var i = enumBugKeys.length;
+  var lt = '<';
+  var gt = '>';
+  var iframeDocument;
+  iframe.style.display = 'none';
+  _dereq_(43).appendChild(iframe);
+  iframe.src = 'javascript:'; // eslint-disable-line no-script-url
+  // createDict = iframe.contentWindow.Object;
+  // html.removeChild(iframe);
+  iframeDocument = iframe.contentWindow.document;
+  iframeDocument.open();
+  iframeDocument.write(lt + 'script' + gt + 'document.F=Object' + lt + '/script' + gt);
+  iframeDocument.close();
+  createDict = iframeDocument.F;
+  while (i--) delete createDict[PROTOTYPE][enumBugKeys[i]];
+  return createDict();
+};
+
+module.exports = Object.create || function create(O, Properties) {
+  var result;
+  if (O !== null) {
+    Empty[PROTOTYPE] = anObject(O);
+    result = new Empty();
+    Empty[PROTOTYPE] = null;
+    // add "__proto__" for Object.getPrototypeOf polyfill
+    result[IE_PROTO] = O;
+  } else result = createDict();
+  return Properties === undefined ? result : dPs(result, Properties);
+};
+
+},{"102":102,"30":30,"31":31,"43":43,"7":7,"73":73}],72:[function(_dereq_,module,exports){
+var anObject = _dereq_(7);
+var IE8_DOM_DEFINE = _dereq_(44);
+var toPrimitive = _dereq_(120);
+var dP = Object.defineProperty;
+
+exports.f = _dereq_(29) ? Object.defineProperty : function defineProperty(O, P, Attributes) {
+  anObject(O);
+  P = toPrimitive(P, true);
+  anObject(Attributes);
+  if (IE8_DOM_DEFINE) try {
+    return dP(O, P, Attributes);
+  } catch (e) { /* empty */ }
+  if ('get' in Attributes || 'set' in Attributes) throw TypeError('Accessors not supported!');
+  if ('value' in Attributes) O[P] = Attributes.value;
+  return O;
+};
+
+},{"120":120,"29":29,"44":44,"7":7}],73:[function(_dereq_,module,exports){
+var dP = _dereq_(72);
+var anObject = _dereq_(7);
+var getKeys = _dereq_(81);
+
+module.exports = _dereq_(29) ? Object.defineProperties : function defineProperties(O, Properties) {
+  anObject(O);
+  var keys = getKeys(Properties);
+  var length = keys.length;
+  var i = 0;
+  var P;
+  while (length > i) dP.f(O, P = keys[i++], Properties[P]);
+  return O;
+};
+
+},{"29":29,"7":7,"72":72,"81":81}],74:[function(_dereq_,module,exports){
+'use strict';
+// Forced replacement prototype accessors methods
+module.exports = _dereq_(60) || !_dereq_(35)(function () {
+  var K = Math.random();
+  // In FF throws only define methods
+  // eslint-disable-next-line no-undef, no-useless-call
+  __defineSetter__.call(null, K, function () { /* empty */ });
+  delete _dereq_(40)[K];
+});
+
+},{"35":35,"40":40,"60":60}],75:[function(_dereq_,module,exports){
+var pIE = _dereq_(82);
+var createDesc = _dereq_(92);
+var toIObject = _dereq_(117);
+var toPrimitive = _dereq_(120);
+var has = _dereq_(41);
+var IE8_DOM_DEFINE = _dereq_(44);
+var gOPD = Object.getOwnPropertyDescriptor;
+
+exports.f = _dereq_(29) ? gOPD : function getOwnPropertyDescriptor(O, P) {
+  O = toIObject(O);
+  P = toPrimitive(P, true);
+  if (IE8_DOM_DEFINE) try {
+    return gOPD(O, P);
+  } catch (e) { /* empty */ }
+  if (has(O, P)) return createDesc(!pIE.f.call(O, P), O[P]);
+};
+
+},{"117":117,"120":120,"29":29,"41":41,"44":44,"82":82,"92":92}],76:[function(_dereq_,module,exports){
+// fallback for IE11 buggy Object.getOwnPropertyNames with iframe and window
+var toIObject = _dereq_(117);
+var gOPN = _dereq_(77).f;
+var toString = {}.toString;
+
+var windowNames = typeof window == 'object' && window && Object.getOwnPropertyNames
+  ? Object.getOwnPropertyNames(window) : [];
+
+var getWindowNames = function (it) {
+  try {
+    return gOPN(it);
+  } catch (e) {
+    return windowNames.slice();
+  }
+};
+
+module.exports.f = function getOwnPropertyNames(it) {
+  return windowNames && toString.call(it) == '[object Window]' ? getWindowNames(it) : gOPN(toIObject(it));
+};
+
+},{"117":117,"77":77}],77:[function(_dereq_,module,exports){
+// 19.1.2.7 / 15.2.3.4 Object.getOwnPropertyNames(O)
+var $keys = _dereq_(80);
+var hiddenKeys = _dereq_(31).concat('length', 'prototype');
+
+exports.f = Object.getOwnPropertyNames || function getOwnPropertyNames(O) {
+  return $keys(O, hiddenKeys);
+};
+
+},{"31":31,"80":80}],78:[function(_dereq_,module,exports){
+exports.f = Object.getOwnPropertySymbols;
+
+},{}],79:[function(_dereq_,module,exports){
+// 19.1.2.9 / 15.2.3.2 Object.getPrototypeOf(O)
+var has = _dereq_(41);
+var toObject = _dereq_(119);
+var IE_PROTO = _dereq_(102)('IE_PROTO');
+var ObjectProto = Object.prototype;
+
+module.exports = Object.getPrototypeOf || function (O) {
+  O = toObject(O);
+  if (has(O, IE_PROTO)) return O[IE_PROTO];
+  if (typeof O.constructor == 'function' && O instanceof O.constructor) {
+    return O.constructor.prototype;
+  } return O instanceof Object ? ObjectProto : null;
+};
+
+},{"102":102,"119":119,"41":41}],80:[function(_dereq_,module,exports){
+var has = _dereq_(41);
+var toIObject = _dereq_(117);
+var arrayIndexOf = _dereq_(11)(false);
+var IE_PROTO = _dereq_(102)('IE_PROTO');
+
+module.exports = function (object, names) {
+  var O = toIObject(object);
+  var i = 0;
+  var result = [];
+  var key;
+  for (key in O) if (key != IE_PROTO) has(O, key) && result.push(key);
+  // Don't enum bug & hidden keys
+  while (names.length > i) if (has(O, key = names[i++])) {
+    ~arrayIndexOf(result, key) || result.push(key);
+  }
+  return result;
+};
+
+},{"102":102,"11":11,"117":117,"41":41}],81:[function(_dereq_,module,exports){
+// 19.1.2.14 / 15.2.3.14 Object.keys(O)
+var $keys = _dereq_(80);
+var enumBugKeys = _dereq_(31);
+
+module.exports = Object.keys || function keys(O) {
+  return $keys(O, enumBugKeys);
+};
+
+},{"31":31,"80":80}],82:[function(_dereq_,module,exports){
+exports.f = {}.propertyIsEnumerable;
+
+},{}],83:[function(_dereq_,module,exports){
+// most Object methods by ES6 should accept primitives
+var $export = _dereq_(33);
+var core = _dereq_(23);
+var fails = _dereq_(35);
+module.exports = function (KEY, exec) {
+  var fn = (core.Object || {})[KEY] || Object[KEY];
+  var exp = {};
+  exp[KEY] = exec(fn);
+  $export($export.S + $export.F * fails(function () { fn(1); }), 'Object', exp);
+};
+
+},{"23":23,"33":33,"35":35}],84:[function(_dereq_,module,exports){
+var getKeys = _dereq_(81);
+var toIObject = _dereq_(117);
+var isEnum = _dereq_(82).f;
+module.exports = function (isEntries) {
+  return function (it) {
+    var O = toIObject(it);
+    var keys = getKeys(O);
+    var length = keys.length;
+    var i = 0;
+    var result = [];
+    var key;
+    while (length > i) if (isEnum.call(O, key = keys[i++])) {
+      result.push(isEntries ? [key, O[key]] : O[key]);
+    } return result;
+  };
+};
+
+},{"117":117,"81":81,"82":82}],85:[function(_dereq_,module,exports){
+// all object keys, includes non-enumerable and symbols
+var gOPN = _dereq_(77);
+var gOPS = _dereq_(78);
+var anObject = _dereq_(7);
+var Reflect = _dereq_(40).Reflect;
+module.exports = Reflect && Reflect.ownKeys || function ownKeys(it) {
+  var keys = gOPN.f(anObject(it));
+  var getSymbols = gOPS.f;
+  return getSymbols ? keys.concat(getSymbols(it)) : keys;
+};
+
+},{"40":40,"7":7,"77":77,"78":78}],86:[function(_dereq_,module,exports){
+var $parseFloat = _dereq_(40).parseFloat;
+var $trim = _dereq_(111).trim;
+
+module.exports = 1 / $parseFloat(_dereq_(112) + '-0') !== -Infinity ? function parseFloat(str) {
+  var string = $trim(String(str), 3);
+  var result = $parseFloat(string);
+  return result === 0 && string.charAt(0) == '-' ? -0 : result;
+} : $parseFloat;
+
+},{"111":111,"112":112,"40":40}],87:[function(_dereq_,module,exports){
+var $parseInt = _dereq_(40).parseInt;
+var $trim = _dereq_(111).trim;
+var ws = _dereq_(112);
+var hex = /^[-+]?0[xX]/;
+
+module.exports = $parseInt(ws + '08') !== 8 || $parseInt(ws + '0x16') !== 22 ? function parseInt(str, radix) {
+  var string = $trim(String(str), 3);
+  return $parseInt(string, (radix >>> 0) || (hex.test(string) ? 16 : 10));
+} : $parseInt;
+
+},{"111":111,"112":112,"40":40}],88:[function(_dereq_,module,exports){
+'use strict';
+var path = _dereq_(89);
+var invoke = _dereq_(46);
+var aFunction = _dereq_(3);
+module.exports = function (/* ...pargs */) {
+  var fn = aFunction(this);
+  var length = arguments.length;
+  var pargs = Array(length);
+  var i = 0;
+  var _ = path._;
+  var holder = false;
+  while (length > i) if ((pargs[i] = arguments[i++]) === _) holder = true;
+  return function (/* ...args */) {
+    var that = this;
+    var aLen = arguments.length;
+    var j = 0;
+    var k = 0;
+    var args;
+    if (!holder && !aLen) return invoke(fn, pargs, that);
+    args = pargs.slice();
+    if (holder) for (;length > j; j++) if (args[j] === _) args[j] = arguments[k++];
+    while (aLen > k) args.push(arguments[k++]);
+    return invoke(fn, args, that);
+  };
+};
+
+},{"3":3,"46":46,"89":89}],89:[function(_dereq_,module,exports){
+module.exports = _dereq_(40);
+
+},{"40":40}],90:[function(_dereq_,module,exports){
+module.exports = function (exec) {
+  try {
+    return { e: false, v: exec() };
+  } catch (e) {
+    return { e: true, v: e };
+  }
+};
+
+},{}],91:[function(_dereq_,module,exports){
+var newPromiseCapability = _dereq_(69);
+
+module.exports = function (C, x) {
+  var promiseCapability = newPromiseCapability.f(C);
+  var resolve = promiseCapability.resolve;
+  resolve(x);
+  return promiseCapability.promise;
+};
+
+},{"69":69}],92:[function(_dereq_,module,exports){
+module.exports = function (bitmap, value) {
+  return {
+    enumerable: !(bitmap & 1),
+    configurable: !(bitmap & 2),
+    writable: !(bitmap & 4),
+    value: value
+  };
+};
+
+},{}],93:[function(_dereq_,module,exports){
+var redefine = _dereq_(94);
+module.exports = function (target, src, safe) {
+  for (var key in src) redefine(target, key, src[key], safe);
+  return target;
+};
+
+},{"94":94}],94:[function(_dereq_,module,exports){
+var global = _dereq_(40);
+var hide = _dereq_(42);
+var has = _dereq_(41);
+var SRC = _dereq_(124)('src');
+var TO_STRING = 'toString';
+var $toString = Function[TO_STRING];
+var TPL = ('' + $toString).split(TO_STRING);
+
+_dereq_(23).inspectSource = function (it) {
+  return $toString.call(it);
+};
+
+(module.exports = function (O, key, val, safe) {
+  var isFunction = typeof val == 'function';
+  if (isFunction) has(val, 'name') || hide(val, 'name', key);
+  if (O[key] === val) return;
+  if (isFunction) has(val, SRC) || hide(val, SRC, O[key] ? '' + O[key] : TPL.join(String(key)));
+  if (O === global) {
+    O[key] = val;
+  } else if (!safe) {
+    delete O[key];
+    hide(O, key, val);
+  } else if (O[key]) {
+    O[key] = val;
+  } else {
+    hide(O, key, val);
+  }
+// add fake Function#toString for correct work wrapped methods / constructors with methods like LoDash isNative
+})(Function.prototype, TO_STRING, function toString() {
+  return typeof this == 'function' && this[SRC] || $toString.call(this);
+});
+
+},{"124":124,"23":23,"40":40,"41":41,"42":42}],95:[function(_dereq_,module,exports){
+module.exports = function (regExp, replace) {
+  var replacer = replace === Object(replace) ? function (part) {
+    return replace[part];
+  } : replace;
+  return function (it) {
+    return String(it).replace(regExp, replacer);
+  };
+};
+
+},{}],96:[function(_dereq_,module,exports){
+// 7.2.9 SameValue(x, y)
+module.exports = Object.is || function is(x, y) {
+  // eslint-disable-next-line no-self-compare
+  return x === y ? x !== 0 || 1 / x === 1 / y : x != x && y != y;
+};
+
+},{}],97:[function(_dereq_,module,exports){
+'use strict';
+// https://tc39.github.io/proposal-setmap-offrom/
+var $export = _dereq_(33);
+var aFunction = _dereq_(3);
+var ctx = _dereq_(25);
+var forOf = _dereq_(39);
+
+module.exports = function (COLLECTION) {
+  $export($export.S, COLLECTION, { from: function from(source /* , mapFn, thisArg */) {
+    var mapFn = arguments[1];
+    var mapping, A, n, cb;
+    aFunction(this);
+    mapping = mapFn !== undefined;
+    if (mapping) aFunction(mapFn);
+    if (source == undefined) return new this();
+    A = [];
+    if (mapping) {
+      n = 0;
+      cb = ctx(mapFn, arguments[2], 2);
+      forOf(source, false, function (nextItem) {
+        A.push(cb(nextItem, n++));
+      });
+    } else {
+      forOf(source, false, A.push, A);
+    }
+    return new this(A);
+  } });
+};
+
+},{"25":25,"3":3,"33":33,"39":39}],98:[function(_dereq_,module,exports){
+'use strict';
+// https://tc39.github.io/proposal-setmap-offrom/
+var $export = _dereq_(33);
+
+module.exports = function (COLLECTION) {
+  $export($export.S, COLLECTION, { of: function of() {
+    var length = arguments.length;
+    var A = Array(length);
+    while (length--) A[length] = arguments[length];
+    return new this(A);
+  } });
+};
+
+},{"33":33}],99:[function(_dereq_,module,exports){
+// Works with __proto__ only. Old v8 can't work with null proto objects.
+/* eslint-disable no-proto */
+var isObject = _dereq_(51);
+var anObject = _dereq_(7);
+var check = function (O, proto) {
+  anObject(O);
+  if (!isObject(proto) && proto !== null) throw TypeError(proto + ": can't set as prototype!");
+};
+module.exports = {
+  set: Object.setPrototypeOf || ('__proto__' in {} ? // eslint-disable-line
+    function (test, buggy, set) {
+      try {
+        set = _dereq_(25)(Function.call, _dereq_(75).f(Object.prototype, '__proto__').set, 2);
+        set(test, []);
+        buggy = !(test instanceof Array);
+      } catch (e) { buggy = true; }
+      return function setPrototypeOf(O, proto) {
+        check(O, proto);
+        if (buggy) O.__proto__ = proto;
+        else set(O, proto);
+        return O;
+      };
+    }({}, false) : undefined),
+  check: check
+};
+
+},{"25":25,"51":51,"7":7,"75":75}],100:[function(_dereq_,module,exports){
+'use strict';
+var global = _dereq_(40);
+var dP = _dereq_(72);
+var DESCRIPTORS = _dereq_(29);
+var SPECIES = _dereq_(128)('species');
+
+module.exports = function (KEY) {
+  var C = global[KEY];
+  if (DESCRIPTORS && C && !C[SPECIES]) dP.f(C, SPECIES, {
+    configurable: true,
+    get: function () { return this; }
+  });
+};
+
+},{"128":128,"29":29,"40":40,"72":72}],101:[function(_dereq_,module,exports){
+var def = _dereq_(72).f;
+var has = _dereq_(41);
+var TAG = _dereq_(128)('toStringTag');
+
+module.exports = function (it, tag, stat) {
+  if (it && !has(it = stat ? it : it.prototype, TAG)) def(it, TAG, { configurable: true, value: tag });
+};
+
+},{"128":128,"41":41,"72":72}],102:[function(_dereq_,module,exports){
+var shared = _dereq_(103)('keys');
+var uid = _dereq_(124);
+module.exports = function (key) {
+  return shared[key] || (shared[key] = uid(key));
+};
+
+},{"103":103,"124":124}],103:[function(_dereq_,module,exports){
+var global = _dereq_(40);
+var SHARED = '__core-js_shared__';
+var store = global[SHARED] || (global[SHARED] = {});
+module.exports = function (key) {
+  return store[key] || (store[key] = {});
+};
+
+},{"40":40}],104:[function(_dereq_,module,exports){
+// 7.3.20 SpeciesConstructor(O, defaultConstructor)
+var anObject = _dereq_(7);
+var aFunction = _dereq_(3);
+var SPECIES = _dereq_(128)('species');
+module.exports = function (O, D) {
+  var C = anObject(O).constructor;
+  var S;
+  return C === undefined || (S = anObject(C)[SPECIES]) == undefined ? D : aFunction(S);
+};
+
+},{"128":128,"3":3,"7":7}],105:[function(_dereq_,module,exports){
+'use strict';
+var fails = _dereq_(35);
+
+module.exports = function (method, arg) {
+  return !!method && fails(function () {
+    // eslint-disable-next-line no-useless-call
+    arg ? method.call(null, function () { /* empty */ }, 1) : method.call(null);
+  });
+};
+
+},{"35":35}],106:[function(_dereq_,module,exports){
+var toInteger = _dereq_(116);
+var defined = _dereq_(28);
+// true  -> String#at
+// false -> String#codePointAt
+module.exports = function (TO_STRING) {
+  return function (that, pos) {
+    var s = String(defined(that));
+    var i = toInteger(pos);
+    var l = s.length;
+    var a, b;
+    if (i < 0 || i >= l) return TO_STRING ? '' : undefined;
+    a = s.charCodeAt(i);
+    return a < 0xd800 || a > 0xdbff || i + 1 === l || (b = s.charCodeAt(i + 1)) < 0xdc00 || b > 0xdfff
+      ? TO_STRING ? s.charAt(i) : a
+      : TO_STRING ? s.slice(i, i + 2) : (a - 0xd800 << 10) + (b - 0xdc00) + 0x10000;
+  };
+};
+
+},{"116":116,"28":28}],107:[function(_dereq_,module,exports){
+// helper for String#{startsWith, endsWith, includes}
+var isRegExp = _dereq_(52);
+var defined = _dereq_(28);
+
+module.exports = function (that, searchString, NAME) {
+  if (isRegExp(searchString)) throw TypeError('String#' + NAME + " doesn't accept regex!");
+  return String(defined(that));
+};
+
+},{"28":28,"52":52}],108:[function(_dereq_,module,exports){
+var $export = _dereq_(33);
+var fails = _dereq_(35);
+var defined = _dereq_(28);
+var quot = /"/g;
+// B.2.3.2.1 CreateHTML(string, tag, attribute, value)
+var createHTML = function (string, tag, attribute, value) {
+  var S = String(defined(string));
+  var p1 = '<' + tag;
+  if (attribute !== '') p1 += ' ' + attribute + '="' + String(value).replace(quot, '&quot;') + '"';
+  return p1 + '>' + S + '</' + tag + '>';
+};
+module.exports = function (NAME, exec) {
+  var O = {};
+  O[NAME] = exec(createHTML);
+  $export($export.P + $export.F * fails(function () {
+    var test = ''[NAME]('"');
+    return test !== test.toLowerCase() || test.split('"').length > 3;
+  }), 'String', O);
+};
+
+},{"28":28,"33":33,"35":35}],109:[function(_dereq_,module,exports){
+// https://github.com/tc39/proposal-string-pad-start-end
+var toLength = _dereq_(118);
+var repeat = _dereq_(110);
+var defined = _dereq_(28);
+
+module.exports = function (that, maxLength, fillString, left) {
+  var S = String(defined(that));
+  var stringLength = S.length;
+  var fillStr = fillString === undefined ? ' ' : String(fillString);
+  var intMaxLength = toLength(maxLength);
+  if (intMaxLength <= stringLength || fillStr == '') return S;
+  var fillLen = intMaxLength - stringLength;
+  var stringFiller = repeat.call(fillStr, Math.ceil(fillLen / fillStr.length));
+  if (stringFiller.length > fillLen) stringFiller = stringFiller.slice(0, fillLen);
+  return left ? stringFiller + S : S + stringFiller;
+};
+
+},{"110":110,"118":118,"28":28}],110:[function(_dereq_,module,exports){
+'use strict';
+var toInteger = _dereq_(116);
+var defined = _dereq_(28);
+
+module.exports = function repeat(count) {
+  var str = String(defined(this));
+  var res = '';
+  var n = toInteger(count);
+  if (n < 0 || n == Infinity) throw RangeError("Count can't be negative");
+  for (;n > 0; (n >>>= 1) && (str += str)) if (n & 1) res += str;
+  return res;
+};
+
+},{"116":116,"28":28}],111:[function(_dereq_,module,exports){
+var $export = _dereq_(33);
+var defined = _dereq_(28);
+var fails = _dereq_(35);
+var spaces = _dereq_(112);
+var space = '[' + spaces + ']';
+var non = '\u200b\u0085';
+var ltrim = RegExp('^' + space + space + '*');
+var rtrim = RegExp(space + space + '*$');
+
+var exporter = function (KEY, exec, ALIAS) {
+  var exp = {};
+  var FORCE = fails(function () {
+    return !!spaces[KEY]() || non[KEY]() != non;
+  });
+  var fn = exp[KEY] = FORCE ? exec(trim) : spaces[KEY];
+  if (ALIAS) exp[ALIAS] = fn;
+  $export($export.P + $export.F * FORCE, 'String', exp);
+};
+
+// 1 -> String#trimLeft
+// 2 -> String#trimRight
+// 3 -> String#trim
+var trim = exporter.trim = function (string, TYPE) {
+  string = String(defined(string));
+  if (TYPE & 1) string = string.replace(ltrim, '');
+  if (TYPE & 2) string = string.replace(rtrim, '');
+  return string;
+};
+
+module.exports = exporter;
+
+},{"112":112,"28":28,"33":33,"35":35}],112:[function(_dereq_,module,exports){
+module.exports = '\x09\x0A\x0B\x0C\x0D\x20\xA0\u1680\u180E\u2000\u2001\u2002\u2003' +
+  '\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u202F\u205F\u3000\u2028\u2029\uFEFF';
+
+},{}],113:[function(_dereq_,module,exports){
+var ctx = _dereq_(25);
+var invoke = _dereq_(46);
+var html = _dereq_(43);
+var cel = _dereq_(30);
+var global = _dereq_(40);
+var process = global.process;
+var setTask = global.setImmediate;
+var clearTask = global.clearImmediate;
+var MessageChannel = global.MessageChannel;
+var Dispatch = global.Dispatch;
+var counter = 0;
+var queue = {};
+var ONREADYSTATECHANGE = 'onreadystatechange';
+var defer, channel, port;
+var run = function () {
+  var id = +this;
+  // eslint-disable-next-line no-prototype-builtins
+  if (queue.hasOwnProperty(id)) {
+    var fn = queue[id];
+    delete queue[id];
+    fn();
+  }
+};
+var listener = function (event) {
+  run.call(event.data);
+};
+// Node.js 0.9+ & IE10+ has setImmediate, otherwise:
+if (!setTask || !clearTask) {
+  setTask = function setImmediate(fn) {
+    var args = [];
+    var i = 1;
+    while (arguments.length > i) args.push(arguments[i++]);
+    queue[++counter] = function () {
+      // eslint-disable-next-line no-new-func
+      invoke(typeof fn == 'function' ? fn : Function(fn), args);
+    };
+    defer(counter);
+    return counter;
+  };
+  clearTask = function clearImmediate(id) {
+    delete queue[id];
+  };
+  // Node.js 0.8-
+  if (_dereq_(18)(process) == 'process') {
+    defer = function (id) {
+      process.nextTick(ctx(run, id, 1));
+    };
+  // Sphere (JS game engine) Dispatch API
+  } else if (Dispatch && Dispatch.now) {
+    defer = function (id) {
+      Dispatch.now(ctx(run, id, 1));
+    };
+  // Browsers with MessageChannel, includes WebWorkers
+  } else if (MessageChannel) {
+    channel = new MessageChannel();
+    port = channel.port2;
+    channel.port1.onmessage = listener;
+    defer = ctx(port.postMessage, port, 1);
+  // Browsers with postMessage, skip WebWorkers
+  // IE8 has postMessage, but it's sync & typeof its postMessage is 'object'
+  } else if (global.addEventListener && typeof postMessage == 'function' && !global.importScripts) {
+    defer = function (id) {
+      global.postMessage(id + '', '*');
+    };
+    global.addEventListener('message', listener, false);
+  // IE8-
+  } else if (ONREADYSTATECHANGE in cel('script')) {
+    defer = function (id) {
+      html.appendChild(cel('script'))[ONREADYSTATECHANGE] = function () {
+        html.removeChild(this);
+        run.call(id);
+      };
+    };
+  // Rest old browsers
+  } else {
+    defer = function (id) {
+      setTimeout(ctx(run, id, 1), 0);
+    };
+  }
+}
+module.exports = {
+  set: setTask,
+  clear: clearTask
+};
+
+},{"18":18,"25":25,"30":30,"40":40,"43":43,"46":46}],114:[function(_dereq_,module,exports){
+var toInteger = _dereq_(116);
+var max = Math.max;
+var min = Math.min;
+module.exports = function (index, length) {
+  index = toInteger(index);
+  return index < 0 ? max(index + length, 0) : min(index, length);
+};
+
+},{"116":116}],115:[function(_dereq_,module,exports){
+// https://tc39.github.io/ecma262/#sec-toindex
+var toInteger = _dereq_(116);
+var toLength = _dereq_(118);
+module.exports = function (it) {
+  if (it === undefined) return 0;
+  var number = toInteger(it);
+  var length = toLength(number);
+  if (number !== length) throw RangeError('Wrong length!');
+  return length;
+};
+
+},{"116":116,"118":118}],116:[function(_dereq_,module,exports){
+// 7.1.4 ToInteger
+var ceil = Math.ceil;
+var floor = Math.floor;
+module.exports = function (it) {
+  return isNaN(it = +it) ? 0 : (it > 0 ? floor : ceil)(it);
+};
+
+},{}],117:[function(_dereq_,module,exports){
+// to indexed object, toObject with fallback for non-array-like ES3 strings
+var IObject = _dereq_(47);
+var defined = _dereq_(28);
+module.exports = function (it) {
+  return IObject(defined(it));
+};
+
+},{"28":28,"47":47}],118:[function(_dereq_,module,exports){
+// 7.1.15 ToLength
+var toInteger = _dereq_(116);
+var min = Math.min;
+module.exports = function (it) {
+  return it > 0 ? min(toInteger(it), 0x1fffffffffffff) : 0; // pow(2, 53) - 1 == 9007199254740991
+};
+
+},{"116":116}],119:[function(_dereq_,module,exports){
+// 7.1.13 ToObject(argument)
+var defined = _dereq_(28);
+module.exports = function (it) {
+  return Object(defined(it));
+};
+
+},{"28":28}],120:[function(_dereq_,module,exports){
+// 7.1.1 ToPrimitive(input [, PreferredType])
+var isObject = _dereq_(51);
+// instead of the ES6 spec version, we didn't implement @@toPrimitive case
+// and the second argument - flag - preferred type is a string
+module.exports = function (it, S) {
+  if (!isObject(it)) return it;
+  var fn, val;
+  if (S && typeof (fn = it.toString) == 'function' && !isObject(val = fn.call(it))) return val;
+  if (typeof (fn = it.valueOf) == 'function' && !isObject(val = fn.call(it))) return val;
+  if (!S && typeof (fn = it.toString) == 'function' && !isObject(val = fn.call(it))) return val;
+  throw TypeError("Can't convert object to primitive value");
+};
+
+},{"51":51}],121:[function(_dereq_,module,exports){
+'use strict';
+if (_dereq_(29)) {
+  var LIBRARY = _dereq_(60);
+  var global = _dereq_(40);
+  var fails = _dereq_(35);
+  var $export = _dereq_(33);
+  var $typed = _dereq_(123);
+  var $buffer = _dereq_(122);
+  var ctx = _dereq_(25);
+  var anInstance = _dereq_(6);
+  var propertyDesc = _dereq_(92);
+  var hide = _dereq_(42);
+  var redefineAll = _dereq_(93);
+  var toInteger = _dereq_(116);
+  var toLength = _dereq_(118);
+  var toIndex = _dereq_(115);
+  var toAbsoluteIndex = _dereq_(114);
+  var toPrimitive = _dereq_(120);
+  var has = _dereq_(41);
+  var classof = _dereq_(17);
+  var isObject = _dereq_(51);
+  var toObject = _dereq_(119);
+  var isArrayIter = _dereq_(48);
+  var create = _dereq_(71);
+  var getPrototypeOf = _dereq_(79);
+  var gOPN = _dereq_(77).f;
+  var getIterFn = _dereq_(129);
+  var uid = _dereq_(124);
+  var wks = _dereq_(128);
+  var createArrayMethod = _dereq_(12);
+  var createArrayIncludes = _dereq_(11);
+  var speciesConstructor = _dereq_(104);
+  var ArrayIterators = _dereq_(141);
+  var Iterators = _dereq_(58);
+  var $iterDetect = _dereq_(56);
+  var setSpecies = _dereq_(100);
+  var arrayFill = _dereq_(9);
+  var arrayCopyWithin = _dereq_(8);
+  var $DP = _dereq_(72);
+  var $GOPD = _dereq_(75);
+  var dP = $DP.f;
+  var gOPD = $GOPD.f;
+  var RangeError = global.RangeError;
+  var TypeError = global.TypeError;
+  var Uint8Array = global.Uint8Array;
+  var ARRAY_BUFFER = 'ArrayBuffer';
+  var SHARED_BUFFER = 'Shared' + ARRAY_BUFFER;
+  var BYTES_PER_ELEMENT = 'BYTES_PER_ELEMENT';
+  var PROTOTYPE = 'prototype';
+  var ArrayProto = Array[PROTOTYPE];
+  var $ArrayBuffer = $buffer.ArrayBuffer;
+  var $DataView = $buffer.DataView;
+  var arrayForEach = createArrayMethod(0);
+  var arrayFilter = createArrayMethod(2);
+  var arraySome = createArrayMethod(3);
+  var arrayEvery = createArrayMethod(4);
+  var arrayFind = createArrayMethod(5);
+  var arrayFindIndex = createArrayMethod(6);
+  var arrayIncludes = createArrayIncludes(true);
+  var arrayIndexOf = createArrayIncludes(false);
+  var arrayValues = ArrayIterators.values;
+  var arrayKeys = ArrayIterators.keys;
+  var arrayEntries = ArrayIterators.entries;
+  var arrayLastIndexOf = ArrayProto.lastIndexOf;
+  var arrayReduce = ArrayProto.reduce;
+  var arrayReduceRight = ArrayProto.reduceRight;
+  var arrayJoin = ArrayProto.join;
+  var arraySort = ArrayProto.sort;
+  var arraySlice = ArrayProto.slice;
+  var arrayToString = ArrayProto.toString;
+  var arrayToLocaleString = ArrayProto.toLocaleString;
+  var ITERATOR = wks('iterator');
+  var TAG = wks('toStringTag');
+  var TYPED_CONSTRUCTOR = uid('typed_constructor');
+  var DEF_CONSTRUCTOR = uid('def_constructor');
+  var ALL_CONSTRUCTORS = $typed.CONSTR;
+  var TYPED_ARRAY = $typed.TYPED;
+  var VIEW = $typed.VIEW;
+  var WRONG_LENGTH = 'Wrong length!';
+
+  var $map = createArrayMethod(1, function (O, length) {
+    return allocate(speciesConstructor(O, O[DEF_CONSTRUCTOR]), length);
+  });
+
+  var LITTLE_ENDIAN = fails(function () {
+    // eslint-disable-next-line no-undef
+    return new Uint8Array(new Uint16Array([1]).buffer)[0] === 1;
+  });
+
+  var FORCED_SET = !!Uint8Array && !!Uint8Array[PROTOTYPE].set && fails(function () {
+    new Uint8Array(1).set({});
+  });
+
+  var toOffset = function (it, BYTES) {
+    var offset = toInteger(it);
+    if (offset < 0 || offset % BYTES) throw RangeError('Wrong offset!');
+    return offset;
+  };
+
+  var validate = function (it) {
+    if (isObject(it) && TYPED_ARRAY in it) return it;
+    throw TypeError(it + ' is not a typed array!');
+  };
+
+  var allocate = function (C, length) {
+    if (!(isObject(C) && TYPED_CONSTRUCTOR in C)) {
+      throw TypeError('It is not a typed array constructor!');
+    } return new C(length);
+  };
+
+  var speciesFromList = function (O, list) {
+    return fromList(speciesConstructor(O, O[DEF_CONSTRUCTOR]), list);
+  };
+
+  var fromList = function (C, list) {
+    var index = 0;
+    var length = list.length;
+    var result = allocate(C, length);
+    while (length > index) result[index] = list[index++];
+    return result;
+  };
+
+  var addGetter = function (it, key, internal) {
+    dP(it, key, { get: function () { return this._d[internal]; } });
+  };
+
+  var $from = function from(source /* , mapfn, thisArg */) {
+    var O = toObject(source);
+    var aLen = arguments.length;
+    var mapfn = aLen > 1 ? arguments[1] : undefined;
+    var mapping = mapfn !== undefined;
+    var iterFn = getIterFn(O);
+    var i, length, values, result, step, iterator;
+    if (iterFn != undefined && !isArrayIter(iterFn)) {
+      for (iterator = iterFn.call(O), values = [], i = 0; !(step = iterator.next()).done; i++) {
+        values.push(step.value);
+      } O = values;
+    }
+    if (mapping && aLen > 2) mapfn = ctx(mapfn, arguments[2], 2);
+    for (i = 0, length = toLength(O.length), result = allocate(this, length); length > i; i++) {
+      result[i] = mapping ? mapfn(O[i], i) : O[i];
+    }
+    return result;
+  };
+
+  var $of = function of(/* ...items */) {
+    var index = 0;
+    var length = arguments.length;
+    var result = allocate(this, length);
+    while (length > index) result[index] = arguments[index++];
+    return result;
+  };
+
+  // iOS Safari 6.x fails here
+  var TO_LOCALE_BUG = !!Uint8Array && fails(function () { arrayToLocaleString.call(new Uint8Array(1)); });
+
+  var $toLocaleString = function toLocaleString() {
+    return arrayToLocaleString.apply(TO_LOCALE_BUG ? arraySlice.call(validate(this)) : validate(this), arguments);
+  };
+
+  var proto = {
+    copyWithin: function copyWithin(target, start /* , end */) {
+      return arrayCopyWithin.call(validate(this), target, start, arguments.length > 2 ? arguments[2] : undefined);
+    },
+    every: function every(callbackfn /* , thisArg */) {
+      return arrayEvery(validate(this), callbackfn, arguments.length > 1 ? arguments[1] : undefined);
+    },
+    fill: function fill(value /* , start, end */) { // eslint-disable-line no-unused-vars
+      return arrayFill.apply(validate(this), arguments);
+    },
+    filter: function filter(callbackfn /* , thisArg */) {
+      return speciesFromList(this, arrayFilter(validate(this), callbackfn,
+        arguments.length > 1 ? arguments[1] : undefined));
+    },
+    find: function find(predicate /* , thisArg */) {
+      return arrayFind(validate(this), predicate, arguments.length > 1 ? arguments[1] : undefined);
+    },
+    findIndex: function findIndex(predicate /* , thisArg */) {
+      return arrayFindIndex(validate(this), predicate, arguments.length > 1 ? arguments[1] : undefined);
+    },
+    forEach: function forEach(callbackfn /* , thisArg */) {
+      arrayForEach(validate(this), callbackfn, arguments.length > 1 ? arguments[1] : undefined);
+    },
+    indexOf: function indexOf(searchElement /* , fromIndex */) {
+      return arrayIndexOf(validate(this), searchElement, arguments.length > 1 ? arguments[1] : undefined);
+    },
+    includes: function includes(searchElement /* , fromIndex */) {
+      return arrayIncludes(validate(this), searchElement, arguments.length > 1 ? arguments[1] : undefined);
+    },
+    join: function join(separator) { // eslint-disable-line no-unused-vars
+      return arrayJoin.apply(validate(this), arguments);
+    },
+    lastIndexOf: function lastIndexOf(searchElement /* , fromIndex */) { // eslint-disable-line no-unused-vars
+      return arrayLastIndexOf.apply(validate(this), arguments);
+    },
+    map: function map(mapfn /* , thisArg */) {
+      return $map(validate(this), mapfn, arguments.length > 1 ? arguments[1] : undefined);
+    },
+    reduce: function reduce(callbackfn /* , initialValue */) { // eslint-disable-line no-unused-vars
+      return arrayReduce.apply(validate(this), arguments);
+    },
+    reduceRight: function reduceRight(callbackfn /* , initialValue */) { // eslint-disable-line no-unused-vars
+      return arrayReduceRight.apply(validate(this), arguments);
+    },
+    reverse: function reverse() {
+      var that = this;
+      var length = validate(that).length;
+      var middle = Math.floor(length / 2);
+      var index = 0;
+      var value;
+      while (index < middle) {
+        value = that[index];
+        that[index++] = that[--length];
+        that[length] = value;
+      } return that;
+    },
+    some: function some(callbackfn /* , thisArg */) {
+      return arraySome(validate(this), callbackfn, arguments.length > 1 ? arguments[1] : undefined);
+    },
+    sort: function sort(comparefn) {
+      return arraySort.call(validate(this), comparefn);
+    },
+    subarray: function subarray(begin, end) {
+      var O = validate(this);
+      var length = O.length;
+      var $begin = toAbsoluteIndex(begin, length);
+      return new (speciesConstructor(O, O[DEF_CONSTRUCTOR]))(
+        O.buffer,
+        O.byteOffset + $begin * O.BYTES_PER_ELEMENT,
+        toLength((end === undefined ? length : toAbsoluteIndex(end, length)) - $begin)
+      );
+    }
+  };
+
+  var $slice = function slice(start, end) {
+    return speciesFromList(this, arraySlice.call(validate(this), start, end));
+  };
+
+  var $set = function set(arrayLike /* , offset */) {
+    validate(this);
+    var offset = toOffset(arguments[1], 1);
+    var length = this.length;
+    var src = toObject(arrayLike);
+    var len = toLength(src.length);
+    var index = 0;
+    if (len + offset > length) throw RangeError(WRONG_LENGTH);
+    while (index < len) this[offset + index] = src[index++];
+  };
+
+  var $iterators = {
+    entries: function entries() {
+      return arrayEntries.call(validate(this));
+    },
+    keys: function keys() {
+      return arrayKeys.call(validate(this));
+    },
+    values: function values() {
+      return arrayValues.call(validate(this));
+    }
+  };
+
+  var isTAIndex = function (target, key) {
+    return isObject(target)
+      && target[TYPED_ARRAY]
+      && typeof key != 'symbol'
+      && key in target
+      && String(+key) == String(key);
+  };
+  var $getDesc = function getOwnPropertyDescriptor(target, key) {
+    return isTAIndex(target, key = toPrimitive(key, true))
+      ? propertyDesc(2, target[key])
+      : gOPD(target, key);
+  };
+  var $setDesc = function defineProperty(target, key, desc) {
+    if (isTAIndex(target, key = toPrimitive(key, true))
+      && isObject(desc)
+      && has(desc, 'value')
+      && !has(desc, 'get')
+      && !has(desc, 'set')
+      // TODO: add validation descriptor w/o calling accessors
+      && !desc.configurable
+      && (!has(desc, 'writable') || desc.writable)
+      && (!has(desc, 'enumerable') || desc.enumerable)
+    ) {
+      target[key] = desc.value;
+      return target;
+    } return dP(target, key, desc);
+  };
+
+  if (!ALL_CONSTRUCTORS) {
+    $GOPD.f = $getDesc;
+    $DP.f = $setDesc;
+  }
+
+  $export($export.S + $export.F * !ALL_CONSTRUCTORS, 'Object', {
+    getOwnPropertyDescriptor: $getDesc,
+    defineProperty: $setDesc
+  });
+
+  if (fails(function () { arrayToString.call({}); })) {
+    arrayToString = arrayToLocaleString = function toString() {
+      return arrayJoin.call(this);
+    };
+  }
+
+  var $TypedArrayPrototype$ = redefineAll({}, proto);
+  redefineAll($TypedArrayPrototype$, $iterators);
+  hide($TypedArrayPrototype$, ITERATOR, $iterators.values);
+  redefineAll($TypedArrayPrototype$, {
+    slice: $slice,
+    set: $set,
+    constructor: function () { /* noop */ },
+    toString: arrayToString,
+    toLocaleString: $toLocaleString
+  });
+  addGetter($TypedArrayPrototype$, 'buffer', 'b');
+  addGetter($TypedArrayPrototype$, 'byteOffset', 'o');
+  addGetter($TypedArrayPrototype$, 'byteLength', 'l');
+  addGetter($TypedArrayPrototype$, 'length', 'e');
+  dP($TypedArrayPrototype$, TAG, {
+    get: function () { return this[TYPED_ARRAY]; }
+  });
+
+  // eslint-disable-next-line max-statements
+  module.exports = function (KEY, BYTES, wrapper, CLAMPED) {
+    CLAMPED = !!CLAMPED;
+    var NAME = KEY + (CLAMPED ? 'Clamped' : '') + 'Array';
+    var GETTER = 'get' + KEY;
+    var SETTER = 'set' + KEY;
+    var TypedArray = global[NAME];
+    var Base = TypedArray || {};
+    var TAC = TypedArray && getPrototypeOf(TypedArray);
+    var FORCED = !TypedArray || !$typed.ABV;
+    var O = {};
+    var TypedArrayPrototype = TypedArray && TypedArray[PROTOTYPE];
+    var getter = function (that, index) {
+      var data = that._d;
+      return data.v[GETTER](index * BYTES + data.o, LITTLE_ENDIAN);
+    };
+    var setter = function (that, index, value) {
+      var data = that._d;
+      if (CLAMPED) value = (value = Math.round(value)) < 0 ? 0 : value > 0xff ? 0xff : value & 0xff;
+      data.v[SETTER](index * BYTES + data.o, value, LITTLE_ENDIAN);
+    };
+    var addElement = function (that, index) {
+      dP(that, index, {
+        get: function () {
+          return getter(this, index);
+        },
+        set: function (value) {
+          return setter(this, index, value);
+        },
+        enumerable: true
+      });
+    };
+    if (FORCED) {
+      TypedArray = wrapper(function (that, data, $offset, $length) {
+        anInstance(that, TypedArray, NAME, '_d');
+        var index = 0;
+        var offset = 0;
+        var buffer, byteLength, length, klass;
+        if (!isObject(data)) {
+          length = toIndex(data);
+          byteLength = length * BYTES;
+          buffer = new $ArrayBuffer(byteLength);
+        } else if (data instanceof $ArrayBuffer || (klass = classof(data)) == ARRAY_BUFFER || klass == SHARED_BUFFER) {
+          buffer = data;
+          offset = toOffset($offset, BYTES);
+          var $len = data.byteLength;
+          if ($length === undefined) {
+            if ($len % BYTES) throw RangeError(WRONG_LENGTH);
+            byteLength = $len - offset;
+            if (byteLength < 0) throw RangeError(WRONG_LENGTH);
+          } else {
+            byteLength = toLength($length) * BYTES;
+            if (byteLength + offset > $len) throw RangeError(WRONG_LENGTH);
+          }
+          length = byteLength / BYTES;
+        } else if (TYPED_ARRAY in data) {
+          return fromList(TypedArray, data);
+        } else {
+          return $from.call(TypedArray, data);
+        }
+        hide(that, '_d', {
+          b: buffer,
+          o: offset,
+          l: byteLength,
+          e: length,
+          v: new $DataView(buffer)
+        });
+        while (index < length) addElement(that, index++);
+      });
+      TypedArrayPrototype = TypedArray[PROTOTYPE] = create($TypedArrayPrototype$);
+      hide(TypedArrayPrototype, 'constructor', TypedArray);
+    } else if (!fails(function () {
+      TypedArray(1);
+    }) || !fails(function () {
+      new TypedArray(-1); // eslint-disable-line no-new
+    }) || !$iterDetect(function (iter) {
+      new TypedArray(); // eslint-disable-line no-new
+      new TypedArray(null); // eslint-disable-line no-new
+      new TypedArray(1.5); // eslint-disable-line no-new
+      new TypedArray(iter); // eslint-disable-line no-new
+    }, true)) {
+      TypedArray = wrapper(function (that, data, $offset, $length) {
+        anInstance(that, TypedArray, NAME);
+        var klass;
+        // `ws` module bug, temporarily remove validation length for Uint8Array
+        // https://github.com/websockets/ws/pull/645
+        if (!isObject(data)) return new Base(toIndex(data));
+        if (data instanceof $ArrayBuffer || (klass = classof(data)) == ARRAY_BUFFER || klass == SHARED_BUFFER) {
+          return $length !== undefined
+            ? new Base(data, toOffset($offset, BYTES), $length)
+            : $offset !== undefined
+              ? new Base(data, toOffset($offset, BYTES))
+              : new Base(data);
+        }
+        if (TYPED_ARRAY in data) return fromList(TypedArray, data);
+        return $from.call(TypedArray, data);
+      });
+      arrayForEach(TAC !== Function.prototype ? gOPN(Base).concat(gOPN(TAC)) : gOPN(Base), function (key) {
+        if (!(key in TypedArray)) hide(TypedArray, key, Base[key]);
+      });
+      TypedArray[PROTOTYPE] = TypedArrayPrototype;
+      if (!LIBRARY) TypedArrayPrototype.constructor = TypedArray;
+    }
+    var $nativeIterator = TypedArrayPrototype[ITERATOR];
+    var CORRECT_ITER_NAME = !!$nativeIterator
+      && ($nativeIterator.name == 'values' || $nativeIterator.name == undefined);
+    var $iterator = $iterators.values;
+    hide(TypedArray, TYPED_CONSTRUCTOR, true);
+    hide(TypedArrayPrototype, TYPED_ARRAY, NAME);
+    hide(TypedArrayPrototype, VIEW, true);
+    hide(TypedArrayPrototype, DEF_CONSTRUCTOR, TypedArray);
+
+    if (CLAMPED ? new TypedArray(1)[TAG] != NAME : !(TAG in TypedArrayPrototype)) {
+      dP(TypedArrayPrototype, TAG, {
+        get: function () { return NAME; }
+      });
+    }
+
+    O[NAME] = TypedArray;
+
+    $export($export.G + $export.W + $export.F * (TypedArray != Base), O);
+
+    $export($export.S, NAME, {
+      BYTES_PER_ELEMENT: BYTES
+    });
+
+    $export($export.S + $export.F * fails(function () { Base.of.call(TypedArray, 1); }), NAME, {
+      from: $from,
+      of: $of
+    });
+
+    if (!(BYTES_PER_ELEMENT in TypedArrayPrototype)) hide(TypedArrayPrototype, BYTES_PER_ELEMENT, BYTES);
+
+    $export($export.P, NAME, proto);
+
+    setSpecies(NAME);
+
+    $export($export.P + $export.F * FORCED_SET, NAME, { set: $set });
+
+    $export($export.P + $export.F * !CORRECT_ITER_NAME, NAME, $iterators);
+
+    if (!LIBRARY && TypedArrayPrototype.toString != arrayToString) TypedArrayPrototype.toString = arrayToString;
+
+    $export($export.P + $export.F * fails(function () {
+      new TypedArray(1).slice();
+    }), NAME, { slice: $slice });
+
+    $export($export.P + $export.F * (fails(function () {
+      return [1, 2].toLocaleString() != new TypedArray([1, 2]).toLocaleString();
+    }) || !fails(function () {
+      TypedArrayPrototype.toLocaleString.call([1, 2]);
+    })), NAME, { toLocaleString: $toLocaleString });
+
+    Iterators[NAME] = CORRECT_ITER_NAME ? $nativeIterator : $iterator;
+    if (!LIBRARY && !CORRECT_ITER_NAME) hide(TypedArrayPrototype, ITERATOR, $iterator);
+  };
+} else module.exports = function () { /* empty */ };
+
+},{"100":100,"104":104,"11":11,"114":114,"115":115,"116":116,"118":118,"119":119,"12":12,"120":120,"122":122,"123":123,"124":124,"128":128,"129":129,"141":141,"17":17,"25":25,"29":29,"33":33,"35":35,"40":40,"41":41,"42":42,"48":48,"51":51,"56":56,"58":58,"6":6,"60":60,"71":71,"72":72,"75":75,"77":77,"79":79,"8":8,"9":9,"92":92,"93":93}],122:[function(_dereq_,module,exports){
+'use strict';
+var global = _dereq_(40);
+var DESCRIPTORS = _dereq_(29);
+var LIBRARY = _dereq_(60);
+var $typed = _dereq_(123);
+var hide = _dereq_(42);
+var redefineAll = _dereq_(93);
+var fails = _dereq_(35);
+var anInstance = _dereq_(6);
+var toInteger = _dereq_(116);
+var toLength = _dereq_(118);
+var toIndex = _dereq_(115);
+var gOPN = _dereq_(77).f;
+var dP = _dereq_(72).f;
+var arrayFill = _dereq_(9);
+var setToStringTag = _dereq_(101);
+var ARRAY_BUFFER = 'ArrayBuffer';
+var DATA_VIEW = 'DataView';
+var PROTOTYPE = 'prototype';
+var WRONG_LENGTH = 'Wrong length!';
+var WRONG_INDEX = 'Wrong index!';
+var $ArrayBuffer = global[ARRAY_BUFFER];
+var $DataView = global[DATA_VIEW];
+var Math = global.Math;
+var RangeError = global.RangeError;
+// eslint-disable-next-line no-shadow-restricted-names
+var Infinity = global.Infinity;
+var BaseBuffer = $ArrayBuffer;
+var abs = Math.abs;
+var pow = Math.pow;
+var floor = Math.floor;
+var log = Math.log;
+var LN2 = Math.LN2;
+var BUFFER = 'buffer';
+var BYTE_LENGTH = 'byteLength';
+var BYTE_OFFSET = 'byteOffset';
+var $BUFFER = DESCRIPTORS ? '_b' : BUFFER;
+var $LENGTH = DESCRIPTORS ? '_l' : BYTE_LENGTH;
+var $OFFSET = DESCRIPTORS ? '_o' : BYTE_OFFSET;
+
+// IEEE754 conversions based on https://github.com/feross/ieee754
+function packIEEE754(value, mLen, nBytes) {
+  var buffer = Array(nBytes);
+  var eLen = nBytes * 8 - mLen - 1;
+  var eMax = (1 << eLen) - 1;
+  var eBias = eMax >> 1;
+  var rt = mLen === 23 ? pow(2, -24) - pow(2, -77) : 0;
+  var i = 0;
+  var s = value < 0 || value === 0 && 1 / value < 0 ? 1 : 0;
+  var e, m, c;
+  value = abs(value);
+  // eslint-disable-next-line no-self-compare
+  if (value != value || value === Infinity) {
+    // eslint-disable-next-line no-self-compare
+    m = value != value ? 1 : 0;
+    e = eMax;
+  } else {
+    e = floor(log(value) / LN2);
+    if (value * (c = pow(2, -e)) < 1) {
+      e--;
+      c *= 2;
+    }
+    if (e + eBias >= 1) {
+      value += rt / c;
+    } else {
+      value += rt * pow(2, 1 - eBias);
+    }
+    if (value * c >= 2) {
+      e++;
+      c /= 2;
+    }
+    if (e + eBias >= eMax) {
+      m = 0;
+      e = eMax;
+    } else if (e + eBias >= 1) {
+      m = (value * c - 1) * pow(2, mLen);
+      e = e + eBias;
+    } else {
+      m = value * pow(2, eBias - 1) * pow(2, mLen);
+      e = 0;
+    }
+  }
+  for (; mLen >= 8; buffer[i++] = m & 255, m /= 256, mLen -= 8);
+  e = e << mLen | m;
+  eLen += mLen;
+  for (; eLen > 0; buffer[i++] = e & 255, e /= 256, eLen -= 8);
+  buffer[--i] |= s * 128;
+  return buffer;
+}
+function unpackIEEE754(buffer, mLen, nBytes) {
+  var eLen = nBytes * 8 - mLen - 1;
+  var eMax = (1 << eLen) - 1;
+  var eBias = eMax >> 1;
+  var nBits = eLen - 7;
+  var i = nBytes - 1;
+  var s = buffer[i--];
+  var e = s & 127;
+  var m;
+  s >>= 7;
+  for (; nBits > 0; e = e * 256 + buffer[i], i--, nBits -= 8);
+  m = e & (1 << -nBits) - 1;
+  e >>= -nBits;
+  nBits += mLen;
+  for (; nBits > 0; m = m * 256 + buffer[i], i--, nBits -= 8);
+  if (e === 0) {
+    e = 1 - eBias;
+  } else if (e === eMax) {
+    return m ? NaN : s ? -Infinity : Infinity;
+  } else {
+    m = m + pow(2, mLen);
+    e = e - eBias;
+  } return (s ? -1 : 1) * m * pow(2, e - mLen);
+}
+
+function unpackI32(bytes) {
+  return bytes[3] << 24 | bytes[2] << 16 | bytes[1] << 8 | bytes[0];
+}
+function packI8(it) {
+  return [it & 0xff];
+}
+function packI16(it) {
+  return [it & 0xff, it >> 8 & 0xff];
+}
+function packI32(it) {
+  return [it & 0xff, it >> 8 & 0xff, it >> 16 & 0xff, it >> 24 & 0xff];
+}
+function packF64(it) {
+  return packIEEE754(it, 52, 8);
+}
+function packF32(it) {
+  return packIEEE754(it, 23, 4);
+}
+
+function addGetter(C, key, internal) {
+  dP(C[PROTOTYPE], key, { get: function () { return this[internal]; } });
+}
+
+function get(view, bytes, index, isLittleEndian) {
+  var numIndex = +index;
+  var intIndex = toIndex(numIndex);
+  if (intIndex + bytes > view[$LENGTH]) throw RangeError(WRONG_INDEX);
+  var store = view[$BUFFER]._b;
+  var start = intIndex + view[$OFFSET];
+  var pack = store.slice(start, start + bytes);
+  return isLittleEndian ? pack : pack.reverse();
+}
+function set(view, bytes, index, conversion, value, isLittleEndian) {
+  var numIndex = +index;
+  var intIndex = toIndex(numIndex);
+  if (intIndex + bytes > view[$LENGTH]) throw RangeError(WRONG_INDEX);
+  var store = view[$BUFFER]._b;
+  var start = intIndex + view[$OFFSET];
+  var pack = conversion(+value);
+  for (var i = 0; i < bytes; i++) store[start + i] = pack[isLittleEndian ? i : bytes - i - 1];
+}
+
+if (!$typed.ABV) {
+  $ArrayBuffer = function ArrayBuffer(length) {
+    anInstance(this, $ArrayBuffer, ARRAY_BUFFER);
+    var byteLength = toIndex(length);
+    this._b = arrayFill.call(Array(byteLength), 0);
+    this[$LENGTH] = byteLength;
+  };
+
+  $DataView = function DataView(buffer, byteOffset, byteLength) {
+    anInstance(this, $DataView, DATA_VIEW);
+    anInstance(buffer, $ArrayBuffer, DATA_VIEW);
+    var bufferLength = buffer[$LENGTH];
+    var offset = toInteger(byteOffset);
+    if (offset < 0 || offset > bufferLength) throw RangeError('Wrong offset!');
+    byteLength = byteLength === undefined ? bufferLength - offset : toLength(byteLength);
+    if (offset + byteLength > bufferLength) throw RangeError(WRONG_LENGTH);
+    this[$BUFFER] = buffer;
+    this[$OFFSET] = offset;
+    this[$LENGTH] = byteLength;
+  };
+
+  if (DESCRIPTORS) {
+    addGetter($ArrayBuffer, BYTE_LENGTH, '_l');
+    addGetter($DataView, BUFFER, '_b');
+    addGetter($DataView, BYTE_LENGTH, '_l');
+    addGetter($DataView, BYTE_OFFSET, '_o');
+  }
+
+  redefineAll($DataView[PROTOTYPE], {
+    getInt8: function getInt8(byteOffset) {
+      return get(this, 1, byteOffset)[0] << 24 >> 24;
+    },
+    getUint8: function getUint8(byteOffset) {
+      return get(this, 1, byteOffset)[0];
+    },
+    getInt16: function getInt16(byteOffset /* , littleEndian */) {
+      var bytes = get(this, 2, byteOffset, arguments[1]);
+      return (bytes[1] << 8 | bytes[0]) << 16 >> 16;
+    },
+    getUint16: function getUint16(byteOffset /* , littleEndian */) {
+      var bytes = get(this, 2, byteOffset, arguments[1]);
+      return bytes[1] << 8 | bytes[0];
+    },
+    getInt32: function getInt32(byteOffset /* , littleEndian */) {
+      return unpackI32(get(this, 4, byteOffset, arguments[1]));
+    },
+    getUint32: function getUint32(byteOffset /* , littleEndian */) {
+      return unpackI32(get(this, 4, byteOffset, arguments[1])) >>> 0;
+    },
+    getFloat32: function getFloat32(byteOffset /* , littleEndian */) {
+      return unpackIEEE754(get(this, 4, byteOffset, arguments[1]), 23, 4);
+    },
+    getFloat64: function getFloat64(byteOffset /* , littleEndian */) {
+      return unpackIEEE754(get(this, 8, byteOffset, arguments[1]), 52, 8);
+    },
+    setInt8: function setInt8(byteOffset, value) {
+      set(this, 1, byteOffset, packI8, value);
+    },
+    setUint8: function setUint8(byteOffset, value) {
+      set(this, 1, byteOffset, packI8, value);
+    },
+    setInt16: function setInt16(byteOffset, value /* , littleEndian */) {
+      set(this, 2, byteOffset, packI16, value, arguments[2]);
+    },
+    setUint16: function setUint16(byteOffset, value /* , littleEndian */) {
+      set(this, 2, byteOffset, packI16, value, arguments[2]);
+    },
+    setInt32: function setInt32(byteOffset, value /* , littleEndian */) {
+      set(this, 4, byteOffset, packI32, value, arguments[2]);
+    },
+    setUint32: function setUint32(byteOffset, value /* , littleEndian */) {
+      set(this, 4, byteOffset, packI32, value, arguments[2]);
+    },
+    setFloat32: function setFloat32(byteOffset, value /* , littleEndian */) {
+      set(this, 4, byteOffset, packF32, value, arguments[2]);
+    },
+    setFloat64: function setFloat64(byteOffset, value /* , littleEndian */) {
+      set(this, 8, byteOffset, packF64, value, arguments[2]);
+    }
+  });
+} else {
+  if (!fails(function () {
+    $ArrayBuffer(1);
+  }) || !fails(function () {
+    new $ArrayBuffer(-1); // eslint-disable-line no-new
+  }) || fails(function () {
+    new $ArrayBuffer(); // eslint-disable-line no-new
+    new $ArrayBuffer(1.5); // eslint-disable-line no-new
+    new $ArrayBuffer(NaN); // eslint-disable-line no-new
+    return $ArrayBuffer.name != ARRAY_BUFFER;
+  })) {
+    $ArrayBuffer = function ArrayBuffer(length) {
+      anInstance(this, $ArrayBuffer);
+      return new BaseBuffer(toIndex(length));
+    };
+    var ArrayBufferProto = $ArrayBuffer[PROTOTYPE] = BaseBuffer[PROTOTYPE];
+    for (var keys = gOPN(BaseBuffer), j = 0, key; keys.length > j;) {
+      if (!((key = keys[j++]) in $ArrayBuffer)) hide($ArrayBuffer, key, BaseBuffer[key]);
+    }
+    if (!LIBRARY) ArrayBufferProto.constructor = $ArrayBuffer;
+  }
+  // iOS Safari 7.x bug
+  var view = new $DataView(new $ArrayBuffer(2));
+  var $setInt8 = $DataView[PROTOTYPE].setInt8;
+  view.setInt8(0, 2147483648);
+  view.setInt8(1, 2147483649);
+  if (view.getInt8(0) || !view.getInt8(1)) redefineAll($DataView[PROTOTYPE], {
+    setInt8: function setInt8(byteOffset, value) {
+      $setInt8.call(this, byteOffset, value << 24 >> 24);
+    },
+    setUint8: function setUint8(byteOffset, value) {
+      $setInt8.call(this, byteOffset, value << 24 >> 24);
+    }
+  }, true);
+}
+setToStringTag($ArrayBuffer, ARRAY_BUFFER);
+setToStringTag($DataView, DATA_VIEW);
+hide($DataView[PROTOTYPE], $typed.VIEW, true);
+exports[ARRAY_BUFFER] = $ArrayBuffer;
+exports[DATA_VIEW] = $DataView;
+
+},{"101":101,"115":115,"116":116,"118":118,"123":123,"29":29,"35":35,"40":40,"42":42,"6":6,"60":60,"72":72,"77":77,"9":9,"93":93}],123:[function(_dereq_,module,exports){
+var global = _dereq_(40);
+var hide = _dereq_(42);
+var uid = _dereq_(124);
+var TYPED = uid('typed_array');
+var VIEW = uid('view');
+var ABV = !!(global.ArrayBuffer && global.DataView);
+var CONSTR = ABV;
+var i = 0;
+var l = 9;
+var Typed;
+
+var TypedArrayConstructors = (
+  'Int8Array,Uint8Array,Uint8ClampedArray,Int16Array,Uint16Array,Int32Array,Uint32Array,Float32Array,Float64Array'
+).split(',');
+
+while (i < l) {
+  if (Typed = global[TypedArrayConstructors[i++]]) {
+    hide(Typed.prototype, TYPED, true);
+    hide(Typed.prototype, VIEW, true);
+  } else CONSTR = false;
+}
+
+module.exports = {
+  ABV: ABV,
+  CONSTR: CONSTR,
+  TYPED: TYPED,
+  VIEW: VIEW
+};
+
+},{"124":124,"40":40,"42":42}],124:[function(_dereq_,module,exports){
+var id = 0;
+var px = Math.random();
+module.exports = function (key) {
+  return 'Symbol('.concat(key === undefined ? '' : key, ')_', (++id + px).toString(36));
+};
+
+},{}],125:[function(_dereq_,module,exports){
+var isObject = _dereq_(51);
+module.exports = function (it, TYPE) {
+  if (!isObject(it) || it._t !== TYPE) throw TypeError('Incompatible receiver, ' + TYPE + ' required!');
+  return it;
+};
+
+},{"51":51}],126:[function(_dereq_,module,exports){
+var global = _dereq_(40);
+var core = _dereq_(23);
+var LIBRARY = _dereq_(60);
+var wksExt = _dereq_(127);
+var defineProperty = _dereq_(72).f;
+module.exports = function (name) {
+  var $Symbol = core.Symbol || (core.Symbol = LIBRARY ? {} : global.Symbol || {});
+  if (name.charAt(0) != '_' && !(name in $Symbol)) defineProperty($Symbol, name, { value: wksExt.f(name) });
+};
+
+},{"127":127,"23":23,"40":40,"60":60,"72":72}],127:[function(_dereq_,module,exports){
+exports.f = _dereq_(128);
+
+},{"128":128}],128:[function(_dereq_,module,exports){
+var store = _dereq_(103)('wks');
+var uid = _dereq_(124);
+var Symbol = _dereq_(40).Symbol;
+var USE_SYMBOL = typeof Symbol == 'function';
+
+var $exports = module.exports = function (name) {
+  return store[name] || (store[name] =
+    USE_SYMBOL && Symbol[name] || (USE_SYMBOL ? Symbol : uid)('Symbol.' + name));
+};
+
+$exports.store = store;
+
+},{"103":103,"124":124,"40":40}],129:[function(_dereq_,module,exports){
+var classof = _dereq_(17);
+var ITERATOR = _dereq_(128)('iterator');
+var Iterators = _dereq_(58);
+module.exports = _dereq_(23).getIteratorMethod = function (it) {
+  if (it != undefined) return it[ITERATOR]
+    || it['@@iterator']
+    || Iterators[classof(it)];
+};
+
+},{"128":128,"17":17,"23":23,"58":58}],130:[function(_dereq_,module,exports){
+// https://github.com/benjamingr/RexExp.escape
+var $export = _dereq_(33);
+var $re = _dereq_(95)(/[\\^$*+?.()|[\]{}]/g, '\\$&');
+
+$export($export.S, 'RegExp', { escape: function escape(it) { return $re(it); } });
+
+},{"33":33,"95":95}],131:[function(_dereq_,module,exports){
+// 22.1.3.3 Array.prototype.copyWithin(target, start, end = this.length)
+var $export = _dereq_(33);
+
+$export($export.P, 'Array', { copyWithin: _dereq_(8) });
+
+_dereq_(5)('copyWithin');
+
+},{"33":33,"5":5,"8":8}],132:[function(_dereq_,module,exports){
+'use strict';
+var $export = _dereq_(33);
+var $every = _dereq_(12)(4);
+
+$export($export.P + $export.F * !_dereq_(105)([].every, true), 'Array', {
+  // 22.1.3.5 / 15.4.4.16 Array.prototype.every(callbackfn [, thisArg])
+  every: function every(callbackfn /* , thisArg */) {
+    return $every(this, callbackfn, arguments[1]);
+  }
+});
+
+},{"105":105,"12":12,"33":33}],133:[function(_dereq_,module,exports){
+// 22.1.3.6 Array.prototype.fill(value, start = 0, end = this.length)
+var $export = _dereq_(33);
+
+$export($export.P, 'Array', { fill: _dereq_(9) });
+
+_dereq_(5)('fill');
+
+},{"33":33,"5":5,"9":9}],134:[function(_dereq_,module,exports){
+'use strict';
+var $export = _dereq_(33);
+var $filter = _dereq_(12)(2);
+
+$export($export.P + $export.F * !_dereq_(105)([].filter, true), 'Array', {
+  // 22.1.3.7 / 15.4.4.20 Array.prototype.filter(callbackfn [, thisArg])
+  filter: function filter(callbackfn /* , thisArg */) {
+    return $filter(this, callbackfn, arguments[1]);
+  }
+});
+
+},{"105":105,"12":12,"33":33}],135:[function(_dereq_,module,exports){
+'use strict';
+// 22.1.3.9 Array.prototype.findIndex(predicate, thisArg = undefined)
+var $export = _dereq_(33);
+var $find = _dereq_(12)(6);
+var KEY = 'findIndex';
+var forced = true;
+// Shouldn't skip holes
+if (KEY in []) Array(1)[KEY](function () { forced = false; });
+$export($export.P + $export.F * forced, 'Array', {
+  findIndex: function findIndex(callbackfn /* , that = undefined */) {
+    return $find(this, callbackfn, arguments.length > 1 ? arguments[1] : undefined);
+  }
+});
+_dereq_(5)(KEY);
+
+},{"12":12,"33":33,"5":5}],136:[function(_dereq_,module,exports){
+'use strict';
+// 22.1.3.8 Array.prototype.find(predicate, thisArg = undefined)
+var $export = _dereq_(33);
+var $find = _dereq_(12)(5);
+var KEY = 'find';
+var forced = true;
+// Shouldn't skip holes
+if (KEY in []) Array(1)[KEY](function () { forced = false; });
+$export($export.P + $export.F * forced, 'Array', {
+  find: function find(callbackfn /* , that = undefined */) {
+    return $find(this, callbackfn, arguments.length > 1 ? arguments[1] : undefined);
+  }
+});
+_dereq_(5)(KEY);
+
+},{"12":12,"33":33,"5":5}],137:[function(_dereq_,module,exports){
+'use strict';
+var $export = _dereq_(33);
+var $forEach = _dereq_(12)(0);
+var STRICT = _dereq_(105)([].forEach, true);
+
+$export($export.P + $export.F * !STRICT, 'Array', {
+  // 22.1.3.10 / 15.4.4.18 Array.prototype.forEach(callbackfn [, thisArg])
+  forEach: function forEach(callbackfn /* , thisArg */) {
+    return $forEach(this, callbackfn, arguments[1]);
+  }
+});
+
+},{"105":105,"12":12,"33":33}],138:[function(_dereq_,module,exports){
+'use strict';
+var ctx = _dereq_(25);
+var $export = _dereq_(33);
+var toObject = _dereq_(119);
+var call = _dereq_(53);
+var isArrayIter = _dereq_(48);
+var toLength = _dereq_(118);
+var createProperty = _dereq_(24);
+var getIterFn = _dereq_(129);
+
+$export($export.S + $export.F * !_dereq_(56)(function (iter) { Array.from(iter); }), 'Array', {
+  // 22.1.2.1 Array.from(arrayLike, mapfn = undefined, thisArg = undefined)
+  from: function from(arrayLike /* , mapfn = undefined, thisArg = undefined */) {
+    var O = toObject(arrayLike);
+    var C = typeof this == 'function' ? this : Array;
+    var aLen = arguments.length;
+    var mapfn = aLen > 1 ? arguments[1] : undefined;
+    var mapping = mapfn !== undefined;
+    var index = 0;
+    var iterFn = getIterFn(O);
+    var length, result, step, iterator;
+    if (mapping) mapfn = ctx(mapfn, aLen > 2 ? arguments[2] : undefined, 2);
+    // if object isn't iterable or it's array with default iterator - use simple case
+    if (iterFn != undefined && !(C == Array && isArrayIter(iterFn))) {
+      for (iterator = iterFn.call(O), result = new C(); !(step = iterator.next()).done; index++) {
+        createProperty(result, index, mapping ? call(iterator, mapfn, [step.value, index], true) : step.value);
+      }
+    } else {
+      length = toLength(O.length);
+      for (result = new C(length); length > index; index++) {
+        createProperty(result, index, mapping ? mapfn(O[index], index) : O[index]);
+      }
+    }
+    result.length = index;
+    return result;
+  }
+});
+
+},{"118":118,"119":119,"129":129,"24":24,"25":25,"33":33,"48":48,"53":53,"56":56}],139:[function(_dereq_,module,exports){
+'use strict';
+var $export = _dereq_(33);
+var $indexOf = _dereq_(11)(false);
+var $native = [].indexOf;
+var NEGATIVE_ZERO = !!$native && 1 / [1].indexOf(1, -0) < 0;
+
+$export($export.P + $export.F * (NEGATIVE_ZERO || !_dereq_(105)($native)), 'Array', {
+  // 22.1.3.11 / 15.4.4.14 Array.prototype.indexOf(searchElement [, fromIndex])
+  indexOf: function indexOf(searchElement /* , fromIndex = 0 */) {
+    return NEGATIVE_ZERO
+      // convert -0 to +0
+      ? $native.apply(this, arguments) || 0
+      : $indexOf(this, searchElement, arguments[1]);
+  }
+});
+
+},{"105":105,"11":11,"33":33}],140:[function(_dereq_,module,exports){
+// 22.1.2.2 / 15.4.3.2 Array.isArray(arg)
+var $export = _dereq_(33);
+
+$export($export.S, 'Array', { isArray: _dereq_(49) });
+
+},{"33":33,"49":49}],141:[function(_dereq_,module,exports){
+'use strict';
+var addToUnscopables = _dereq_(5);
+var step = _dereq_(57);
+var Iterators = _dereq_(58);
+var toIObject = _dereq_(117);
+
+// 22.1.3.4 Array.prototype.entries()
+// 22.1.3.13 Array.prototype.keys()
+// 22.1.3.29 Array.prototype.values()
+// 22.1.3.30 Array.prototype[@@iterator]()
+module.exports = _dereq_(55)(Array, 'Array', function (iterated, kind) {
+  this._t = toIObject(iterated); // target
+  this._i = 0;                   // next index
+  this._k = kind;                // kind
+// 22.1.5.2.1 %ArrayIteratorPrototype%.next()
+}, function () {
+  var O = this._t;
+  var kind = this._k;
+  var index = this._i++;
+  if (!O || index >= O.length) {
+    this._t = undefined;
+    return step(1);
+  }
+  if (kind == 'keys') return step(0, index);
+  if (kind == 'values') return step(0, O[index]);
+  return step(0, [index, O[index]]);
+}, 'values');
+
+// argumentsList[@@iterator] is %ArrayProto_values% (9.4.4.6, 9.4.4.7)
+Iterators.Arguments = Iterators.Array;
+
+addToUnscopables('keys');
+addToUnscopables('values');
+addToUnscopables('entries');
+
+},{"117":117,"5":5,"55":55,"57":57,"58":58}],142:[function(_dereq_,module,exports){
+'use strict';
+// 22.1.3.13 Array.prototype.join(separator)
+var $export = _dereq_(33);
+var toIObject = _dereq_(117);
+var arrayJoin = [].join;
+
+// fallback for not array-like strings
+$export($export.P + $export.F * (_dereq_(47) != Object || !_dereq_(105)(arrayJoin)), 'Array', {
+  join: function join(separator) {
+    return arrayJoin.call(toIObject(this), separator === undefined ? ',' : separator);
+  }
+});
+
+},{"105":105,"117":117,"33":33,"47":47}],143:[function(_dereq_,module,exports){
+'use strict';
+var $export = _dereq_(33);
+var toIObject = _dereq_(117);
+var toInteger = _dereq_(116);
+var toLength = _dereq_(118);
+var $native = [].lastIndexOf;
+var NEGATIVE_ZERO = !!$native && 1 / [1].lastIndexOf(1, -0) < 0;
+
+$export($export.P + $export.F * (NEGATIVE_ZERO || !_dereq_(105)($native)), 'Array', {
+  // 22.1.3.14 / 15.4.4.15 Array.prototype.lastIndexOf(searchElement [, fromIndex])
+  lastIndexOf: function lastIndexOf(searchElement /* , fromIndex = @[*-1] */) {
+    // convert -0 to +0
+    if (NEGATIVE_ZERO) return $native.apply(this, arguments) || 0;
+    var O = toIObject(this);
+    var length = toLength(O.length);
+    var index = length - 1;
+    if (arguments.length > 1) index = Math.min(index, toInteger(arguments[1]));
+    if (index < 0) index = length + index;
+    for (;index >= 0; index--) if (index in O) if (O[index] === searchElement) return index || 0;
+    return -1;
+  }
+});
+
+},{"105":105,"116":116,"117":117,"118":118,"33":33}],144:[function(_dereq_,module,exports){
+'use strict';
+var $export = _dereq_(33);
+var $map = _dereq_(12)(1);
+
+$export($export.P + $export.F * !_dereq_(105)([].map, true), 'Array', {
+  // 22.1.3.15 / 15.4.4.19 Array.prototype.map(callbackfn [, thisArg])
+  map: function map(callbackfn /* , thisArg */) {
+    return $map(this, callbackfn, arguments[1]);
+  }
+});
+
+},{"105":105,"12":12,"33":33}],145:[function(_dereq_,module,exports){
+'use strict';
+var $export = _dereq_(33);
+var createProperty = _dereq_(24);
+
+// WebKit Array.of isn't generic
+$export($export.S + $export.F * _dereq_(35)(function () {
+  function F() { /* empty */ }
+  return !(Array.of.call(F) instanceof F);
+}), 'Array', {
+  // 22.1.2.3 Array.of( ...items)
+  of: function of(/* ...args */) {
+    var index = 0;
+    var aLen = arguments.length;
+    var result = new (typeof this == 'function' ? this : Array)(aLen);
+    while (aLen > index) createProperty(result, index, arguments[index++]);
+    result.length = aLen;
+    return result;
+  }
+});
+
+},{"24":24,"33":33,"35":35}],146:[function(_dereq_,module,exports){
+'use strict';
+var $export = _dereq_(33);
+var $reduce = _dereq_(13);
+
+$export($export.P + $export.F * !_dereq_(105)([].reduceRight, true), 'Array', {
+  // 22.1.3.19 / 15.4.4.22 Array.prototype.reduceRight(callbackfn [, initialValue])
+  reduceRight: function reduceRight(callbackfn /* , initialValue */) {
+    return $reduce(this, callbackfn, arguments.length, arguments[1], true);
+  }
+});
+
+},{"105":105,"13":13,"33":33}],147:[function(_dereq_,module,exports){
+'use strict';
+var $export = _dereq_(33);
+var $reduce = _dereq_(13);
+
+$export($export.P + $export.F * !_dereq_(105)([].reduce, true), 'Array', {
+  // 22.1.3.18 / 15.4.4.21 Array.prototype.reduce(callbackfn [, initialValue])
+  reduce: function reduce(callbackfn /* , initialValue */) {
+    return $reduce(this, callbackfn, arguments.length, arguments[1], false);
+  }
+});
+
+},{"105":105,"13":13,"33":33}],148:[function(_dereq_,module,exports){
+'use strict';
+var $export = _dereq_(33);
+var html = _dereq_(43);
+var cof = _dereq_(18);
+var toAbsoluteIndex = _dereq_(114);
+var toLength = _dereq_(118);
+var arraySlice = [].slice;
+
+// fallback for not array-like ES3 strings and DOM objects
+$export($export.P + $export.F * _dereq_(35)(function () {
+  if (html) arraySlice.call(html);
+}), 'Array', {
+  slice: function slice(begin, end) {
+    var len = toLength(this.length);
+    var klass = cof(this);
+    end = end === undefined ? len : end;
+    if (klass == 'Array') return arraySlice.call(this, begin, end);
+    var start = toAbsoluteIndex(begin, len);
+    var upTo = toAbsoluteIndex(end, len);
+    var size = toLength(upTo - start);
+    var cloned = Array(size);
+    var i = 0;
+    for (; i < size; i++) cloned[i] = klass == 'String'
+      ? this.charAt(start + i)
+      : this[start + i];
+    return cloned;
+  }
+});
+
+},{"114":114,"118":118,"18":18,"33":33,"35":35,"43":43}],149:[function(_dereq_,module,exports){
+'use strict';
+var $export = _dereq_(33);
+var $some = _dereq_(12)(3);
+
+$export($export.P + $export.F * !_dereq_(105)([].some, true), 'Array', {
+  // 22.1.3.23 / 15.4.4.17 Array.prototype.some(callbackfn [, thisArg])
+  some: function some(callbackfn /* , thisArg */) {
+    return $some(this, callbackfn, arguments[1]);
+  }
+});
+
+},{"105":105,"12":12,"33":33}],150:[function(_dereq_,module,exports){
+'use strict';
+var $export = _dereq_(33);
+var aFunction = _dereq_(3);
+var toObject = _dereq_(119);
+var fails = _dereq_(35);
+var $sort = [].sort;
+var test = [1, 2, 3];
+
+$export($export.P + $export.F * (fails(function () {
+  // IE8-
+  test.sort(undefined);
+}) || !fails(function () {
+  // V8 bug
+  test.sort(null);
+  // Old WebKit
+}) || !_dereq_(105)($sort)), 'Array', {
+  // 22.1.3.25 Array.prototype.sort(comparefn)
+  sort: function sort(comparefn) {
+    return comparefn === undefined
+      ? $sort.call(toObject(this))
+      : $sort.call(toObject(this), aFunction(comparefn));
+  }
+});
+
+},{"105":105,"119":119,"3":3,"33":33,"35":35}],151:[function(_dereq_,module,exports){
+_dereq_(100)('Array');
+
+},{"100":100}],152:[function(_dereq_,module,exports){
+// 20.3.3.1 / 15.9.4.4 Date.now()
+var $export = _dereq_(33);
+
+$export($export.S, 'Date', { now: function () { return new Date().getTime(); } });
+
+},{"33":33}],153:[function(_dereq_,module,exports){
+// 20.3.4.36 / 15.9.5.43 Date.prototype.toISOString()
+var $export = _dereq_(33);
+var toISOString = _dereq_(26);
+
+// PhantomJS / old WebKit has a broken implementations
+$export($export.P + $export.F * (Date.prototype.toISOString !== toISOString), 'Date', {
+  toISOString: toISOString
+});
+
+},{"26":26,"33":33}],154:[function(_dereq_,module,exports){
+'use strict';
+var $export = _dereq_(33);
+var toObject = _dereq_(119);
+var toPrimitive = _dereq_(120);
+
+$export($export.P + $export.F * _dereq_(35)(function () {
+  return new Date(NaN).toJSON() !== null
+    || Date.prototype.toJSON.call({ toISOString: function () { return 1; } }) !== 1;
+}), 'Date', {
+  // eslint-disable-next-line no-unused-vars
+  toJSON: function toJSON(key) {
+    var O = toObject(this);
+    var pv = toPrimitive(O);
+    return typeof pv == 'number' && !isFinite(pv) ? null : O.toISOString();
+  }
+});
+
+},{"119":119,"120":120,"33":33,"35":35}],155:[function(_dereq_,module,exports){
+var TO_PRIMITIVE = _dereq_(128)('toPrimitive');
+var proto = Date.prototype;
+
+if (!(TO_PRIMITIVE in proto)) _dereq_(42)(proto, TO_PRIMITIVE, _dereq_(27));
+
+},{"128":128,"27":27,"42":42}],156:[function(_dereq_,module,exports){
+var DateProto = Date.prototype;
+var INVALID_DATE = 'Invalid Date';
+var TO_STRING = 'toString';
+var $toString = DateProto[TO_STRING];
+var getTime = DateProto.getTime;
+if (new Date(NaN) + '' != INVALID_DATE) {
+  _dereq_(94)(DateProto, TO_STRING, function toString() {
+    var value = getTime.call(this);
+    // eslint-disable-next-line no-self-compare
+    return value === value ? $toString.call(this) : INVALID_DATE;
+  });
+}
+
+},{"94":94}],157:[function(_dereq_,module,exports){
+// 19.2.3.2 / 15.3.4.5 Function.prototype.bind(thisArg, args...)
+var $export = _dereq_(33);
+
+$export($export.P, 'Function', { bind: _dereq_(16) });
+
+},{"16":16,"33":33}],158:[function(_dereq_,module,exports){
+'use strict';
+var isObject = _dereq_(51);
+var getPrototypeOf = _dereq_(79);
+var HAS_INSTANCE = _dereq_(128)('hasInstance');
+var FunctionProto = Function.prototype;
+// 19.2.3.6 Function.prototype[@@hasInstance](V)
+if (!(HAS_INSTANCE in FunctionProto)) _dereq_(72).f(FunctionProto, HAS_INSTANCE, { value: function (O) {
+  if (typeof this != 'function' || !isObject(O)) return false;
+  if (!isObject(this.prototype)) return O instanceof this;
+  // for environment w/o native `@@hasInstance` logic enough `instanceof`, but add this:
+  while (O = getPrototypeOf(O)) if (this.prototype === O) return true;
+  return false;
+} });
+
+},{"128":128,"51":51,"72":72,"79":79}],159:[function(_dereq_,module,exports){
+var dP = _dereq_(72).f;
+var FProto = Function.prototype;
+var nameRE = /^\s*function ([^ (]*)/;
+var NAME = 'name';
+
+// 19.2.4.2 name
+NAME in FProto || _dereq_(29) && dP(FProto, NAME, {
+  configurable: true,
+  get: function () {
+    try {
+      return ('' + this).match(nameRE)[1];
+    } catch (e) {
+      return '';
+    }
+  }
+});
+
+},{"29":29,"72":72}],160:[function(_dereq_,module,exports){
+'use strict';
+var strong = _dereq_(19);
+var validate = _dereq_(125);
+var MAP = 'Map';
+
+// 23.1 Map Objects
+module.exports = _dereq_(22)(MAP, function (get) {
+  return function Map() { return get(this, arguments.length > 0 ? arguments[0] : undefined); };
+}, {
+  // 23.1.3.6 Map.prototype.get(key)
+  get: function get(key) {
+    var entry = strong.getEntry(validate(this, MAP), key);
+    return entry && entry.v;
+  },
+  // 23.1.3.9 Map.prototype.set(key, value)
+  set: function set(key, value) {
+    return strong.def(validate(this, MAP), key === 0 ? 0 : key, value);
+  }
+}, strong, true);
+
+},{"125":125,"19":19,"22":22}],161:[function(_dereq_,module,exports){
+// 20.2.2.3 Math.acosh(x)
+var $export = _dereq_(33);
+var log1p = _dereq_(63);
+var sqrt = Math.sqrt;
+var $acosh = Math.acosh;
+
+$export($export.S + $export.F * !($acosh
+  // V8 bug: https://code.google.com/p/v8/issues/detail?id=3509
+  && Math.floor($acosh(Number.MAX_VALUE)) == 710
+  // Tor Browser bug: Math.acosh(Infinity) -> NaN
+  && $acosh(Infinity) == Infinity
+), 'Math', {
+  acosh: function acosh(x) {
+    return (x = +x) < 1 ? NaN : x > 94906265.62425156
+      ? Math.log(x) + Math.LN2
+      : log1p(x - 1 + sqrt(x - 1) * sqrt(x + 1));
+  }
+});
+
+},{"33":33,"63":63}],162:[function(_dereq_,module,exports){
+// 20.2.2.5 Math.asinh(x)
+var $export = _dereq_(33);
+var $asinh = Math.asinh;
+
+function asinh(x) {
+  return !isFinite(x = +x) || x == 0 ? x : x < 0 ? -asinh(-x) : Math.log(x + Math.sqrt(x * x + 1));
+}
+
+// Tor Browser bug: Math.asinh(0) -> -0
+$export($export.S + $export.F * !($asinh && 1 / $asinh(0) > 0), 'Math', { asinh: asinh });
+
+},{"33":33}],163:[function(_dereq_,module,exports){
+// 20.2.2.7 Math.atanh(x)
+var $export = _dereq_(33);
+var $atanh = Math.atanh;
+
+// Tor Browser bug: Math.atanh(-0) -> 0
+$export($export.S + $export.F * !($atanh && 1 / $atanh(-0) < 0), 'Math', {
+  atanh: function atanh(x) {
+    return (x = +x) == 0 ? x : Math.log((1 + x) / (1 - x)) / 2;
+  }
+});
+
+},{"33":33}],164:[function(_dereq_,module,exports){
+// 20.2.2.9 Math.cbrt(x)
+var $export = _dereq_(33);
+var sign = _dereq_(65);
+
+$export($export.S, 'Math', {
+  cbrt: function cbrt(x) {
+    return sign(x = +x) * Math.pow(Math.abs(x), 1 / 3);
+  }
+});
+
+},{"33":33,"65":65}],165:[function(_dereq_,module,exports){
+// 20.2.2.11 Math.clz32(x)
+var $export = _dereq_(33);
+
+$export($export.S, 'Math', {
+  clz32: function clz32(x) {
+    return (x >>>= 0) ? 31 - Math.floor(Math.log(x + 0.5) * Math.LOG2E) : 32;
+  }
+});
+
+},{"33":33}],166:[function(_dereq_,module,exports){
+// 20.2.2.12 Math.cosh(x)
+var $export = _dereq_(33);
+var exp = Math.exp;
+
+$export($export.S, 'Math', {
+  cosh: function cosh(x) {
+    return (exp(x = +x) + exp(-x)) / 2;
+  }
+});
+
+},{"33":33}],167:[function(_dereq_,module,exports){
+// 20.2.2.14 Math.expm1(x)
+var $export = _dereq_(33);
+var $expm1 = _dereq_(61);
+
+$export($export.S + $export.F * ($expm1 != Math.expm1), 'Math', { expm1: $expm1 });
+
+},{"33":33,"61":61}],168:[function(_dereq_,module,exports){
+// 20.2.2.16 Math.fround(x)
+var $export = _dereq_(33);
+
+$export($export.S, 'Math', { fround: _dereq_(62) });
+
+},{"33":33,"62":62}],169:[function(_dereq_,module,exports){
+// 20.2.2.17 Math.hypot([value1[, value2[, … ]]])
+var $export = _dereq_(33);
+var abs = Math.abs;
+
+$export($export.S, 'Math', {
+  hypot: function hypot(value1, value2) { // eslint-disable-line no-unused-vars
+    var sum = 0;
+    var i = 0;
+    var aLen = arguments.length;
+    var larg = 0;
+    var arg, div;
+    while (i < aLen) {
+      arg = abs(arguments[i++]);
+      if (larg < arg) {
+        div = larg / arg;
+        sum = sum * div * div + 1;
+        larg = arg;
+      } else if (arg > 0) {
+        div = arg / larg;
+        sum += div * div;
+      } else sum += arg;
+    }
+    return larg === Infinity ? Infinity : larg * Math.sqrt(sum);
+  }
+});
+
+},{"33":33}],170:[function(_dereq_,module,exports){
+// 20.2.2.18 Math.imul(x, y)
+var $export = _dereq_(33);
+var $imul = Math.imul;
+
+// some WebKit versions fails with big numbers, some has wrong arity
+$export($export.S + $export.F * _dereq_(35)(function () {
+  return $imul(0xffffffff, 5) != -5 || $imul.length != 2;
+}), 'Math', {
+  imul: function imul(x, y) {
+    var UINT16 = 0xffff;
+    var xn = +x;
+    var yn = +y;
+    var xl = UINT16 & xn;
+    var yl = UINT16 & yn;
+    return 0 | xl * yl + ((UINT16 & xn >>> 16) * yl + xl * (UINT16 & yn >>> 16) << 16 >>> 0);
+  }
+});
+
+},{"33":33,"35":35}],171:[function(_dereq_,module,exports){
+// 20.2.2.21 Math.log10(x)
+var $export = _dereq_(33);
+
+$export($export.S, 'Math', {
+  log10: function log10(x) {
+    return Math.log(x) * Math.LOG10E;
+  }
+});
+
+},{"33":33}],172:[function(_dereq_,module,exports){
+// 20.2.2.20 Math.log1p(x)
+var $export = _dereq_(33);
+
+$export($export.S, 'Math', { log1p: _dereq_(63) });
+
+},{"33":33,"63":63}],173:[function(_dereq_,module,exports){
+// 20.2.2.22 Math.log2(x)
+var $export = _dereq_(33);
+
+$export($export.S, 'Math', {
+  log2: function log2(x) {
+    return Math.log(x) / Math.LN2;
+  }
+});
+
+},{"33":33}],174:[function(_dereq_,module,exports){
+// 20.2.2.28 Math.sign(x)
+var $export = _dereq_(33);
+
+$export($export.S, 'Math', { sign: _dereq_(65) });
+
+},{"33":33,"65":65}],175:[function(_dereq_,module,exports){
+// 20.2.2.30 Math.sinh(x)
+var $export = _dereq_(33);
+var expm1 = _dereq_(61);
+var exp = Math.exp;
+
+// V8 near Chromium 38 has a problem with very small numbers
+$export($export.S + $export.F * _dereq_(35)(function () {
+  return !Math.sinh(-2e-17) != -2e-17;
+}), 'Math', {
+  sinh: function sinh(x) {
+    return Math.abs(x = +x) < 1
+      ? (expm1(x) - expm1(-x)) / 2
+      : (exp(x - 1) - exp(-x - 1)) * (Math.E / 2);
+  }
+});
+
+},{"33":33,"35":35,"61":61}],176:[function(_dereq_,module,exports){
+// 20.2.2.33 Math.tanh(x)
+var $export = _dereq_(33);
+var expm1 = _dereq_(61);
+var exp = Math.exp;
+
+$export($export.S, 'Math', {
+  tanh: function tanh(x) {
+    var a = expm1(x = +x);
+    var b = expm1(-x);
+    return a == Infinity ? 1 : b == Infinity ? -1 : (a - b) / (exp(x) + exp(-x));
+  }
+});
+
+},{"33":33,"61":61}],177:[function(_dereq_,module,exports){
+// 20.2.2.34 Math.trunc(x)
+var $export = _dereq_(33);
+
+$export($export.S, 'Math', {
+  trunc: function trunc(it) {
+    return (it > 0 ? Math.floor : Math.ceil)(it);
+  }
+});
+
+},{"33":33}],178:[function(_dereq_,module,exports){
+'use strict';
+var global = _dereq_(40);
+var has = _dereq_(41);
+var cof = _dereq_(18);
+var inheritIfRequired = _dereq_(45);
+var toPrimitive = _dereq_(120);
+var fails = _dereq_(35);
+var gOPN = _dereq_(77).f;
+var gOPD = _dereq_(75).f;
+var dP = _dereq_(72).f;
+var $trim = _dereq_(111).trim;
+var NUMBER = 'Number';
+var $Number = global[NUMBER];
+var Base = $Number;
+var proto = $Number.prototype;
+// Opera ~12 has broken Object#toString
+var BROKEN_COF = cof(_dereq_(71)(proto)) == NUMBER;
+var TRIM = 'trim' in String.prototype;
+
+// 7.1.3 ToNumber(argument)
+var toNumber = function (argument) {
+  var it = toPrimitive(argument, false);
+  if (typeof it == 'string' && it.length > 2) {
+    it = TRIM ? it.trim() : $trim(it, 3);
+    var first = it.charCodeAt(0);
+    var third, radix, maxCode;
+    if (first === 43 || first === 45) {
+      third = it.charCodeAt(2);
+      if (third === 88 || third === 120) return NaN; // Number('+0x1') should be NaN, old V8 fix
+    } else if (first === 48) {
+      switch (it.charCodeAt(1)) {
+        case 66: case 98: radix = 2; maxCode = 49; break; // fast equal /^0b[01]+$/i
+        case 79: case 111: radix = 8; maxCode = 55; break; // fast equal /^0o[0-7]+$/i
+        default: return +it;
+      }
+      for (var digits = it.slice(2), i = 0, l = digits.length, code; i < l; i++) {
+        code = digits.charCodeAt(i);
+        // parseInt parses a string to a first unavailable symbol
+        // but ToNumber should return NaN if a string contains unavailable symbols
+        if (code < 48 || code > maxCode) return NaN;
+      } return parseInt(digits, radix);
+    }
+  } return +it;
+};
+
+if (!$Number(' 0o1') || !$Number('0b1') || $Number('+0x1')) {
+  $Number = function Number(value) {
+    var it = arguments.length < 1 ? 0 : value;
+    var that = this;
+    return that instanceof $Number
+      // check on 1..constructor(foo) case
+      && (BROKEN_COF ? fails(function () { proto.valueOf.call(that); }) : cof(that) != NUMBER)
+        ? inheritIfRequired(new Base(toNumber(it)), that, $Number) : toNumber(it);
+  };
+  for (var keys = _dereq_(29) ? gOPN(Base) : (
+    // ES3:
+    'MAX_VALUE,MIN_VALUE,NaN,NEGATIVE_INFINITY,POSITIVE_INFINITY,' +
+    // ES6 (in case, if modules with ES6 Number statics required before):
+    'EPSILON,isFinite,isInteger,isNaN,isSafeInteger,MAX_SAFE_INTEGER,' +
+    'MIN_SAFE_INTEGER,parseFloat,parseInt,isInteger'
+  ).split(','), j = 0, key; keys.length > j; j++) {
+    if (has(Base, key = keys[j]) && !has($Number, key)) {
+      dP($Number, key, gOPD(Base, key));
+    }
+  }
+  $Number.prototype = proto;
+  proto.constructor = $Number;
+  _dereq_(94)(global, NUMBER, $Number);
+}
+
+},{"111":111,"120":120,"18":18,"29":29,"35":35,"40":40,"41":41,"45":45,"71":71,"72":72,"75":75,"77":77,"94":94}],179:[function(_dereq_,module,exports){
+// 20.1.2.1 Number.EPSILON
+var $export = _dereq_(33);
+
+$export($export.S, 'Number', { EPSILON: Math.pow(2, -52) });
+
+},{"33":33}],180:[function(_dereq_,module,exports){
+// 20.1.2.2 Number.isFinite(number)
+var $export = _dereq_(33);
+var _isFinite = _dereq_(40).isFinite;
+
+$export($export.S, 'Number', {
+  isFinite: function isFinite(it) {
+    return typeof it == 'number' && _isFinite(it);
+  }
+});
+
+},{"33":33,"40":40}],181:[function(_dereq_,module,exports){
+// 20.1.2.3 Number.isInteger(number)
+var $export = _dereq_(33);
+
+$export($export.S, 'Number', { isInteger: _dereq_(50) });
+
+},{"33":33,"50":50}],182:[function(_dereq_,module,exports){
+// 20.1.2.4 Number.isNaN(number)
+var $export = _dereq_(33);
+
+$export($export.S, 'Number', {
+  isNaN: function isNaN(number) {
+    // eslint-disable-next-line no-self-compare
+    return number != number;
+  }
+});
+
+},{"33":33}],183:[function(_dereq_,module,exports){
+// 20.1.2.5 Number.isSafeInteger(number)
+var $export = _dereq_(33);
+var isInteger = _dereq_(50);
+var abs = Math.abs;
+
+$export($export.S, 'Number', {
+  isSafeInteger: function isSafeInteger(number) {
+    return isInteger(number) && abs(number) <= 0x1fffffffffffff;
+  }
+});
+
+},{"33":33,"50":50}],184:[function(_dereq_,module,exports){
+// 20.1.2.6 Number.MAX_SAFE_INTEGER
+var $export = _dereq_(33);
+
+$export($export.S, 'Number', { MAX_SAFE_INTEGER: 0x1fffffffffffff });
+
+},{"33":33}],185:[function(_dereq_,module,exports){
+// 20.1.2.10 Number.MIN_SAFE_INTEGER
+var $export = _dereq_(33);
+
+$export($export.S, 'Number', { MIN_SAFE_INTEGER: -0x1fffffffffffff });
+
+},{"33":33}],186:[function(_dereq_,module,exports){
+var $export = _dereq_(33);
+var $parseFloat = _dereq_(86);
+// 20.1.2.12 Number.parseFloat(string)
+$export($export.S + $export.F * (Number.parseFloat != $parseFloat), 'Number', { parseFloat: $parseFloat });
+
+},{"33":33,"86":86}],187:[function(_dereq_,module,exports){
+var $export = _dereq_(33);
+var $parseInt = _dereq_(87);
+// 20.1.2.13 Number.parseInt(string, radix)
+$export($export.S + $export.F * (Number.parseInt != $parseInt), 'Number', { parseInt: $parseInt });
+
+},{"33":33,"87":87}],188:[function(_dereq_,module,exports){
+'use strict';
+var $export = _dereq_(33);
+var toInteger = _dereq_(116);
+var aNumberValue = _dereq_(4);
+var repeat = _dereq_(110);
+var $toFixed = 1.0.toFixed;
+var floor = Math.floor;
+var data = [0, 0, 0, 0, 0, 0];
+var ERROR = 'Number.toFixed: incorrect invocation!';
+var ZERO = '0';
+
+var multiply = function (n, c) {
+  var i = -1;
+  var c2 = c;
+  while (++i < 6) {
+    c2 += n * data[i];
+    data[i] = c2 % 1e7;
+    c2 = floor(c2 / 1e7);
+  }
+};
+var divide = function (n) {
+  var i = 6;
+  var c = 0;
+  while (--i >= 0) {
+    c += data[i];
+    data[i] = floor(c / n);
+    c = (c % n) * 1e7;
+  }
+};
+var numToString = function () {
+  var i = 6;
+  var s = '';
+  while (--i >= 0) {
+    if (s !== '' || i === 0 || data[i] !== 0) {
+      var t = String(data[i]);
+      s = s === '' ? t : s + repeat.call(ZERO, 7 - t.length) + t;
+    }
+  } return s;
+};
+var pow = function (x, n, acc) {
+  return n === 0 ? acc : n % 2 === 1 ? pow(x, n - 1, acc * x) : pow(x * x, n / 2, acc);
+};
+var log = function (x) {
+  var n = 0;
+  var x2 = x;
+  while (x2 >= 4096) {
+    n += 12;
+    x2 /= 4096;
+  }
+  while (x2 >= 2) {
+    n += 1;
+    x2 /= 2;
+  } return n;
+};
+
+$export($export.P + $export.F * (!!$toFixed && (
+  0.00008.toFixed(3) !== '0.000' ||
+  0.9.toFixed(0) !== '1' ||
+  1.255.toFixed(2) !== '1.25' ||
+  1000000000000000128.0.toFixed(0) !== '1000000000000000128'
+) || !_dereq_(35)(function () {
+  // V8 ~ Android 4.3-
+  $toFixed.call({});
+})), 'Number', {
+  toFixed: function toFixed(fractionDigits) {
+    var x = aNumberValue(this, ERROR);
+    var f = toInteger(fractionDigits);
+    var s = '';
+    var m = ZERO;
+    var e, z, j, k;
+    if (f < 0 || f > 20) throw RangeError(ERROR);
+    // eslint-disable-next-line no-self-compare
+    if (x != x) return 'NaN';
+    if (x <= -1e21 || x >= 1e21) return String(x);
+    if (x < 0) {
+      s = '-';
+      x = -x;
+    }
+    if (x > 1e-21) {
+      e = log(x * pow(2, 69, 1)) - 69;
+      z = e < 0 ? x * pow(2, -e, 1) : x / pow(2, e, 1);
+      z *= 0x10000000000000;
+      e = 52 - e;
+      if (e > 0) {
+        multiply(0, z);
+        j = f;
+        while (j >= 7) {
+          multiply(1e7, 0);
+          j -= 7;
+        }
+        multiply(pow(10, j, 1), 0);
+        j = e - 1;
+        while (j >= 23) {
+          divide(1 << 23);
+          j -= 23;
+        }
+        divide(1 << j);
+        multiply(1, 1);
+        divide(2);
+        m = numToString();
+      } else {
+        multiply(0, z);
+        multiply(1 << -e, 0);
+        m = numToString() + repeat.call(ZERO, f);
+      }
+    }
+    if (f > 0) {
+      k = m.length;
+      m = s + (k <= f ? '0.' + repeat.call(ZERO, f - k) + m : m.slice(0, k - f) + '.' + m.slice(k - f));
+    } else {
+      m = s + m;
+    } return m;
+  }
+});
+
+},{"110":110,"116":116,"33":33,"35":35,"4":4}],189:[function(_dereq_,module,exports){
+'use strict';
+var $export = _dereq_(33);
+var $fails = _dereq_(35);
+var aNumberValue = _dereq_(4);
+var $toPrecision = 1.0.toPrecision;
+
+$export($export.P + $export.F * ($fails(function () {
+  // IE7-
+  return $toPrecision.call(1, undefined) !== '1';
+}) || !$fails(function () {
+  // V8 ~ Android 4.3-
+  $toPrecision.call({});
+})), 'Number', {
+  toPrecision: function toPrecision(precision) {
+    var that = aNumberValue(this, 'Number#toPrecision: incorrect invocation!');
+    return precision === undefined ? $toPrecision.call(that) : $toPrecision.call(that, precision);
+  }
+});
+
+},{"33":33,"35":35,"4":4}],190:[function(_dereq_,module,exports){
+// 19.1.3.1 Object.assign(target, source)
+var $export = _dereq_(33);
+
+$export($export.S + $export.F, 'Object', { assign: _dereq_(70) });
+
+},{"33":33,"70":70}],191:[function(_dereq_,module,exports){
+var $export = _dereq_(33);
+// 19.1.2.2 / 15.2.3.5 Object.create(O [, Properties])
+$export($export.S, 'Object', { create: _dereq_(71) });
+
+},{"33":33,"71":71}],192:[function(_dereq_,module,exports){
+var $export = _dereq_(33);
+// 19.1.2.3 / 15.2.3.7 Object.defineProperties(O, Properties)
+$export($export.S + $export.F * !_dereq_(29), 'Object', { defineProperties: _dereq_(73) });
+
+},{"29":29,"33":33,"73":73}],193:[function(_dereq_,module,exports){
+var $export = _dereq_(33);
+// 19.1.2.4 / 15.2.3.6 Object.defineProperty(O, P, Attributes)
+$export($export.S + $export.F * !_dereq_(29), 'Object', { defineProperty: _dereq_(72).f });
+
+},{"29":29,"33":33,"72":72}],194:[function(_dereq_,module,exports){
+// 19.1.2.5 Object.freeze(O)
+var isObject = _dereq_(51);
+var meta = _dereq_(66).onFreeze;
+
+_dereq_(83)('freeze', function ($freeze) {
+  return function freeze(it) {
+    return $freeze && isObject(it) ? $freeze(meta(it)) : it;
+  };
+});
+
+},{"51":51,"66":66,"83":83}],195:[function(_dereq_,module,exports){
+// 19.1.2.6 Object.getOwnPropertyDescriptor(O, P)
+var toIObject = _dereq_(117);
+var $getOwnPropertyDescriptor = _dereq_(75).f;
+
+_dereq_(83)('getOwnPropertyDescriptor', function () {
+  return function getOwnPropertyDescriptor(it, key) {
+    return $getOwnPropertyDescriptor(toIObject(it), key);
+  };
+});
+
+},{"117":117,"75":75,"83":83}],196:[function(_dereq_,module,exports){
+// 19.1.2.7 Object.getOwnPropertyNames(O)
+_dereq_(83)('getOwnPropertyNames', function () {
+  return _dereq_(76).f;
+});
+
+},{"76":76,"83":83}],197:[function(_dereq_,module,exports){
+// 19.1.2.9 Object.getPrototypeOf(O)
+var toObject = _dereq_(119);
+var $getPrototypeOf = _dereq_(79);
+
+_dereq_(83)('getPrototypeOf', function () {
+  return function getPrototypeOf(it) {
+    return $getPrototypeOf(toObject(it));
+  };
+});
+
+},{"119":119,"79":79,"83":83}],198:[function(_dereq_,module,exports){
+// 19.1.2.11 Object.isExtensible(O)
+var isObject = _dereq_(51);
+
+_dereq_(83)('isExtensible', function ($isExtensible) {
+  return function isExtensible(it) {
+    return isObject(it) ? $isExtensible ? $isExtensible(it) : true : false;
+  };
+});
+
+},{"51":51,"83":83}],199:[function(_dereq_,module,exports){
+// 19.1.2.12 Object.isFrozen(O)
+var isObject = _dereq_(51);
+
+_dereq_(83)('isFrozen', function ($isFrozen) {
+  return function isFrozen(it) {
+    return isObject(it) ? $isFrozen ? $isFrozen(it) : false : true;
+  };
+});
+
+},{"51":51,"83":83}],200:[function(_dereq_,module,exports){
+// 19.1.2.13 Object.isSealed(O)
+var isObject = _dereq_(51);
+
+_dereq_(83)('isSealed', function ($isSealed) {
+  return function isSealed(it) {
+    return isObject(it) ? $isSealed ? $isSealed(it) : false : true;
+  };
+});
+
+},{"51":51,"83":83}],201:[function(_dereq_,module,exports){
+// 19.1.3.10 Object.is(value1, value2)
+var $export = _dereq_(33);
+$export($export.S, 'Object', { is: _dereq_(96) });
+
+},{"33":33,"96":96}],202:[function(_dereq_,module,exports){
+// 19.1.2.14 Object.keys(O)
+var toObject = _dereq_(119);
+var $keys = _dereq_(81);
+
+_dereq_(83)('keys', function () {
+  return function keys(it) {
+    return $keys(toObject(it));
+  };
+});
+
+},{"119":119,"81":81,"83":83}],203:[function(_dereq_,module,exports){
+// 19.1.2.15 Object.preventExtensions(O)
+var isObject = _dereq_(51);
+var meta = _dereq_(66).onFreeze;
+
+_dereq_(83)('preventExtensions', function ($preventExtensions) {
+  return function preventExtensions(it) {
+    return $preventExtensions && isObject(it) ? $preventExtensions(meta(it)) : it;
+  };
+});
+
+},{"51":51,"66":66,"83":83}],204:[function(_dereq_,module,exports){
+// 19.1.2.17 Object.seal(O)
+var isObject = _dereq_(51);
+var meta = _dereq_(66).onFreeze;
+
+_dereq_(83)('seal', function ($seal) {
+  return function seal(it) {
+    return $seal && isObject(it) ? $seal(meta(it)) : it;
+  };
+});
+
+},{"51":51,"66":66,"83":83}],205:[function(_dereq_,module,exports){
+// 19.1.3.19 Object.setPrototypeOf(O, proto)
+var $export = _dereq_(33);
+$export($export.S, 'Object', { setPrototypeOf: _dereq_(99).set });
+
+},{"33":33,"99":99}],206:[function(_dereq_,module,exports){
+'use strict';
+// 19.1.3.6 Object.prototype.toString()
+var classof = _dereq_(17);
+var test = {};
+test[_dereq_(128)('toStringTag')] = 'z';
+if (test + '' != '[object z]') {
+  _dereq_(94)(Object.prototype, 'toString', function toString() {
+    return '[object ' + classof(this) + ']';
+  }, true);
+}
+
+},{"128":128,"17":17,"94":94}],207:[function(_dereq_,module,exports){
+var $export = _dereq_(33);
+var $parseFloat = _dereq_(86);
+// 18.2.4 parseFloat(string)
+$export($export.G + $export.F * (parseFloat != $parseFloat), { parseFloat: $parseFloat });
+
+},{"33":33,"86":86}],208:[function(_dereq_,module,exports){
+var $export = _dereq_(33);
+var $parseInt = _dereq_(87);
+// 18.2.5 parseInt(string, radix)
+$export($export.G + $export.F * (parseInt != $parseInt), { parseInt: $parseInt });
+
+},{"33":33,"87":87}],209:[function(_dereq_,module,exports){
+'use strict';
+var LIBRARY = _dereq_(60);
+var global = _dereq_(40);
+var ctx = _dereq_(25);
+var classof = _dereq_(17);
+var $export = _dereq_(33);
+var isObject = _dereq_(51);
+var aFunction = _dereq_(3);
+var anInstance = _dereq_(6);
+var forOf = _dereq_(39);
+var speciesConstructor = _dereq_(104);
+var task = _dereq_(113).set;
+var microtask = _dereq_(68)();
+var newPromiseCapabilityModule = _dereq_(69);
+var perform = _dereq_(90);
+var promiseResolve = _dereq_(91);
+var PROMISE = 'Promise';
+var TypeError = global.TypeError;
+var process = global.process;
+var $Promise = global[PROMISE];
+var isNode = classof(process) == 'process';
+var empty = function () { /* empty */ };
+var Internal, newGenericPromiseCapability, OwnPromiseCapability, Wrapper;
+var newPromiseCapability = newGenericPromiseCapability = newPromiseCapabilityModule.f;
+
+var USE_NATIVE = !!function () {
+  try {
+    // correct subclassing with @@species support
+    var promise = $Promise.resolve(1);
+    var FakePromise = (promise.constructor = {})[_dereq_(128)('species')] = function (exec) {
+      exec(empty, empty);
+    };
+    // unhandled rejections tracking support, NodeJS Promise without it fails @@species test
+    return (isNode || typeof PromiseRejectionEvent == 'function') && promise.then(empty) instanceof FakePromise;
+  } catch (e) { /* empty */ }
+}();
+
+// helpers
+var sameConstructor = LIBRARY ? function (a, b) {
+  // with library wrapper special case
+  return a === b || a === $Promise && b === Wrapper;
+} : function (a, b) {
+  return a === b;
+};
+var isThenable = function (it) {
+  var then;
+  return isObject(it) && typeof (then = it.then) == 'function' ? then : false;
+};
+var notify = function (promise, isReject) {
+  if (promise._n) return;
+  promise._n = true;
+  var chain = promise._c;
+  microtask(function () {
+    var value = promise._v;
+    var ok = promise._s == 1;
+    var i = 0;
+    var run = function (reaction) {
+      var handler = ok ? reaction.ok : reaction.fail;
+      var resolve = reaction.resolve;
+      var reject = reaction.reject;
+      var domain = reaction.domain;
+      var result, then;
+      try {
+        if (handler) {
+          if (!ok) {
+            if (promise._h == 2) onHandleUnhandled(promise);
+            promise._h = 1;
+          }
+          if (handler === true) result = value;
+          else {
+            if (domain) domain.enter();
+            result = handler(value);
+            if (domain) domain.exit();
+          }
+          if (result === reaction.promise) {
+            reject(TypeError('Promise-chain cycle'));
+          } else if (then = isThenable(result)) {
+            then.call(result, resolve, reject);
+          } else resolve(result);
+        } else reject(value);
+      } catch (e) {
+        reject(e);
+      }
+    };
+    while (chain.length > i) run(chain[i++]); // variable length - can't use forEach
+    promise._c = [];
+    promise._n = false;
+    if (isReject && !promise._h) onUnhandled(promise);
+  });
+};
+var onUnhandled = function (promise) {
+  task.call(global, function () {
+    var value = promise._v;
+    var unhandled = isUnhandled(promise);
+    var result, handler, console;
+    if (unhandled) {
+      result = perform(function () {
+        if (isNode) {
+          process.emit('unhandledRejection', value, promise);
+        } else if (handler = global.onunhandledrejection) {
+          handler({ promise: promise, reason: value });
+        } else if ((console = global.console) && console.error) {
+          console.error('Unhandled promise rejection', value);
+        }
+      });
+      // Browsers should not trigger `rejectionHandled` event if it was handled here, NodeJS - should
+      promise._h = isNode || isUnhandled(promise) ? 2 : 1;
+    } promise._a = undefined;
+    if (unhandled && result.e) throw result.v;
+  });
+};
+var isUnhandled = function (promise) {
+  if (promise._h == 1) return false;
+  var chain = promise._a || promise._c;
+  var i = 0;
+  var reaction;
+  while (chain.length > i) {
+    reaction = chain[i++];
+    if (reaction.fail || !isUnhandled(reaction.promise)) return false;
+  } return true;
+};
+var onHandleUnhandled = function (promise) {
+  task.call(global, function () {
+    var handler;
+    if (isNode) {
+      process.emit('rejectionHandled', promise);
+    } else if (handler = global.onrejectionhandled) {
+      handler({ promise: promise, reason: promise._v });
+    }
+  });
+};
+var $reject = function (value) {
+  var promise = this;
+  if (promise._d) return;
+  promise._d = true;
+  promise = promise._w || promise; // unwrap
+  promise._v = value;
+  promise._s = 2;
+  if (!promise._a) promise._a = promise._c.slice();
+  notify(promise, true);
+};
+var $resolve = function (value) {
+  var promise = this;
+  var then;
+  if (promise._d) return;
+  promise._d = true;
+  promise = promise._w || promise; // unwrap
+  try {
+    if (promise === value) throw TypeError("Promise can't be resolved itself");
+    if (then = isThenable(value)) {
+      microtask(function () {
+        var wrapper = { _w: promise, _d: false }; // wrap
+        try {
+          then.call(value, ctx($resolve, wrapper, 1), ctx($reject, wrapper, 1));
+        } catch (e) {
+          $reject.call(wrapper, e);
+        }
+      });
+    } else {
+      promise._v = value;
+      promise._s = 1;
+      notify(promise, false);
+    }
+  } catch (e) {
+    $reject.call({ _w: promise, _d: false }, e); // wrap
+  }
+};
+
+// constructor polyfill
+if (!USE_NATIVE) {
+  // 25.4.3.1 Promise(executor)
+  $Promise = function Promise(executor) {
+    anInstance(this, $Promise, PROMISE, '_h');
+    aFunction(executor);
+    Internal.call(this);
+    try {
+      executor(ctx($resolve, this, 1), ctx($reject, this, 1));
+    } catch (err) {
+      $reject.call(this, err);
+    }
+  };
+  // eslint-disable-next-line no-unused-vars
+  Internal = function Promise(executor) {
+    this._c = [];             // <- awaiting reactions
+    this._a = undefined;      // <- checked in isUnhandled reactions
+    this._s = 0;              // <- state
+    this._d = false;          // <- done
+    this._v = undefined;      // <- value
+    this._h = 0;              // <- rejection state, 0 - default, 1 - handled, 2 - unhandled
+    this._n = false;          // <- notify
+  };
+  Internal.prototype = _dereq_(93)($Promise.prototype, {
+    // 25.4.5.3 Promise.prototype.then(onFulfilled, onRejected)
+    then: function then(onFulfilled, onRejected) {
+      var reaction = newPromiseCapability(speciesConstructor(this, $Promise));
+      reaction.ok = typeof onFulfilled == 'function' ? onFulfilled : true;
+      reaction.fail = typeof onRejected == 'function' && onRejected;
+      reaction.domain = isNode ? process.domain : undefined;
+      this._c.push(reaction);
+      if (this._a) this._a.push(reaction);
+      if (this._s) notify(this, false);
+      return reaction.promise;
+    },
+    // 25.4.5.1 Promise.prototype.catch(onRejected)
+    'catch': function (onRejected) {
+      return this.then(undefined, onRejected);
+    }
+  });
+  OwnPromiseCapability = function () {
+    var promise = new Internal();
+    this.promise = promise;
+    this.resolve = ctx($resolve, promise, 1);
+    this.reject = ctx($reject, promise, 1);
+  };
+  newPromiseCapabilityModule.f = newPromiseCapability = function (C) {
+    return sameConstructor($Promise, C)
+      ? new OwnPromiseCapability(C)
+      : newGenericPromiseCapability(C);
+  };
+}
+
+$export($export.G + $export.W + $export.F * !USE_NATIVE, { Promise: $Promise });
+_dereq_(101)($Promise, PROMISE);
+_dereq_(100)(PROMISE);
+Wrapper = _dereq_(23)[PROMISE];
+
+// statics
+$export($export.S + $export.F * !USE_NATIVE, PROMISE, {
+  // 25.4.4.5 Promise.reject(r)
+  reject: function reject(r) {
+    var capability = newPromiseCapability(this);
+    var $$reject = capability.reject;
+    $$reject(r);
+    return capability.promise;
+  }
+});
+$export($export.S + $export.F * (LIBRARY || !USE_NATIVE), PROMISE, {
+  // 25.4.4.6 Promise.resolve(x)
+  resolve: function resolve(x) {
+    // instanceof instead of internal slot check because we should fix it without replacement native Promise core
+    if (x instanceof $Promise && sameConstructor(x.constructor, this)) return x;
+    return promiseResolve(this, x);
+  }
+});
+$export($export.S + $export.F * !(USE_NATIVE && _dereq_(56)(function (iter) {
+  $Promise.all(iter)['catch'](empty);
+})), PROMISE, {
+  // 25.4.4.1 Promise.all(iterable)
+  all: function all(iterable) {
+    var C = this;
+    var capability = newPromiseCapability(C);
+    var resolve = capability.resolve;
+    var reject = capability.reject;
+    var result = perform(function () {
+      var values = [];
+      var index = 0;
+      var remaining = 1;
+      forOf(iterable, false, function (promise) {
+        var $index = index++;
+        var alreadyCalled = false;
+        values.push(undefined);
+        remaining++;
+        C.resolve(promise).then(function (value) {
+          if (alreadyCalled) return;
+          alreadyCalled = true;
+          values[$index] = value;
+          --remaining || resolve(values);
+        }, reject);
+      });
+      --remaining || resolve(values);
+    });
+    if (result.e) reject(result.v);
+    return capability.promise;
+  },
+  // 25.4.4.4 Promise.race(iterable)
+  race: function race(iterable) {
+    var C = this;
+    var capability = newPromiseCapability(C);
+    var reject = capability.reject;
+    var result = perform(function () {
+      forOf(iterable, false, function (promise) {
+        C.resolve(promise).then(capability.resolve, reject);
+      });
+    });
+    if (result.e) reject(result.v);
+    return capability.promise;
+  }
+});
+
+},{"100":100,"101":101,"104":104,"113":113,"128":128,"17":17,"23":23,"25":25,"3":3,"33":33,"39":39,"40":40,"51":51,"56":56,"6":6,"60":60,"68":68,"69":69,"90":90,"91":91,"93":93}],210:[function(_dereq_,module,exports){
+// 26.1.1 Reflect.apply(target, thisArgument, argumentsList)
+var $export = _dereq_(33);
+var aFunction = _dereq_(3);
+var anObject = _dereq_(7);
+var rApply = (_dereq_(40).Reflect || {}).apply;
+var fApply = Function.apply;
+// MS Edge argumentsList argument is optional
+$export($export.S + $export.F * !_dereq_(35)(function () {
+  rApply(function () { /* empty */ });
+}), 'Reflect', {
+  apply: function apply(target, thisArgument, argumentsList) {
+    var T = aFunction(target);
+    var L = anObject(argumentsList);
+    return rApply ? rApply(T, thisArgument, L) : fApply.call(T, thisArgument, L);
+  }
+});
+
+},{"3":3,"33":33,"35":35,"40":40,"7":7}],211:[function(_dereq_,module,exports){
+// 26.1.2 Reflect.construct(target, argumentsList [, newTarget])
+var $export = _dereq_(33);
+var create = _dereq_(71);
+var aFunction = _dereq_(3);
+var anObject = _dereq_(7);
+var isObject = _dereq_(51);
+var fails = _dereq_(35);
+var bind = _dereq_(16);
+var rConstruct = (_dereq_(40).Reflect || {}).construct;
+
+// MS Edge supports only 2 arguments and argumentsList argument is optional
+// FF Nightly sets third argument as `new.target`, but does not create `this` from it
+var NEW_TARGET_BUG = fails(function () {
+  function F() { /* empty */ }
+  return !(rConstruct(function () { /* empty */ }, [], F) instanceof F);
+});
+var ARGS_BUG = !fails(function () {
+  rConstruct(function () { /* empty */ });
+});
+
+$export($export.S + $export.F * (NEW_TARGET_BUG || ARGS_BUG), 'Reflect', {
+  construct: function construct(Target, args /* , newTarget */) {
+    aFunction(Target);
+    anObject(args);
+    var newTarget = arguments.length < 3 ? Target : aFunction(arguments[2]);
+    if (ARGS_BUG && !NEW_TARGET_BUG) return rConstruct(Target, args, newTarget);
+    if (Target == newTarget) {
+      // w/o altered newTarget, optimization for 0-4 arguments
+      switch (args.length) {
+        case 0: return new Target();
+        case 1: return new Target(args[0]);
+        case 2: return new Target(args[0], args[1]);
+        case 3: return new Target(args[0], args[1], args[2]);
+        case 4: return new Target(args[0], args[1], args[2], args[3]);
+      }
+      // w/o altered newTarget, lot of arguments case
+      var $args = [null];
+      $args.push.apply($args, args);
+      return new (bind.apply(Target, $args))();
+    }
+    // with altered newTarget, not support built-in constructors
+    var proto = newTarget.prototype;
+    var instance = create(isObject(proto) ? proto : Object.prototype);
+    var result = Function.apply.call(Target, instance, args);
+    return isObject(result) ? result : instance;
+  }
+});
+
+},{"16":16,"3":3,"33":33,"35":35,"40":40,"51":51,"7":7,"71":71}],212:[function(_dereq_,module,exports){
+// 26.1.3 Reflect.defineProperty(target, propertyKey, attributes)
+var dP = _dereq_(72);
+var $export = _dereq_(33);
+var anObject = _dereq_(7);
+var toPrimitive = _dereq_(120);
+
+// MS Edge has broken Reflect.defineProperty - throwing instead of returning false
+$export($export.S + $export.F * _dereq_(35)(function () {
+  // eslint-disable-next-line no-undef
+  Reflect.defineProperty(dP.f({}, 1, { value: 1 }), 1, { value: 2 });
+}), 'Reflect', {
+  defineProperty: function defineProperty(target, propertyKey, attributes) {
+    anObject(target);
+    propertyKey = toPrimitive(propertyKey, true);
+    anObject(attributes);
+    try {
+      dP.f(target, propertyKey, attributes);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+});
+
+},{"120":120,"33":33,"35":35,"7":7,"72":72}],213:[function(_dereq_,module,exports){
+// 26.1.4 Reflect.deleteProperty(target, propertyKey)
+var $export = _dereq_(33);
+var gOPD = _dereq_(75).f;
+var anObject = _dereq_(7);
+
+$export($export.S, 'Reflect', {
+  deleteProperty: function deleteProperty(target, propertyKey) {
+    var desc = gOPD(anObject(target), propertyKey);
+    return desc && !desc.configurable ? false : delete target[propertyKey];
+  }
+});
+
+},{"33":33,"7":7,"75":75}],214:[function(_dereq_,module,exports){
+'use strict';
+// 26.1.5 Reflect.enumerate(target)
+var $export = _dereq_(33);
+var anObject = _dereq_(7);
+var Enumerate = function (iterated) {
+  this._t = anObject(iterated); // target
+  this._i = 0;                  // next index
+  var keys = this._k = [];      // keys
+  var key;
+  for (key in iterated) keys.push(key);
+};
+_dereq_(54)(Enumerate, 'Object', function () {
+  var that = this;
+  var keys = that._k;
+  var key;
+  do {
+    if (that._i >= keys.length) return { value: undefined, done: true };
+  } while (!((key = keys[that._i++]) in that._t));
+  return { value: key, done: false };
+});
+
+$export($export.S, 'Reflect', {
+  enumerate: function enumerate(target) {
+    return new Enumerate(target);
+  }
+});
+
+},{"33":33,"54":54,"7":7}],215:[function(_dereq_,module,exports){
+// 26.1.7 Reflect.getOwnPropertyDescriptor(target, propertyKey)
+var gOPD = _dereq_(75);
+var $export = _dereq_(33);
+var anObject = _dereq_(7);
+
+$export($export.S, 'Reflect', {
+  getOwnPropertyDescriptor: function getOwnPropertyDescriptor(target, propertyKey) {
+    return gOPD.f(anObject(target), propertyKey);
+  }
+});
+
+},{"33":33,"7":7,"75":75}],216:[function(_dereq_,module,exports){
+// 26.1.8 Reflect.getPrototypeOf(target)
+var $export = _dereq_(33);
+var getProto = _dereq_(79);
+var anObject = _dereq_(7);
+
+$export($export.S, 'Reflect', {
+  getPrototypeOf: function getPrototypeOf(target) {
+    return getProto(anObject(target));
+  }
+});
+
+},{"33":33,"7":7,"79":79}],217:[function(_dereq_,module,exports){
+// 26.1.6 Reflect.get(target, propertyKey [, receiver])
+var gOPD = _dereq_(75);
+var getPrototypeOf = _dereq_(79);
+var has = _dereq_(41);
+var $export = _dereq_(33);
+var isObject = _dereq_(51);
+var anObject = _dereq_(7);
+
+function get(target, propertyKey /* , receiver */) {
+  var receiver = arguments.length < 3 ? target : arguments[2];
+  var desc, proto;
+  if (anObject(target) === receiver) return target[propertyKey];
+  if (desc = gOPD.f(target, propertyKey)) return has(desc, 'value')
+    ? desc.value
+    : desc.get !== undefined
+      ? desc.get.call(receiver)
+      : undefined;
+  if (isObject(proto = getPrototypeOf(target))) return get(proto, propertyKey, receiver);
+}
+
+$export($export.S, 'Reflect', { get: get });
+
+},{"33":33,"41":41,"51":51,"7":7,"75":75,"79":79}],218:[function(_dereq_,module,exports){
+// 26.1.9 Reflect.has(target, propertyKey)
+var $export = _dereq_(33);
+
+$export($export.S, 'Reflect', {
+  has: function has(target, propertyKey) {
+    return propertyKey in target;
+  }
+});
+
+},{"33":33}],219:[function(_dereq_,module,exports){
+// 26.1.10 Reflect.isExtensible(target)
+var $export = _dereq_(33);
+var anObject = _dereq_(7);
+var $isExtensible = Object.isExtensible;
+
+$export($export.S, 'Reflect', {
+  isExtensible: function isExtensible(target) {
+    anObject(target);
+    return $isExtensible ? $isExtensible(target) : true;
+  }
+});
+
+},{"33":33,"7":7}],220:[function(_dereq_,module,exports){
+// 26.1.11 Reflect.ownKeys(target)
+var $export = _dereq_(33);
+
+$export($export.S, 'Reflect', { ownKeys: _dereq_(85) });
+
+},{"33":33,"85":85}],221:[function(_dereq_,module,exports){
+// 26.1.12 Reflect.preventExtensions(target)
+var $export = _dereq_(33);
+var anObject = _dereq_(7);
+var $preventExtensions = Object.preventExtensions;
+
+$export($export.S, 'Reflect', {
+  preventExtensions: function preventExtensions(target) {
+    anObject(target);
+    try {
+      if ($preventExtensions) $preventExtensions(target);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+});
+
+},{"33":33,"7":7}],222:[function(_dereq_,module,exports){
+// 26.1.14 Reflect.setPrototypeOf(target, proto)
+var $export = _dereq_(33);
+var setProto = _dereq_(99);
+
+if (setProto) $export($export.S, 'Reflect', {
+  setPrototypeOf: function setPrototypeOf(target, proto) {
+    setProto.check(target, proto);
+    try {
+      setProto.set(target, proto);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+});
+
+},{"33":33,"99":99}],223:[function(_dereq_,module,exports){
+// 26.1.13 Reflect.set(target, propertyKey, V [, receiver])
+var dP = _dereq_(72);
+var gOPD = _dereq_(75);
+var getPrototypeOf = _dereq_(79);
+var has = _dereq_(41);
+var $export = _dereq_(33);
+var createDesc = _dereq_(92);
+var anObject = _dereq_(7);
+var isObject = _dereq_(51);
+
+function set(target, propertyKey, V /* , receiver */) {
+  var receiver = arguments.length < 4 ? target : arguments[3];
+  var ownDesc = gOPD.f(anObject(target), propertyKey);
+  var existingDescriptor, proto;
+  if (!ownDesc) {
+    if (isObject(proto = getPrototypeOf(target))) {
+      return set(proto, propertyKey, V, receiver);
+    }
+    ownDesc = createDesc(0);
+  }
+  if (has(ownDesc, 'value')) {
+    if (ownDesc.writable === false || !isObject(receiver)) return false;
+    existingDescriptor = gOPD.f(receiver, propertyKey) || createDesc(0);
+    existingDescriptor.value = V;
+    dP.f(receiver, propertyKey, existingDescriptor);
+    return true;
+  }
+  return ownDesc.set === undefined ? false : (ownDesc.set.call(receiver, V), true);
+}
+
+$export($export.S, 'Reflect', { set: set });
+
+},{"33":33,"41":41,"51":51,"7":7,"72":72,"75":75,"79":79,"92":92}],224:[function(_dereq_,module,exports){
+var global = _dereq_(40);
+var inheritIfRequired = _dereq_(45);
+var dP = _dereq_(72).f;
+var gOPN = _dereq_(77).f;
+var isRegExp = _dereq_(52);
+var $flags = _dereq_(37);
+var $RegExp = global.RegExp;
+var Base = $RegExp;
+var proto = $RegExp.prototype;
+var re1 = /a/g;
+var re2 = /a/g;
+// "new" creates a new object, old webkit buggy here
+var CORRECT_NEW = new $RegExp(re1) !== re1;
+
+if (_dereq_(29) && (!CORRECT_NEW || _dereq_(35)(function () {
+  re2[_dereq_(128)('match')] = false;
+  // RegExp constructor can alter flags and IsRegExp works correct with @@match
+  return $RegExp(re1) != re1 || $RegExp(re2) == re2 || $RegExp(re1, 'i') != '/a/i';
+}))) {
+  $RegExp = function RegExp(p, f) {
+    var tiRE = this instanceof $RegExp;
+    var piRE = isRegExp(p);
+    var fiU = f === undefined;
+    return !tiRE && piRE && p.constructor === $RegExp && fiU ? p
+      : inheritIfRequired(CORRECT_NEW
+        ? new Base(piRE && !fiU ? p.source : p, f)
+        : Base((piRE = p instanceof $RegExp) ? p.source : p, piRE && fiU ? $flags.call(p) : f)
+      , tiRE ? this : proto, $RegExp);
+  };
+  var proxy = function (key) {
+    key in $RegExp || dP($RegExp, key, {
+      configurable: true,
+      get: function () { return Base[key]; },
+      set: function (it) { Base[key] = it; }
+    });
+  };
+  for (var keys = gOPN(Base), i = 0; keys.length > i;) proxy(keys[i++]);
+  proto.constructor = $RegExp;
+  $RegExp.prototype = proto;
+  _dereq_(94)(global, 'RegExp', $RegExp);
+}
+
+_dereq_(100)('RegExp');
+
+},{"100":100,"128":128,"29":29,"35":35,"37":37,"40":40,"45":45,"52":52,"72":72,"77":77,"94":94}],225:[function(_dereq_,module,exports){
+// 21.2.5.3 get RegExp.prototype.flags()
+if (_dereq_(29) && /./g.flags != 'g') _dereq_(72).f(RegExp.prototype, 'flags', {
+  configurable: true,
+  get: _dereq_(37)
+});
+
+},{"29":29,"37":37,"72":72}],226:[function(_dereq_,module,exports){
+// @@match logic
+_dereq_(36)('match', 1, function (defined, MATCH, $match) {
+  // 21.1.3.11 String.prototype.match(regexp)
+  return [function match(regexp) {
+    'use strict';
+    var O = defined(this);
+    var fn = regexp == undefined ? undefined : regexp[MATCH];
+    return fn !== undefined ? fn.call(regexp, O) : new RegExp(regexp)[MATCH](String(O));
+  }, $match];
+});
+
+},{"36":36}],227:[function(_dereq_,module,exports){
+// @@replace logic
+_dereq_(36)('replace', 2, function (defined, REPLACE, $replace) {
+  // 21.1.3.14 String.prototype.replace(searchValue, replaceValue)
+  return [function replace(searchValue, replaceValue) {
+    'use strict';
+    var O = defined(this);
+    var fn = searchValue == undefined ? undefined : searchValue[REPLACE];
+    return fn !== undefined
+      ? fn.call(searchValue, O, replaceValue)
+      : $replace.call(String(O), searchValue, replaceValue);
+  }, $replace];
+});
+
+},{"36":36}],228:[function(_dereq_,module,exports){
+// @@search logic
+_dereq_(36)('search', 1, function (defined, SEARCH, $search) {
+  // 21.1.3.15 String.prototype.search(regexp)
+  return [function search(regexp) {
+    'use strict';
+    var O = defined(this);
+    var fn = regexp == undefined ? undefined : regexp[SEARCH];
+    return fn !== undefined ? fn.call(regexp, O) : new RegExp(regexp)[SEARCH](String(O));
+  }, $search];
+});
+
+},{"36":36}],229:[function(_dereq_,module,exports){
+// @@split logic
+_dereq_(36)('split', 2, function (defined, SPLIT, $split) {
+  'use strict';
+  var isRegExp = _dereq_(52);
+  var _split = $split;
+  var $push = [].push;
+  var $SPLIT = 'split';
+  var LENGTH = 'length';
+  var LAST_INDEX = 'lastIndex';
+  if (
+    'abbc'[$SPLIT](/(b)*/)[1] == 'c' ||
+    'test'[$SPLIT](/(?:)/, -1)[LENGTH] != 4 ||
+    'ab'[$SPLIT](/(?:ab)*/)[LENGTH] != 2 ||
+    '.'[$SPLIT](/(.?)(.?)/)[LENGTH] != 4 ||
+    '.'[$SPLIT](/()()/)[LENGTH] > 1 ||
+    ''[$SPLIT](/.?/)[LENGTH]
+  ) {
+    var NPCG = /()??/.exec('')[1] === undefined; // nonparticipating capturing group
+    // based on es5-shim implementation, need to rework it
+    $split = function (separator, limit) {
+      var string = String(this);
+      if (separator === undefined && limit === 0) return [];
+      // If `separator` is not a regex, use native split
+      if (!isRegExp(separator)) return _split.call(string, separator, limit);
+      var output = [];
+      var flags = (separator.ignoreCase ? 'i' : '') +
+                  (separator.multiline ? 'm' : '') +
+                  (separator.unicode ? 'u' : '') +
+                  (separator.sticky ? 'y' : '');
+      var lastLastIndex = 0;
+      var splitLimit = limit === undefined ? 4294967295 : limit >>> 0;
+      // Make `global` and avoid `lastIndex` issues by working with a copy
+      var separatorCopy = new RegExp(separator.source, flags + 'g');
+      var separator2, match, lastIndex, lastLength, i;
+      // Doesn't need flags gy, but they don't hurt
+      if (!NPCG) separator2 = new RegExp('^' + separatorCopy.source + '$(?!\\s)', flags);
+      while (match = separatorCopy.exec(string)) {
+        // `separatorCopy.lastIndex` is not reliable cross-browser
+        lastIndex = match.index + match[0][LENGTH];
+        if (lastIndex > lastLastIndex) {
+          output.push(string.slice(lastLastIndex, match.index));
+          // Fix browsers whose `exec` methods don't consistently return `undefined` for NPCG
+          // eslint-disable-next-line no-loop-func
+          if (!NPCG && match[LENGTH] > 1) match[0].replace(separator2, function () {
+            for (i = 1; i < arguments[LENGTH] - 2; i++) if (arguments[i] === undefined) match[i] = undefined;
+          });
+          if (match[LENGTH] > 1 && match.index < string[LENGTH]) $push.apply(output, match.slice(1));
+          lastLength = match[0][LENGTH];
+          lastLastIndex = lastIndex;
+          if (output[LENGTH] >= splitLimit) break;
+        }
+        if (separatorCopy[LAST_INDEX] === match.index) separatorCopy[LAST_INDEX]++; // Avoid an infinite loop
+      }
+      if (lastLastIndex === string[LENGTH]) {
+        if (lastLength || !separatorCopy.test('')) output.push('');
+      } else output.push(string.slice(lastLastIndex));
+      return output[LENGTH] > splitLimit ? output.slice(0, splitLimit) : output;
+    };
+  // Chakra, V8
+  } else if ('0'[$SPLIT](undefined, 0)[LENGTH]) {
+    $split = function (separator, limit) {
+      return separator === undefined && limit === 0 ? [] : _split.call(this, separator, limit);
+    };
+  }
+  // 21.1.3.17 String.prototype.split(separator, limit)
+  return [function split(separator, limit) {
+    var O = defined(this);
+    var fn = separator == undefined ? undefined : separator[SPLIT];
+    return fn !== undefined ? fn.call(separator, O, limit) : $split.call(String(O), separator, limit);
+  }, $split];
+});
+
+},{"36":36,"52":52}],230:[function(_dereq_,module,exports){
+'use strict';
+_dereq_(225);
+var anObject = _dereq_(7);
+var $flags = _dereq_(37);
+var DESCRIPTORS = _dereq_(29);
+var TO_STRING = 'toString';
+var $toString = /./[TO_STRING];
+
+var define = function (fn) {
+  _dereq_(94)(RegExp.prototype, TO_STRING, fn, true);
+};
+
+// 21.2.5.14 RegExp.prototype.toString()
+if (_dereq_(35)(function () { return $toString.call({ source: 'a', flags: 'b' }) != '/a/b'; })) {
+  define(function toString() {
+    var R = anObject(this);
+    return '/'.concat(R.source, '/',
+      'flags' in R ? R.flags : !DESCRIPTORS && R instanceof RegExp ? $flags.call(R) : undefined);
+  });
+// FF44- RegExp#toString has a wrong name
+} else if ($toString.name != TO_STRING) {
+  define(function toString() {
+    return $toString.call(this);
+  });
+}
+
+},{"225":225,"29":29,"35":35,"37":37,"7":7,"94":94}],231:[function(_dereq_,module,exports){
+'use strict';
+var strong = _dereq_(19);
+var validate = _dereq_(125);
+var SET = 'Set';
+
+// 23.2 Set Objects
+module.exports = _dereq_(22)(SET, function (get) {
+  return function Set() { return get(this, arguments.length > 0 ? arguments[0] : undefined); };
+}, {
+  // 23.2.3.1 Set.prototype.add(value)
+  add: function add(value) {
+    return strong.def(validate(this, SET), value = value === 0 ? 0 : value, value);
+  }
+}, strong);
+
+},{"125":125,"19":19,"22":22}],232:[function(_dereq_,module,exports){
+'use strict';
+// B.2.3.2 String.prototype.anchor(name)
+_dereq_(108)('anchor', function (createHTML) {
+  return function anchor(name) {
+    return createHTML(this, 'a', 'name', name);
+  };
+});
+
+},{"108":108}],233:[function(_dereq_,module,exports){
+'use strict';
+// B.2.3.3 String.prototype.big()
+_dereq_(108)('big', function (createHTML) {
+  return function big() {
+    return createHTML(this, 'big', '', '');
+  };
+});
+
+},{"108":108}],234:[function(_dereq_,module,exports){
+'use strict';
+// B.2.3.4 String.prototype.blink()
+_dereq_(108)('blink', function (createHTML) {
+  return function blink() {
+    return createHTML(this, 'blink', '', '');
+  };
+});
+
+},{"108":108}],235:[function(_dereq_,module,exports){
+'use strict';
+// B.2.3.5 String.prototype.bold()
+_dereq_(108)('bold', function (createHTML) {
+  return function bold() {
+    return createHTML(this, 'b', '', '');
+  };
+});
+
+},{"108":108}],236:[function(_dereq_,module,exports){
+'use strict';
+var $export = _dereq_(33);
+var $at = _dereq_(106)(false);
+$export($export.P, 'String', {
+  // 21.1.3.3 String.prototype.codePointAt(pos)
+  codePointAt: function codePointAt(pos) {
+    return $at(this, pos);
+  }
+});
+
+},{"106":106,"33":33}],237:[function(_dereq_,module,exports){
+// 21.1.3.6 String.prototype.endsWith(searchString [, endPosition])
+'use strict';
+var $export = _dereq_(33);
+var toLength = _dereq_(118);
+var context = _dereq_(107);
+var ENDS_WITH = 'endsWith';
+var $endsWith = ''[ENDS_WITH];
+
+$export($export.P + $export.F * _dereq_(34)(ENDS_WITH), 'String', {
+  endsWith: function endsWith(searchString /* , endPosition = @length */) {
+    var that = context(this, searchString, ENDS_WITH);
+    var endPosition = arguments.length > 1 ? arguments[1] : undefined;
+    var len = toLength(that.length);
+    var end = endPosition === undefined ? len : Math.min(toLength(endPosition), len);
+    var search = String(searchString);
+    return $endsWith
+      ? $endsWith.call(that, search, end)
+      : that.slice(end - search.length, end) === search;
+  }
+});
+
+},{"107":107,"118":118,"33":33,"34":34}],238:[function(_dereq_,module,exports){
+'use strict';
+// B.2.3.6 String.prototype.fixed()
+_dereq_(108)('fixed', function (createHTML) {
+  return function fixed() {
+    return createHTML(this, 'tt', '', '');
+  };
+});
+
+},{"108":108}],239:[function(_dereq_,module,exports){
+'use strict';
+// B.2.3.7 String.prototype.fontcolor(color)
+_dereq_(108)('fontcolor', function (createHTML) {
+  return function fontcolor(color) {
+    return createHTML(this, 'font', 'color', color);
+  };
+});
+
+},{"108":108}],240:[function(_dereq_,module,exports){
+'use strict';
+// B.2.3.8 String.prototype.fontsize(size)
+_dereq_(108)('fontsize', function (createHTML) {
+  return function fontsize(size) {
+    return createHTML(this, 'font', 'size', size);
+  };
+});
+
+},{"108":108}],241:[function(_dereq_,module,exports){
+var $export = _dereq_(33);
+var toAbsoluteIndex = _dereq_(114);
+var fromCharCode = String.fromCharCode;
+var $fromCodePoint = String.fromCodePoint;
+
+// length should be 1, old FF problem
+$export($export.S + $export.F * (!!$fromCodePoint && $fromCodePoint.length != 1), 'String', {
+  // 21.1.2.2 String.fromCodePoint(...codePoints)
+  fromCodePoint: function fromCodePoint(x) { // eslint-disable-line no-unused-vars
+    var res = [];
+    var aLen = arguments.length;
+    var i = 0;
+    var code;
+    while (aLen > i) {
+      code = +arguments[i++];
+      if (toAbsoluteIndex(code, 0x10ffff) !== code) throw RangeError(code + ' is not a valid code point');
+      res.push(code < 0x10000
+        ? fromCharCode(code)
+        : fromCharCode(((code -= 0x10000) >> 10) + 0xd800, code % 0x400 + 0xdc00)
+      );
+    } return res.join('');
+  }
+});
+
+},{"114":114,"33":33}],242:[function(_dereq_,module,exports){
+// 21.1.3.7 String.prototype.includes(searchString, position = 0)
+'use strict';
+var $export = _dereq_(33);
+var context = _dereq_(107);
+var INCLUDES = 'includes';
+
+$export($export.P + $export.F * _dereq_(34)(INCLUDES), 'String', {
+  includes: function includes(searchString /* , position = 0 */) {
+    return !!~context(this, searchString, INCLUDES)
+      .indexOf(searchString, arguments.length > 1 ? arguments[1] : undefined);
+  }
+});
+
+},{"107":107,"33":33,"34":34}],243:[function(_dereq_,module,exports){
+'use strict';
+// B.2.3.9 String.prototype.italics()
+_dereq_(108)('italics', function (createHTML) {
+  return function italics() {
+    return createHTML(this, 'i', '', '');
+  };
+});
+
+},{"108":108}],244:[function(_dereq_,module,exports){
+'use strict';
+var $at = _dereq_(106)(true);
+
+// 21.1.3.27 String.prototype[@@iterator]()
+_dereq_(55)(String, 'String', function (iterated) {
+  this._t = String(iterated); // target
+  this._i = 0;                // next index
+// 21.1.5.2.1 %StringIteratorPrototype%.next()
+}, function () {
+  var O = this._t;
+  var index = this._i;
+  var point;
+  if (index >= O.length) return { value: undefined, done: true };
+  point = $at(O, index);
+  this._i += point.length;
+  return { value: point, done: false };
+});
+
+},{"106":106,"55":55}],245:[function(_dereq_,module,exports){
+'use strict';
+// B.2.3.10 String.prototype.link(url)
+_dereq_(108)('link', function (createHTML) {
+  return function link(url) {
+    return createHTML(this, 'a', 'href', url);
+  };
+});
+
+},{"108":108}],246:[function(_dereq_,module,exports){
+var $export = _dereq_(33);
+var toIObject = _dereq_(117);
+var toLength = _dereq_(118);
+
+$export($export.S, 'String', {
+  // 21.1.2.4 String.raw(callSite, ...substitutions)
+  raw: function raw(callSite) {
+    var tpl = toIObject(callSite.raw);
+    var len = toLength(tpl.length);
+    var aLen = arguments.length;
+    var res = [];
+    var i = 0;
+    while (len > i) {
+      res.push(String(tpl[i++]));
+      if (i < aLen) res.push(String(arguments[i]));
+    } return res.join('');
+  }
+});
+
+},{"117":117,"118":118,"33":33}],247:[function(_dereq_,module,exports){
+var $export = _dereq_(33);
+
+$export($export.P, 'String', {
+  // 21.1.3.13 String.prototype.repeat(count)
+  repeat: _dereq_(110)
+});
+
+},{"110":110,"33":33}],248:[function(_dereq_,module,exports){
+'use strict';
+// B.2.3.11 String.prototype.small()
+_dereq_(108)('small', function (createHTML) {
+  return function small() {
+    return createHTML(this, 'small', '', '');
+  };
+});
+
+},{"108":108}],249:[function(_dereq_,module,exports){
+// 21.1.3.18 String.prototype.startsWith(searchString [, position ])
+'use strict';
+var $export = _dereq_(33);
+var toLength = _dereq_(118);
+var context = _dereq_(107);
+var STARTS_WITH = 'startsWith';
+var $startsWith = ''[STARTS_WITH];
+
+$export($export.P + $export.F * _dereq_(34)(STARTS_WITH), 'String', {
+  startsWith: function startsWith(searchString /* , position = 0 */) {
+    var that = context(this, searchString, STARTS_WITH);
+    var index = toLength(Math.min(arguments.length > 1 ? arguments[1] : undefined, that.length));
+    var search = String(searchString);
+    return $startsWith
+      ? $startsWith.call(that, search, index)
+      : that.slice(index, index + search.length) === search;
+  }
+});
+
+},{"107":107,"118":118,"33":33,"34":34}],250:[function(_dereq_,module,exports){
+'use strict';
+// B.2.3.12 String.prototype.strike()
+_dereq_(108)('strike', function (createHTML) {
+  return function strike() {
+    return createHTML(this, 'strike', '', '');
+  };
+});
+
+},{"108":108}],251:[function(_dereq_,module,exports){
+'use strict';
+// B.2.3.13 String.prototype.sub()
+_dereq_(108)('sub', function (createHTML) {
+  return function sub() {
+    return createHTML(this, 'sub', '', '');
+  };
+});
+
+},{"108":108}],252:[function(_dereq_,module,exports){
+'use strict';
+// B.2.3.14 String.prototype.sup()
+_dereq_(108)('sup', function (createHTML) {
+  return function sup() {
+    return createHTML(this, 'sup', '', '');
+  };
+});
+
+},{"108":108}],253:[function(_dereq_,module,exports){
+'use strict';
+// 21.1.3.25 String.prototype.trim()
+_dereq_(111)('trim', function ($trim) {
+  return function trim() {
+    return $trim(this, 3);
+  };
+});
+
+},{"111":111}],254:[function(_dereq_,module,exports){
+'use strict';
+// ECMAScript 6 symbols shim
+var global = _dereq_(40);
+var has = _dereq_(41);
+var DESCRIPTORS = _dereq_(29);
+var $export = _dereq_(33);
+var redefine = _dereq_(94);
+var META = _dereq_(66).KEY;
+var $fails = _dereq_(35);
+var shared = _dereq_(103);
+var setToStringTag = _dereq_(101);
+var uid = _dereq_(124);
+var wks = _dereq_(128);
+var wksExt = _dereq_(127);
+var wksDefine = _dereq_(126);
+var keyOf = _dereq_(59);
+var enumKeys = _dereq_(32);
+var isArray = _dereq_(49);
+var anObject = _dereq_(7);
+var toIObject = _dereq_(117);
+var toPrimitive = _dereq_(120);
+var createDesc = _dereq_(92);
+var _create = _dereq_(71);
+var gOPNExt = _dereq_(76);
+var $GOPD = _dereq_(75);
+var $DP = _dereq_(72);
+var $keys = _dereq_(81);
+var gOPD = $GOPD.f;
+var dP = $DP.f;
+var gOPN = gOPNExt.f;
+var $Symbol = global.Symbol;
+var $JSON = global.JSON;
+var _stringify = $JSON && $JSON.stringify;
+var PROTOTYPE = 'prototype';
+var HIDDEN = wks('_hidden');
+var TO_PRIMITIVE = wks('toPrimitive');
+var isEnum = {}.propertyIsEnumerable;
+var SymbolRegistry = shared('symbol-registry');
+var AllSymbols = shared('symbols');
+var OPSymbols = shared('op-symbols');
+var ObjectProto = Object[PROTOTYPE];
+var USE_NATIVE = typeof $Symbol == 'function';
+var QObject = global.QObject;
+// Don't use setters in Qt Script, https://github.com/zloirock/core-js/issues/173
+var setter = !QObject || !QObject[PROTOTYPE] || !QObject[PROTOTYPE].findChild;
+
+// fallback for old Android, https://code.google.com/p/v8/issues/detail?id=687
+var setSymbolDesc = DESCRIPTORS && $fails(function () {
+  return _create(dP({}, 'a', {
+    get: function () { return dP(this, 'a', { value: 7 }).a; }
+  })).a != 7;
+}) ? function (it, key, D) {
+  var protoDesc = gOPD(ObjectProto, key);
+  if (protoDesc) delete ObjectProto[key];
+  dP(it, key, D);
+  if (protoDesc && it !== ObjectProto) dP(ObjectProto, key, protoDesc);
+} : dP;
+
+var wrap = function (tag) {
+  var sym = AllSymbols[tag] = _create($Symbol[PROTOTYPE]);
+  sym._k = tag;
+  return sym;
+};
+
+var isSymbol = USE_NATIVE && typeof $Symbol.iterator == 'symbol' ? function (it) {
+  return typeof it == 'symbol';
+} : function (it) {
+  return it instanceof $Symbol;
+};
+
+var $defineProperty = function defineProperty(it, key, D) {
+  if (it === ObjectProto) $defineProperty(OPSymbols, key, D);
+  anObject(it);
+  key = toPrimitive(key, true);
+  anObject(D);
+  if (has(AllSymbols, key)) {
+    if (!D.enumerable) {
+      if (!has(it, HIDDEN)) dP(it, HIDDEN, createDesc(1, {}));
+      it[HIDDEN][key] = true;
+    } else {
+      if (has(it, HIDDEN) && it[HIDDEN][key]) it[HIDDEN][key] = false;
+      D = _create(D, { enumerable: createDesc(0, false) });
+    } return setSymbolDesc(it, key, D);
+  } return dP(it, key, D);
+};
+var $defineProperties = function defineProperties(it, P) {
+  anObject(it);
+  var keys = enumKeys(P = toIObject(P));
+  var i = 0;
+  var l = keys.length;
+  var key;
+  while (l > i) $defineProperty(it, key = keys[i++], P[key]);
+  return it;
+};
+var $create = function create(it, P) {
+  return P === undefined ? _create(it) : $defineProperties(_create(it), P);
+};
+var $propertyIsEnumerable = function propertyIsEnumerable(key) {
+  var E = isEnum.call(this, key = toPrimitive(key, true));
+  if (this === ObjectProto && has(AllSymbols, key) && !has(OPSymbols, key)) return false;
+  return E || !has(this, key) || !has(AllSymbols, key) || has(this, HIDDEN) && this[HIDDEN][key] ? E : true;
+};
+var $getOwnPropertyDescriptor = function getOwnPropertyDescriptor(it, key) {
+  it = toIObject(it);
+  key = toPrimitive(key, true);
+  if (it === ObjectProto && has(AllSymbols, key) && !has(OPSymbols, key)) return;
+  var D = gOPD(it, key);
+  if (D && has(AllSymbols, key) && !(has(it, HIDDEN) && it[HIDDEN][key])) D.enumerable = true;
+  return D;
+};
+var $getOwnPropertyNames = function getOwnPropertyNames(it) {
+  var names = gOPN(toIObject(it));
+  var result = [];
+  var i = 0;
+  var key;
+  while (names.length > i) {
+    if (!has(AllSymbols, key = names[i++]) && key != HIDDEN && key != META) result.push(key);
+  } return result;
+};
+var $getOwnPropertySymbols = function getOwnPropertySymbols(it) {
+  var IS_OP = it === ObjectProto;
+  var names = gOPN(IS_OP ? OPSymbols : toIObject(it));
+  var result = [];
+  var i = 0;
+  var key;
+  while (names.length > i) {
+    if (has(AllSymbols, key = names[i++]) && (IS_OP ? has(ObjectProto, key) : true)) result.push(AllSymbols[key]);
+  } return result;
+};
+
+// 19.4.1.1 Symbol([description])
+if (!USE_NATIVE) {
+  $Symbol = function Symbol() {
+    if (this instanceof $Symbol) throw TypeError('Symbol is not a constructor!');
+    var tag = uid(arguments.length > 0 ? arguments[0] : undefined);
+    var $set = function (value) {
+      if (this === ObjectProto) $set.call(OPSymbols, value);
+      if (has(this, HIDDEN) && has(this[HIDDEN], tag)) this[HIDDEN][tag] = false;
+      setSymbolDesc(this, tag, createDesc(1, value));
+    };
+    if (DESCRIPTORS && setter) setSymbolDesc(ObjectProto, tag, { configurable: true, set: $set });
+    return wrap(tag);
+  };
+  redefine($Symbol[PROTOTYPE], 'toString', function toString() {
+    return this._k;
+  });
+
+  $GOPD.f = $getOwnPropertyDescriptor;
+  $DP.f = $defineProperty;
+  _dereq_(77).f = gOPNExt.f = $getOwnPropertyNames;
+  _dereq_(82).f = $propertyIsEnumerable;
+  _dereq_(78).f = $getOwnPropertySymbols;
+
+  if (DESCRIPTORS && !_dereq_(60)) {
+    redefine(ObjectProto, 'propertyIsEnumerable', $propertyIsEnumerable, true);
+  }
+
+  wksExt.f = function (name) {
+    return wrap(wks(name));
+  };
+}
+
+$export($export.G + $export.W + $export.F * !USE_NATIVE, { Symbol: $Symbol });
+
+for (var es6Symbols = (
+  // 19.4.2.2, 19.4.2.3, 19.4.2.4, 19.4.2.6, 19.4.2.8, 19.4.2.9, 19.4.2.10, 19.4.2.11, 19.4.2.12, 19.4.2.13, 19.4.2.14
+  'hasInstance,isConcatSpreadable,iterator,match,replace,search,species,split,toPrimitive,toStringTag,unscopables'
+).split(','), j = 0; es6Symbols.length > j;)wks(es6Symbols[j++]);
+
+for (var wellKnownSymbols = $keys(wks.store), k = 0; wellKnownSymbols.length > k;) wksDefine(wellKnownSymbols[k++]);
+
+$export($export.S + $export.F * !USE_NATIVE, 'Symbol', {
+  // 19.4.2.1 Symbol.for(key)
+  'for': function (key) {
+    return has(SymbolRegistry, key += '')
+      ? SymbolRegistry[key]
+      : SymbolRegistry[key] = $Symbol(key);
+  },
+  // 19.4.2.5 Symbol.keyFor(sym)
+  keyFor: function keyFor(key) {
+    if (isSymbol(key)) return keyOf(SymbolRegistry, key);
+    throw TypeError(key + ' is not a symbol!');
+  },
+  useSetter: function () { setter = true; },
+  useSimple: function () { setter = false; }
+});
+
+$export($export.S + $export.F * !USE_NATIVE, 'Object', {
+  // 19.1.2.2 Object.create(O [, Properties])
+  create: $create,
+  // 19.1.2.4 Object.defineProperty(O, P, Attributes)
+  defineProperty: $defineProperty,
+  // 19.1.2.3 Object.defineProperties(O, Properties)
+  defineProperties: $defineProperties,
+  // 19.1.2.6 Object.getOwnPropertyDescriptor(O, P)
+  getOwnPropertyDescriptor: $getOwnPropertyDescriptor,
+  // 19.1.2.7 Object.getOwnPropertyNames(O)
+  getOwnPropertyNames: $getOwnPropertyNames,
+  // 19.1.2.8 Object.getOwnPropertySymbols(O)
+  getOwnPropertySymbols: $getOwnPropertySymbols
+});
+
+// 24.3.2 JSON.stringify(value [, replacer [, space]])
+$JSON && $export($export.S + $export.F * (!USE_NATIVE || $fails(function () {
+  var S = $Symbol();
+  // MS Edge converts symbol values to JSON as {}
+  // WebKit converts symbol values to JSON as null
+  // V8 throws on boxed symbols
+  return _stringify([S]) != '[null]' || _stringify({ a: S }) != '{}' || _stringify(Object(S)) != '{}';
+})), 'JSON', {
+  stringify: function stringify(it) {
+    if (it === undefined || isSymbol(it)) return; // IE8 returns string on undefined
+    var args = [it];
+    var i = 1;
+    var replacer, $replacer;
+    while (arguments.length > i) args.push(arguments[i++]);
+    replacer = args[1];
+    if (typeof replacer == 'function') $replacer = replacer;
+    if ($replacer || !isArray(replacer)) replacer = function (key, value) {
+      if ($replacer) value = $replacer.call(this, key, value);
+      if (!isSymbol(value)) return value;
+    };
+    args[1] = replacer;
+    return _stringify.apply($JSON, args);
+  }
+});
+
+// 19.4.3.4 Symbol.prototype[@@toPrimitive](hint)
+$Symbol[PROTOTYPE][TO_PRIMITIVE] || _dereq_(42)($Symbol[PROTOTYPE], TO_PRIMITIVE, $Symbol[PROTOTYPE].valueOf);
+// 19.4.3.5 Symbol.prototype[@@toStringTag]
+setToStringTag($Symbol, 'Symbol');
+// 20.2.1.9 Math[@@toStringTag]
+setToStringTag(Math, 'Math', true);
+// 24.3.3 JSON[@@toStringTag]
+setToStringTag(global.JSON, 'JSON', true);
+
+},{"101":101,"103":103,"117":117,"120":120,"124":124,"126":126,"127":127,"128":128,"29":29,"32":32,"33":33,"35":35,"40":40,"41":41,"42":42,"49":49,"59":59,"60":60,"66":66,"7":7,"71":71,"72":72,"75":75,"76":76,"77":77,"78":78,"81":81,"82":82,"92":92,"94":94}],255:[function(_dereq_,module,exports){
+'use strict';
+var $export = _dereq_(33);
+var $typed = _dereq_(123);
+var buffer = _dereq_(122);
+var anObject = _dereq_(7);
+var toAbsoluteIndex = _dereq_(114);
+var toLength = _dereq_(118);
+var isObject = _dereq_(51);
+var ArrayBuffer = _dereq_(40).ArrayBuffer;
+var speciesConstructor = _dereq_(104);
+var $ArrayBuffer = buffer.ArrayBuffer;
+var $DataView = buffer.DataView;
+var $isView = $typed.ABV && ArrayBuffer.isView;
+var $slice = $ArrayBuffer.prototype.slice;
+var VIEW = $typed.VIEW;
+var ARRAY_BUFFER = 'ArrayBuffer';
+
+$export($export.G + $export.W + $export.F * (ArrayBuffer !== $ArrayBuffer), { ArrayBuffer: $ArrayBuffer });
+
+$export($export.S + $export.F * !$typed.CONSTR, ARRAY_BUFFER, {
+  // 24.1.3.1 ArrayBuffer.isView(arg)
+  isView: function isView(it) {
+    return $isView && $isView(it) || isObject(it) && VIEW in it;
+  }
+});
+
+$export($export.P + $export.U + $export.F * _dereq_(35)(function () {
+  return !new $ArrayBuffer(2).slice(1, undefined).byteLength;
+}), ARRAY_BUFFER, {
+  // 24.1.4.3 ArrayBuffer.prototype.slice(start, end)
+  slice: function slice(start, end) {
+    if ($slice !== undefined && end === undefined) return $slice.call(anObject(this), start); // FF fix
+    var len = anObject(this).byteLength;
+    var first = toAbsoluteIndex(start, len);
+    var final = toAbsoluteIndex(end === undefined ? len : end, len);
+    var result = new (speciesConstructor(this, $ArrayBuffer))(toLength(final - first));
+    var viewS = new $DataView(this);
+    var viewT = new $DataView(result);
+    var index = 0;
+    while (first < final) {
+      viewT.setUint8(index++, viewS.getUint8(first++));
+    } return result;
+  }
+});
+
+_dereq_(100)(ARRAY_BUFFER);
+
+},{"100":100,"104":104,"114":114,"118":118,"122":122,"123":123,"33":33,"35":35,"40":40,"51":51,"7":7}],256:[function(_dereq_,module,exports){
+var $export = _dereq_(33);
+$export($export.G + $export.W + $export.F * !_dereq_(123).ABV, {
+  DataView: _dereq_(122).DataView
+});
+
+},{"122":122,"123":123,"33":33}],257:[function(_dereq_,module,exports){
+_dereq_(121)('Float32', 4, function (init) {
+  return function Float32Array(data, byteOffset, length) {
+    return init(this, data, byteOffset, length);
+  };
+});
+
+},{"121":121}],258:[function(_dereq_,module,exports){
+_dereq_(121)('Float64', 8, function (init) {
+  return function Float64Array(data, byteOffset, length) {
+    return init(this, data, byteOffset, length);
+  };
+});
+
+},{"121":121}],259:[function(_dereq_,module,exports){
+_dereq_(121)('Int16', 2, function (init) {
+  return function Int16Array(data, byteOffset, length) {
+    return init(this, data, byteOffset, length);
+  };
+});
+
+},{"121":121}],260:[function(_dereq_,module,exports){
+_dereq_(121)('Int32', 4, function (init) {
+  return function Int32Array(data, byteOffset, length) {
+    return init(this, data, byteOffset, length);
+  };
+});
+
+},{"121":121}],261:[function(_dereq_,module,exports){
+_dereq_(121)('Int8', 1, function (init) {
+  return function Int8Array(data, byteOffset, length) {
+    return init(this, data, byteOffset, length);
+  };
+});
+
+},{"121":121}],262:[function(_dereq_,module,exports){
+_dereq_(121)('Uint16', 2, function (init) {
+  return function Uint16Array(data, byteOffset, length) {
+    return init(this, data, byteOffset, length);
+  };
+});
+
+},{"121":121}],263:[function(_dereq_,module,exports){
+_dereq_(121)('Uint32', 4, function (init) {
+  return function Uint32Array(data, byteOffset, length) {
+    return init(this, data, byteOffset, length);
+  };
+});
+
+},{"121":121}],264:[function(_dereq_,module,exports){
+_dereq_(121)('Uint8', 1, function (init) {
+  return function Uint8Array(data, byteOffset, length) {
+    return init(this, data, byteOffset, length);
+  };
+});
+
+},{"121":121}],265:[function(_dereq_,module,exports){
+_dereq_(121)('Uint8', 1, function (init) {
+  return function Uint8ClampedArray(data, byteOffset, length) {
+    return init(this, data, byteOffset, length);
+  };
+}, true);
+
+},{"121":121}],266:[function(_dereq_,module,exports){
+'use strict';
+var each = _dereq_(12)(0);
+var redefine = _dereq_(94);
+var meta = _dereq_(66);
+var assign = _dereq_(70);
+var weak = _dereq_(21);
+var isObject = _dereq_(51);
+var fails = _dereq_(35);
+var validate = _dereq_(125);
+var WEAK_MAP = 'WeakMap';
+var getWeak = meta.getWeak;
+var isExtensible = Object.isExtensible;
+var uncaughtFrozenStore = weak.ufstore;
+var tmp = {};
+var InternalMap;
+
+var wrapper = function (get) {
+  return function WeakMap() {
+    return get(this, arguments.length > 0 ? arguments[0] : undefined);
+  };
+};
+
+var methods = {
+  // 23.3.3.3 WeakMap.prototype.get(key)
+  get: function get(key) {
+    if (isObject(key)) {
+      var data = getWeak(key);
+      if (data === true) return uncaughtFrozenStore(validate(this, WEAK_MAP)).get(key);
+      return data ? data[this._i] : undefined;
+    }
+  },
+  // 23.3.3.5 WeakMap.prototype.set(key, value)
+  set: function set(key, value) {
+    return weak.def(validate(this, WEAK_MAP), key, value);
+  }
+};
+
+// 23.3 WeakMap Objects
+var $WeakMap = module.exports = _dereq_(22)(WEAK_MAP, wrapper, methods, weak, true, true);
+
+// IE11 WeakMap frozen keys fix
+if (fails(function () { return new $WeakMap().set((Object.freeze || Object)(tmp), 7).get(tmp) != 7; })) {
+  InternalMap = weak.getConstructor(wrapper, WEAK_MAP);
+  assign(InternalMap.prototype, methods);
+  meta.NEED = true;
+  each(['delete', 'has', 'get', 'set'], function (key) {
+    var proto = $WeakMap.prototype;
+    var method = proto[key];
+    redefine(proto, key, function (a, b) {
+      // store frozen objects on internal weakmap shim
+      if (isObject(a) && !isExtensible(a)) {
+        if (!this._f) this._f = new InternalMap();
+        var result = this._f[key](a, b);
+        return key == 'set' ? this : result;
+      // store all the rest on native weakmap
+      } return method.call(this, a, b);
+    });
+  });
+}
+
+},{"12":12,"125":125,"21":21,"22":22,"35":35,"51":51,"66":66,"70":70,"94":94}],267:[function(_dereq_,module,exports){
+'use strict';
+var weak = _dereq_(21);
+var validate = _dereq_(125);
+var WEAK_SET = 'WeakSet';
+
+// 23.4 WeakSet Objects
+_dereq_(22)(WEAK_SET, function (get) {
+  return function WeakSet() { return get(this, arguments.length > 0 ? arguments[0] : undefined); };
+}, {
+  // 23.4.3.1 WeakSet.prototype.add(value)
+  add: function add(value) {
+    return weak.def(validate(this, WEAK_SET), value, true);
+  }
+}, weak, false, true);
+
+},{"125":125,"21":21,"22":22}],268:[function(_dereq_,module,exports){
+'use strict';
+// https://tc39.github.io/proposal-flatMap/#sec-Array.prototype.flatMap
+var $export = _dereq_(33);
+var flattenIntoArray = _dereq_(38);
+var toObject = _dereq_(119);
+var toLength = _dereq_(118);
+var aFunction = _dereq_(3);
+var arraySpeciesCreate = _dereq_(15);
+
+$export($export.P, 'Array', {
+  flatMap: function flatMap(callbackfn /* , thisArg */) {
+    var O = toObject(this);
+    var sourceLen, A;
+    aFunction(callbackfn);
+    sourceLen = toLength(O.length);
+    A = arraySpeciesCreate(O, 0);
+    flattenIntoArray(A, O, O, sourceLen, 0, 1, callbackfn, arguments[1]);
+    return A;
+  }
+});
+
+_dereq_(5)('flatMap');
+
+},{"118":118,"119":119,"15":15,"3":3,"33":33,"38":38,"5":5}],269:[function(_dereq_,module,exports){
+'use strict';
+// https://tc39.github.io/proposal-flatMap/#sec-Array.prototype.flatten
+var $export = _dereq_(33);
+var flattenIntoArray = _dereq_(38);
+var toObject = _dereq_(119);
+var toLength = _dereq_(118);
+var toInteger = _dereq_(116);
+var arraySpeciesCreate = _dereq_(15);
+
+$export($export.P, 'Array', {
+  flatten: function flatten(/* depthArg = 1 */) {
+    var depthArg = arguments[0];
+    var O = toObject(this);
+    var sourceLen = toLength(O.length);
+    var A = arraySpeciesCreate(O, 0);
+    flattenIntoArray(A, O, O, sourceLen, 0, depthArg === undefined ? 1 : toInteger(depthArg));
+    return A;
+  }
+});
+
+_dereq_(5)('flatten');
+
+},{"116":116,"118":118,"119":119,"15":15,"33":33,"38":38,"5":5}],270:[function(_dereq_,module,exports){
+'use strict';
+// https://github.com/tc39/Array.prototype.includes
+var $export = _dereq_(33);
+var $includes = _dereq_(11)(true);
+
+$export($export.P, 'Array', {
+  includes: function includes(el /* , fromIndex = 0 */) {
+    return $includes(this, el, arguments.length > 1 ? arguments[1] : undefined);
+  }
+});
+
+_dereq_(5)('includes');
+
+},{"11":11,"33":33,"5":5}],271:[function(_dereq_,module,exports){
+// https://github.com/rwaldron/tc39-notes/blob/master/es6/2014-09/sept-25.md#510-globalasap-for-enqueuing-a-microtask
+var $export = _dereq_(33);
+var microtask = _dereq_(68)();
+var process = _dereq_(40).process;
+var isNode = _dereq_(18)(process) == 'process';
+
+$export($export.G, {
+  asap: function asap(fn) {
+    var domain = isNode && process.domain;
+    microtask(domain ? domain.bind(fn) : fn);
+  }
+});
+
+},{"18":18,"33":33,"40":40,"68":68}],272:[function(_dereq_,module,exports){
+// https://github.com/ljharb/proposal-is-error
+var $export = _dereq_(33);
+var cof = _dereq_(18);
+
+$export($export.S, 'Error', {
+  isError: function isError(it) {
+    return cof(it) === 'Error';
+  }
+});
+
+},{"18":18,"33":33}],273:[function(_dereq_,module,exports){
+// https://github.com/tc39/proposal-global
+var $export = _dereq_(33);
+
+$export($export.G, { global: _dereq_(40) });
+
+},{"33":33,"40":40}],274:[function(_dereq_,module,exports){
+// https://tc39.github.io/proposal-setmap-offrom/#sec-map.from
+_dereq_(97)('Map');
+
+},{"97":97}],275:[function(_dereq_,module,exports){
+// https://tc39.github.io/proposal-setmap-offrom/#sec-map.of
+_dereq_(98)('Map');
+
+},{"98":98}],276:[function(_dereq_,module,exports){
+// https://github.com/DavidBruant/Map-Set.prototype.toJSON
+var $export = _dereq_(33);
+
+$export($export.P + $export.R, 'Map', { toJSON: _dereq_(20)('Map') });
+
+},{"20":20,"33":33}],277:[function(_dereq_,module,exports){
+// https://rwaldron.github.io/proposal-math-extensions/
+var $export = _dereq_(33);
+
+$export($export.S, 'Math', {
+  clamp: function clamp(x, lower, upper) {
+    return Math.min(upper, Math.max(lower, x));
+  }
+});
+
+},{"33":33}],278:[function(_dereq_,module,exports){
+// https://rwaldron.github.io/proposal-math-extensions/
+var $export = _dereq_(33);
+
+$export($export.S, 'Math', { DEG_PER_RAD: Math.PI / 180 });
+
+},{"33":33}],279:[function(_dereq_,module,exports){
+// https://rwaldron.github.io/proposal-math-extensions/
+var $export = _dereq_(33);
+var RAD_PER_DEG = 180 / Math.PI;
+
+$export($export.S, 'Math', {
+  degrees: function degrees(radians) {
+    return radians * RAD_PER_DEG;
+  }
+});
+
+},{"33":33}],280:[function(_dereq_,module,exports){
+// https://rwaldron.github.io/proposal-math-extensions/
+var $export = _dereq_(33);
+var scale = _dereq_(64);
+var fround = _dereq_(62);
+
+$export($export.S, 'Math', {
+  fscale: function fscale(x, inLow, inHigh, outLow, outHigh) {
+    return fround(scale(x, inLow, inHigh, outLow, outHigh));
+  }
+});
+
+},{"33":33,"62":62,"64":64}],281:[function(_dereq_,module,exports){
+// https://gist.github.com/BrendanEich/4294d5c212a6d2254703
+var $export = _dereq_(33);
+
+$export($export.S, 'Math', {
+  iaddh: function iaddh(x0, x1, y0, y1) {
+    var $x0 = x0 >>> 0;
+    var $x1 = x1 >>> 0;
+    var $y0 = y0 >>> 0;
+    return $x1 + (y1 >>> 0) + (($x0 & $y0 | ($x0 | $y0) & ~($x0 + $y0 >>> 0)) >>> 31) | 0;
+  }
+});
+
+},{"33":33}],282:[function(_dereq_,module,exports){
+// https://gist.github.com/BrendanEich/4294d5c212a6d2254703
+var $export = _dereq_(33);
+
+$export($export.S, 'Math', {
+  imulh: function imulh(u, v) {
+    var UINT16 = 0xffff;
+    var $u = +u;
+    var $v = +v;
+    var u0 = $u & UINT16;
+    var v0 = $v & UINT16;
+    var u1 = $u >> 16;
+    var v1 = $v >> 16;
+    var t = (u1 * v0 >>> 0) + (u0 * v0 >>> 16);
+    return u1 * v1 + (t >> 16) + ((u0 * v1 >>> 0) + (t & UINT16) >> 16);
+  }
+});
+
+},{"33":33}],283:[function(_dereq_,module,exports){
+// https://gist.github.com/BrendanEich/4294d5c212a6d2254703
+var $export = _dereq_(33);
+
+$export($export.S, 'Math', {
+  isubh: function isubh(x0, x1, y0, y1) {
+    var $x0 = x0 >>> 0;
+    var $x1 = x1 >>> 0;
+    var $y0 = y0 >>> 0;
+    return $x1 - (y1 >>> 0) - ((~$x0 & $y0 | ~($x0 ^ $y0) & $x0 - $y0 >>> 0) >>> 31) | 0;
+  }
+});
+
+},{"33":33}],284:[function(_dereq_,module,exports){
+// https://rwaldron.github.io/proposal-math-extensions/
+var $export = _dereq_(33);
+
+$export($export.S, 'Math', { RAD_PER_DEG: 180 / Math.PI });
+
+},{"33":33}],285:[function(_dereq_,module,exports){
+// https://rwaldron.github.io/proposal-math-extensions/
+var $export = _dereq_(33);
+var DEG_PER_RAD = Math.PI / 180;
+
+$export($export.S, 'Math', {
+  radians: function radians(degrees) {
+    return degrees * DEG_PER_RAD;
+  }
+});
+
+},{"33":33}],286:[function(_dereq_,module,exports){
+// https://rwaldron.github.io/proposal-math-extensions/
+var $export = _dereq_(33);
+
+$export($export.S, 'Math', { scale: _dereq_(64) });
+
+},{"33":33,"64":64}],287:[function(_dereq_,module,exports){
+// http://jfbastien.github.io/papers/Math.signbit.html
+var $export = _dereq_(33);
+
+$export($export.S, 'Math', { signbit: function signbit(x) {
+  // eslint-disable-next-line no-self-compare
+  return (x = +x) != x ? x : x == 0 ? 1 / x == Infinity : x > 0;
+} });
+
+},{"33":33}],288:[function(_dereq_,module,exports){
+// https://gist.github.com/BrendanEich/4294d5c212a6d2254703
+var $export = _dereq_(33);
+
+$export($export.S, 'Math', {
+  umulh: function umulh(u, v) {
+    var UINT16 = 0xffff;
+    var $u = +u;
+    var $v = +v;
+    var u0 = $u & UINT16;
+    var v0 = $v & UINT16;
+    var u1 = $u >>> 16;
+    var v1 = $v >>> 16;
+    var t = (u1 * v0 >>> 0) + (u0 * v0 >>> 16);
+    return u1 * v1 + (t >>> 16) + ((u0 * v1 >>> 0) + (t & UINT16) >>> 16);
+  }
+});
+
+},{"33":33}],289:[function(_dereq_,module,exports){
+'use strict';
+var $export = _dereq_(33);
+var toObject = _dereq_(119);
+var aFunction = _dereq_(3);
+var $defineProperty = _dereq_(72);
+
+// B.2.2.2 Object.prototype.__defineGetter__(P, getter)
+_dereq_(29) && $export($export.P + _dereq_(74), 'Object', {
+  __defineGetter__: function __defineGetter__(P, getter) {
+    $defineProperty.f(toObject(this), P, { get: aFunction(getter), enumerable: true, configurable: true });
+  }
+});
+
+},{"119":119,"29":29,"3":3,"33":33,"72":72,"74":74}],290:[function(_dereq_,module,exports){
+'use strict';
+var $export = _dereq_(33);
+var toObject = _dereq_(119);
+var aFunction = _dereq_(3);
+var $defineProperty = _dereq_(72);
+
+// B.2.2.3 Object.prototype.__defineSetter__(P, setter)
+_dereq_(29) && $export($export.P + _dereq_(74), 'Object', {
+  __defineSetter__: function __defineSetter__(P, setter) {
+    $defineProperty.f(toObject(this), P, { set: aFunction(setter), enumerable: true, configurable: true });
+  }
+});
+
+},{"119":119,"29":29,"3":3,"33":33,"72":72,"74":74}],291:[function(_dereq_,module,exports){
+// https://github.com/tc39/proposal-object-values-entries
+var $export = _dereq_(33);
+var $entries = _dereq_(84)(true);
+
+$export($export.S, 'Object', {
+  entries: function entries(it) {
+    return $entries(it);
+  }
+});
+
+},{"33":33,"84":84}],292:[function(_dereq_,module,exports){
+// https://github.com/tc39/proposal-object-getownpropertydescriptors
+var $export = _dereq_(33);
+var ownKeys = _dereq_(85);
+var toIObject = _dereq_(117);
+var gOPD = _dereq_(75);
+var createProperty = _dereq_(24);
+
+$export($export.S, 'Object', {
+  getOwnPropertyDescriptors: function getOwnPropertyDescriptors(object) {
+    var O = toIObject(object);
+    var getDesc = gOPD.f;
+    var keys = ownKeys(O);
+    var result = {};
+    var i = 0;
+    var key, desc;
+    while (keys.length > i) {
+      desc = getDesc(O, key = keys[i++]);
+      if (desc !== undefined) createProperty(result, key, desc);
+    }
+    return result;
+  }
+});
+
+},{"117":117,"24":24,"33":33,"75":75,"85":85}],293:[function(_dereq_,module,exports){
+'use strict';
+var $export = _dereq_(33);
+var toObject = _dereq_(119);
+var toPrimitive = _dereq_(120);
+var getPrototypeOf = _dereq_(79);
+var getOwnPropertyDescriptor = _dereq_(75).f;
+
+// B.2.2.4 Object.prototype.__lookupGetter__(P)
+_dereq_(29) && $export($export.P + _dereq_(74), 'Object', {
+  __lookupGetter__: function __lookupGetter__(P) {
+    var O = toObject(this);
+    var K = toPrimitive(P, true);
+    var D;
+    do {
+      if (D = getOwnPropertyDescriptor(O, K)) return D.get;
+    } while (O = getPrototypeOf(O));
+  }
+});
+
+},{"119":119,"120":120,"29":29,"33":33,"74":74,"75":75,"79":79}],294:[function(_dereq_,module,exports){
+'use strict';
+var $export = _dereq_(33);
+var toObject = _dereq_(119);
+var toPrimitive = _dereq_(120);
+var getPrototypeOf = _dereq_(79);
+var getOwnPropertyDescriptor = _dereq_(75).f;
+
+// B.2.2.5 Object.prototype.__lookupSetter__(P)
+_dereq_(29) && $export($export.P + _dereq_(74), 'Object', {
+  __lookupSetter__: function __lookupSetter__(P) {
+    var O = toObject(this);
+    var K = toPrimitive(P, true);
+    var D;
+    do {
+      if (D = getOwnPropertyDescriptor(O, K)) return D.set;
+    } while (O = getPrototypeOf(O));
+  }
+});
+
+},{"119":119,"120":120,"29":29,"33":33,"74":74,"75":75,"79":79}],295:[function(_dereq_,module,exports){
+// https://github.com/tc39/proposal-object-values-entries
+var $export = _dereq_(33);
+var $values = _dereq_(84)(false);
+
+$export($export.S, 'Object', {
+  values: function values(it) {
+    return $values(it);
+  }
+});
+
+},{"33":33,"84":84}],296:[function(_dereq_,module,exports){
+'use strict';
+// https://github.com/zenparsing/es-observable
+var $export = _dereq_(33);
+var global = _dereq_(40);
+var core = _dereq_(23);
+var microtask = _dereq_(68)();
+var OBSERVABLE = _dereq_(128)('observable');
+var aFunction = _dereq_(3);
+var anObject = _dereq_(7);
+var anInstance = _dereq_(6);
+var redefineAll = _dereq_(93);
+var hide = _dereq_(42);
+var forOf = _dereq_(39);
+var RETURN = forOf.RETURN;
+
+var getMethod = function (fn) {
+  return fn == null ? undefined : aFunction(fn);
+};
+
+var cleanupSubscription = function (subscription) {
+  var cleanup = subscription._c;
+  if (cleanup) {
+    subscription._c = undefined;
+    cleanup();
+  }
+};
+
+var subscriptionClosed = function (subscription) {
+  return subscription._o === undefined;
+};
+
+var closeSubscription = function (subscription) {
+  if (!subscriptionClosed(subscription)) {
+    subscription._o = undefined;
+    cleanupSubscription(subscription);
+  }
+};
+
+var Subscription = function (observer, subscriber) {
+  anObject(observer);
+  this._c = undefined;
+  this._o = observer;
+  observer = new SubscriptionObserver(this);
+  try {
+    var cleanup = subscriber(observer);
+    var subscription = cleanup;
+    if (cleanup != null) {
+      if (typeof cleanup.unsubscribe === 'function') cleanup = function () { subscription.unsubscribe(); };
+      else aFunction(cleanup);
+      this._c = cleanup;
+    }
+  } catch (e) {
+    observer.error(e);
+    return;
+  } if (subscriptionClosed(this)) cleanupSubscription(this);
+};
+
+Subscription.prototype = redefineAll({}, {
+  unsubscribe: function unsubscribe() { closeSubscription(this); }
+});
+
+var SubscriptionObserver = function (subscription) {
+  this._s = subscription;
+};
+
+SubscriptionObserver.prototype = redefineAll({}, {
+  next: function next(value) {
+    var subscription = this._s;
+    if (!subscriptionClosed(subscription)) {
+      var observer = subscription._o;
+      try {
+        var m = getMethod(observer.next);
+        if (m) return m.call(observer, value);
+      } catch (e) {
+        try {
+          closeSubscription(subscription);
+        } finally {
+          throw e;
+        }
+      }
+    }
+  },
+  error: function error(value) {
+    var subscription = this._s;
+    if (subscriptionClosed(subscription)) throw value;
+    var observer = subscription._o;
+    subscription._o = undefined;
+    try {
+      var m = getMethod(observer.error);
+      if (!m) throw value;
+      value = m.call(observer, value);
+    } catch (e) {
+      try {
+        cleanupSubscription(subscription);
+      } finally {
+        throw e;
+      }
+    } cleanupSubscription(subscription);
+    return value;
+  },
+  complete: function complete(value) {
+    var subscription = this._s;
+    if (!subscriptionClosed(subscription)) {
+      var observer = subscription._o;
+      subscription._o = undefined;
+      try {
+        var m = getMethod(observer.complete);
+        value = m ? m.call(observer, value) : undefined;
+      } catch (e) {
+        try {
+          cleanupSubscription(subscription);
+        } finally {
+          throw e;
+        }
+      } cleanupSubscription(subscription);
+      return value;
+    }
+  }
+});
+
+var $Observable = function Observable(subscriber) {
+  anInstance(this, $Observable, 'Observable', '_f')._f = aFunction(subscriber);
+};
+
+redefineAll($Observable.prototype, {
+  subscribe: function subscribe(observer) {
+    return new Subscription(observer, this._f);
+  },
+  forEach: function forEach(fn) {
+    var that = this;
+    return new (core.Promise || global.Promise)(function (resolve, reject) {
+      aFunction(fn);
+      var subscription = that.subscribe({
+        next: function (value) {
+          try {
+            return fn(value);
+          } catch (e) {
+            reject(e);
+            subscription.unsubscribe();
+          }
+        },
+        error: reject,
+        complete: resolve
+      });
+    });
+  }
+});
+
+redefineAll($Observable, {
+  from: function from(x) {
+    var C = typeof this === 'function' ? this : $Observable;
+    var method = getMethod(anObject(x)[OBSERVABLE]);
+    if (method) {
+      var observable = anObject(method.call(x));
+      return observable.constructor === C ? observable : new C(function (observer) {
+        return observable.subscribe(observer);
+      });
+    }
+    return new C(function (observer) {
+      var done = false;
+      microtask(function () {
+        if (!done) {
+          try {
+            if (forOf(x, false, function (it) {
+              observer.next(it);
+              if (done) return RETURN;
+            }) === RETURN) return;
+          } catch (e) {
+            if (done) throw e;
+            observer.error(e);
+            return;
+          } observer.complete();
+        }
+      });
+      return function () { done = true; };
+    });
+  },
+  of: function of() {
+    for (var i = 0, l = arguments.length, items = Array(l); i < l;) items[i] = arguments[i++];
+    return new (typeof this === 'function' ? this : $Observable)(function (observer) {
+      var done = false;
+      microtask(function () {
+        if (!done) {
+          for (var j = 0; j < items.length; ++j) {
+            observer.next(items[j]);
+            if (done) return;
+          } observer.complete();
+        }
+      });
+      return function () { done = true; };
+    });
+  }
+});
+
+hide($Observable.prototype, OBSERVABLE, function () { return this; });
+
+$export($export.G, { Observable: $Observable });
+
+_dereq_(100)('Observable');
+
+},{"100":100,"128":128,"23":23,"3":3,"33":33,"39":39,"40":40,"42":42,"6":6,"68":68,"7":7,"93":93}],297:[function(_dereq_,module,exports){
+// https://github.com/tc39/proposal-promise-finally
+'use strict';
+var $export = _dereq_(33);
+var core = _dereq_(23);
+var global = _dereq_(40);
+var speciesConstructor = _dereq_(104);
+var promiseResolve = _dereq_(91);
+
+$export($export.P + $export.R, 'Promise', { 'finally': function (onFinally) {
+  var C = speciesConstructor(this, core.Promise || global.Promise);
+  var isFunction = typeof onFinally == 'function';
+  return this.then(
+    isFunction ? function (x) {
+      return promiseResolve(C, onFinally()).then(function () { return x; });
+    } : onFinally,
+    isFunction ? function (e) {
+      return promiseResolve(C, onFinally()).then(function () { throw e; });
+    } : onFinally
+  );
+} });
+
+},{"104":104,"23":23,"33":33,"40":40,"91":91}],298:[function(_dereq_,module,exports){
+'use strict';
+// https://github.com/tc39/proposal-promise-try
+var $export = _dereq_(33);
+var newPromiseCapability = _dereq_(69);
+var perform = _dereq_(90);
+
+$export($export.S, 'Promise', { 'try': function (callbackfn) {
+  var promiseCapability = newPromiseCapability.f(this);
+  var result = perform(callbackfn);
+  (result.e ? promiseCapability.reject : promiseCapability.resolve)(result.v);
+  return promiseCapability.promise;
+} });
+
+},{"33":33,"69":69,"90":90}],299:[function(_dereq_,module,exports){
+var metadata = _dereq_(67);
+var anObject = _dereq_(7);
+var toMetaKey = metadata.key;
+var ordinaryDefineOwnMetadata = metadata.set;
+
+metadata.exp({ defineMetadata: function defineMetadata(metadataKey, metadataValue, target, targetKey) {
+  ordinaryDefineOwnMetadata(metadataKey, metadataValue, anObject(target), toMetaKey(targetKey));
+} });
+
+},{"67":67,"7":7}],300:[function(_dereq_,module,exports){
+var metadata = _dereq_(67);
+var anObject = _dereq_(7);
+var toMetaKey = metadata.key;
+var getOrCreateMetadataMap = metadata.map;
+var store = metadata.store;
+
+metadata.exp({ deleteMetadata: function deleteMetadata(metadataKey, target /* , targetKey */) {
+  var targetKey = arguments.length < 3 ? undefined : toMetaKey(arguments[2]);
+  var metadataMap = getOrCreateMetadataMap(anObject(target), targetKey, false);
+  if (metadataMap === undefined || !metadataMap['delete'](metadataKey)) return false;
+  if (metadataMap.size) return true;
+  var targetMetadata = store.get(target);
+  targetMetadata['delete'](targetKey);
+  return !!targetMetadata.size || store['delete'](target);
+} });
+
+},{"67":67,"7":7}],301:[function(_dereq_,module,exports){
+var Set = _dereq_(231);
+var from = _dereq_(10);
+var metadata = _dereq_(67);
+var anObject = _dereq_(7);
+var getPrototypeOf = _dereq_(79);
+var ordinaryOwnMetadataKeys = metadata.keys;
+var toMetaKey = metadata.key;
+
+var ordinaryMetadataKeys = function (O, P) {
+  var oKeys = ordinaryOwnMetadataKeys(O, P);
+  var parent = getPrototypeOf(O);
+  if (parent === null) return oKeys;
+  var pKeys = ordinaryMetadataKeys(parent, P);
+  return pKeys.length ? oKeys.length ? from(new Set(oKeys.concat(pKeys))) : pKeys : oKeys;
+};
+
+metadata.exp({ getMetadataKeys: function getMetadataKeys(target /* , targetKey */) {
+  return ordinaryMetadataKeys(anObject(target), arguments.length < 2 ? undefined : toMetaKey(arguments[1]));
+} });
+
+},{"10":10,"231":231,"67":67,"7":7,"79":79}],302:[function(_dereq_,module,exports){
+var metadata = _dereq_(67);
+var anObject = _dereq_(7);
+var getPrototypeOf = _dereq_(79);
+var ordinaryHasOwnMetadata = metadata.has;
+var ordinaryGetOwnMetadata = metadata.get;
+var toMetaKey = metadata.key;
+
+var ordinaryGetMetadata = function (MetadataKey, O, P) {
+  var hasOwn = ordinaryHasOwnMetadata(MetadataKey, O, P);
+  if (hasOwn) return ordinaryGetOwnMetadata(MetadataKey, O, P);
+  var parent = getPrototypeOf(O);
+  return parent !== null ? ordinaryGetMetadata(MetadataKey, parent, P) : undefined;
+};
+
+metadata.exp({ getMetadata: function getMetadata(metadataKey, target /* , targetKey */) {
+  return ordinaryGetMetadata(metadataKey, anObject(target), arguments.length < 3 ? undefined : toMetaKey(arguments[2]));
+} });
+
+},{"67":67,"7":7,"79":79}],303:[function(_dereq_,module,exports){
+var metadata = _dereq_(67);
+var anObject = _dereq_(7);
+var ordinaryOwnMetadataKeys = metadata.keys;
+var toMetaKey = metadata.key;
+
+metadata.exp({ getOwnMetadataKeys: function getOwnMetadataKeys(target /* , targetKey */) {
+  return ordinaryOwnMetadataKeys(anObject(target), arguments.length < 2 ? undefined : toMetaKey(arguments[1]));
+} });
+
+},{"67":67,"7":7}],304:[function(_dereq_,module,exports){
+var metadata = _dereq_(67);
+var anObject = _dereq_(7);
+var ordinaryGetOwnMetadata = metadata.get;
+var toMetaKey = metadata.key;
+
+metadata.exp({ getOwnMetadata: function getOwnMetadata(metadataKey, target /* , targetKey */) {
+  return ordinaryGetOwnMetadata(metadataKey, anObject(target)
+    , arguments.length < 3 ? undefined : toMetaKey(arguments[2]));
+} });
+
+},{"67":67,"7":7}],305:[function(_dereq_,module,exports){
+var metadata = _dereq_(67);
+var anObject = _dereq_(7);
+var getPrototypeOf = _dereq_(79);
+var ordinaryHasOwnMetadata = metadata.has;
+var toMetaKey = metadata.key;
+
+var ordinaryHasMetadata = function (MetadataKey, O, P) {
+  var hasOwn = ordinaryHasOwnMetadata(MetadataKey, O, P);
+  if (hasOwn) return true;
+  var parent = getPrototypeOf(O);
+  return parent !== null ? ordinaryHasMetadata(MetadataKey, parent, P) : false;
+};
+
+metadata.exp({ hasMetadata: function hasMetadata(metadataKey, target /* , targetKey */) {
+  return ordinaryHasMetadata(metadataKey, anObject(target), arguments.length < 3 ? undefined : toMetaKey(arguments[2]));
+} });
+
+},{"67":67,"7":7,"79":79}],306:[function(_dereq_,module,exports){
+var metadata = _dereq_(67);
+var anObject = _dereq_(7);
+var ordinaryHasOwnMetadata = metadata.has;
+var toMetaKey = metadata.key;
+
+metadata.exp({ hasOwnMetadata: function hasOwnMetadata(metadataKey, target /* , targetKey */) {
+  return ordinaryHasOwnMetadata(metadataKey, anObject(target)
+    , arguments.length < 3 ? undefined : toMetaKey(arguments[2]));
+} });
+
+},{"67":67,"7":7}],307:[function(_dereq_,module,exports){
+var $metadata = _dereq_(67);
+var anObject = _dereq_(7);
+var aFunction = _dereq_(3);
+var toMetaKey = $metadata.key;
+var ordinaryDefineOwnMetadata = $metadata.set;
+
+$metadata.exp({ metadata: function metadata(metadataKey, metadataValue) {
+  return function decorator(target, targetKey) {
+    ordinaryDefineOwnMetadata(
+      metadataKey, metadataValue,
+      (targetKey !== undefined ? anObject : aFunction)(target),
+      toMetaKey(targetKey)
+    );
+  };
+} });
+
+},{"3":3,"67":67,"7":7}],308:[function(_dereq_,module,exports){
+// https://tc39.github.io/proposal-setmap-offrom/#sec-set.from
+_dereq_(97)('Set');
+
+},{"97":97}],309:[function(_dereq_,module,exports){
+// https://tc39.github.io/proposal-setmap-offrom/#sec-set.of
+_dereq_(98)('Set');
+
+},{"98":98}],310:[function(_dereq_,module,exports){
+// https://github.com/DavidBruant/Map-Set.prototype.toJSON
+var $export = _dereq_(33);
+
+$export($export.P + $export.R, 'Set', { toJSON: _dereq_(20)('Set') });
+
+},{"20":20,"33":33}],311:[function(_dereq_,module,exports){
+'use strict';
+// https://github.com/mathiasbynens/String.prototype.at
+var $export = _dereq_(33);
+var $at = _dereq_(106)(true);
+
+$export($export.P, 'String', {
+  at: function at(pos) {
+    return $at(this, pos);
+  }
+});
+
+},{"106":106,"33":33}],312:[function(_dereq_,module,exports){
+'use strict';
+// https://tc39.github.io/String.prototype.matchAll/
+var $export = _dereq_(33);
+var defined = _dereq_(28);
+var toLength = _dereq_(118);
+var isRegExp = _dereq_(52);
+var getFlags = _dereq_(37);
+var RegExpProto = RegExp.prototype;
+
+var $RegExpStringIterator = function (regexp, string) {
+  this._r = regexp;
+  this._s = string;
+};
+
+_dereq_(54)($RegExpStringIterator, 'RegExp String', function next() {
+  var match = this._r.exec(this._s);
+  return { value: match, done: match === null };
+});
+
+$export($export.P, 'String', {
+  matchAll: function matchAll(regexp) {
+    defined(this);
+    if (!isRegExp(regexp)) throw TypeError(regexp + ' is not a regexp!');
+    var S = String(this);
+    var flags = 'flags' in RegExpProto ? String(regexp.flags) : getFlags.call(regexp);
+    var rx = new RegExp(regexp.source, ~flags.indexOf('g') ? flags : 'g' + flags);
+    rx.lastIndex = toLength(regexp.lastIndex);
+    return new $RegExpStringIterator(rx, S);
+  }
+});
+
+},{"118":118,"28":28,"33":33,"37":37,"52":52,"54":54}],313:[function(_dereq_,module,exports){
+'use strict';
+// https://github.com/tc39/proposal-string-pad-start-end
+var $export = _dereq_(33);
+var $pad = _dereq_(109);
+
+$export($export.P, 'String', {
+  padEnd: function padEnd(maxLength /* , fillString = ' ' */) {
+    return $pad(this, maxLength, arguments.length > 1 ? arguments[1] : undefined, false);
+  }
+});
+
+},{"109":109,"33":33}],314:[function(_dereq_,module,exports){
+'use strict';
+// https://github.com/tc39/proposal-string-pad-start-end
+var $export = _dereq_(33);
+var $pad = _dereq_(109);
+
+$export($export.P, 'String', {
+  padStart: function padStart(maxLength /* , fillString = ' ' */) {
+    return $pad(this, maxLength, arguments.length > 1 ? arguments[1] : undefined, true);
+  }
+});
+
+},{"109":109,"33":33}],315:[function(_dereq_,module,exports){
+'use strict';
+// https://github.com/sebmarkbage/ecmascript-string-left-right-trim
+_dereq_(111)('trimLeft', function ($trim) {
+  return function trimLeft() {
+    return $trim(this, 1);
+  };
+}, 'trimStart');
+
+},{"111":111}],316:[function(_dereq_,module,exports){
+'use strict';
+// https://github.com/sebmarkbage/ecmascript-string-left-right-trim
+_dereq_(111)('trimRight', function ($trim) {
+  return function trimRight() {
+    return $trim(this, 2);
+  };
+}, 'trimEnd');
+
+},{"111":111}],317:[function(_dereq_,module,exports){
+_dereq_(126)('asyncIterator');
+
+},{"126":126}],318:[function(_dereq_,module,exports){
+_dereq_(126)('observable');
+
+},{"126":126}],319:[function(_dereq_,module,exports){
+// https://github.com/tc39/proposal-global
+var $export = _dereq_(33);
+
+$export($export.S, 'System', { global: _dereq_(40) });
+
+},{"33":33,"40":40}],320:[function(_dereq_,module,exports){
+// https://tc39.github.io/proposal-setmap-offrom/#sec-weakmap.from
+_dereq_(97)('WeakMap');
+
+},{"97":97}],321:[function(_dereq_,module,exports){
+// https://tc39.github.io/proposal-setmap-offrom/#sec-weakmap.of
+_dereq_(98)('WeakMap');
+
+},{"98":98}],322:[function(_dereq_,module,exports){
+// https://tc39.github.io/proposal-setmap-offrom/#sec-weakset.from
+_dereq_(97)('WeakSet');
+
+},{"97":97}],323:[function(_dereq_,module,exports){
+// https://tc39.github.io/proposal-setmap-offrom/#sec-weakset.of
+_dereq_(98)('WeakSet');
+
+},{"98":98}],324:[function(_dereq_,module,exports){
+var $iterators = _dereq_(141);
+var getKeys = _dereq_(81);
+var redefine = _dereq_(94);
+var global = _dereq_(40);
+var hide = _dereq_(42);
+var Iterators = _dereq_(58);
+var wks = _dereq_(128);
+var ITERATOR = wks('iterator');
+var TO_STRING_TAG = wks('toStringTag');
+var ArrayValues = Iterators.Array;
+
+var DOMIterables = {
+  CSSRuleList: true, // TODO: Not spec compliant, should be false.
+  CSSStyleDeclaration: false,
+  CSSValueList: false,
+  ClientRectList: false,
+  DOMRectList: false,
+  DOMStringList: false,
+  DOMTokenList: true,
+  DataTransferItemList: false,
+  FileList: false,
+  HTMLAllCollection: false,
+  HTMLCollection: false,
+  HTMLFormElement: false,
+  HTMLSelectElement: false,
+  MediaList: true, // TODO: Not spec compliant, should be false.
+  MimeTypeArray: false,
+  NamedNodeMap: false,
+  NodeList: true,
+  PaintRequestList: false,
+  Plugin: false,
+  PluginArray: false,
+  SVGLengthList: false,
+  SVGNumberList: false,
+  SVGPathSegList: false,
+  SVGPointList: false,
+  SVGStringList: false,
+  SVGTransformList: false,
+  SourceBufferList: false,
+  StyleSheetList: true, // TODO: Not spec compliant, should be false.
+  TextTrackCueList: false,
+  TextTrackList: false,
+  TouchList: false
+};
+
+for (var collections = getKeys(DOMIterables), i = 0; i < collections.length; i++) {
+  var NAME = collections[i];
+  var explicit = DOMIterables[NAME];
+  var Collection = global[NAME];
+  var proto = Collection && Collection.prototype;
+  var key;
+  if (proto) {
+    if (!proto[ITERATOR]) hide(proto, ITERATOR, ArrayValues);
+    if (!proto[TO_STRING_TAG]) hide(proto, TO_STRING_TAG, NAME);
+    Iterators[NAME] = ArrayValues;
+    if (explicit) for (key in $iterators) if (!proto[key]) redefine(proto, key, $iterators[key], true);
+  }
+}
+
+},{"128":128,"141":141,"40":40,"42":42,"58":58,"81":81,"94":94}],325:[function(_dereq_,module,exports){
+var $export = _dereq_(33);
+var $task = _dereq_(113);
+$export($export.G + $export.B, {
+  setImmediate: $task.set,
+  clearImmediate: $task.clear
+});
+
+},{"113":113,"33":33}],326:[function(_dereq_,module,exports){
+// ie9- setTimeout & setInterval additional parameters fix
+var global = _dereq_(40);
+var $export = _dereq_(33);
+var invoke = _dereq_(46);
+var partial = _dereq_(88);
+var navigator = global.navigator;
+var MSIE = !!navigator && /MSIE .\./.test(navigator.userAgent); // <- dirty ie9- check
+var wrap = function (set) {
+  return MSIE ? function (fn, time /* , ...args */) {
+    return set(invoke(
+      partial,
+      [].slice.call(arguments, 2),
+      // eslint-disable-next-line no-new-func
+      typeof fn == 'function' ? fn : Function(fn)
+    ), time);
+  } : set;
+};
+$export($export.G + $export.B + $export.F * MSIE, {
+  setTimeout: wrap(global.setTimeout),
+  setInterval: wrap(global.setInterval)
+});
+
+},{"33":33,"40":40,"46":46,"88":88}],327:[function(_dereq_,module,exports){
+_dereq_(254);
+_dereq_(191);
+_dereq_(193);
+_dereq_(192);
+_dereq_(195);
+_dereq_(197);
+_dereq_(202);
+_dereq_(196);
+_dereq_(194);
+_dereq_(204);
+_dereq_(203);
+_dereq_(199);
+_dereq_(200);
+_dereq_(198);
+_dereq_(190);
+_dereq_(201);
+_dereq_(205);
+_dereq_(206);
+_dereq_(157);
+_dereq_(159);
+_dereq_(158);
+_dereq_(208);
+_dereq_(207);
+_dereq_(178);
+_dereq_(188);
+_dereq_(189);
+_dereq_(179);
+_dereq_(180);
+_dereq_(181);
+_dereq_(182);
+_dereq_(183);
+_dereq_(184);
+_dereq_(185);
+_dereq_(186);
+_dereq_(187);
+_dereq_(161);
+_dereq_(162);
+_dereq_(163);
+_dereq_(164);
+_dereq_(165);
+_dereq_(166);
+_dereq_(167);
+_dereq_(168);
+_dereq_(169);
+_dereq_(170);
+_dereq_(171);
+_dereq_(172);
+_dereq_(173);
+_dereq_(174);
+_dereq_(175);
+_dereq_(176);
+_dereq_(177);
+_dereq_(241);
+_dereq_(246);
+_dereq_(253);
+_dereq_(244);
+_dereq_(236);
+_dereq_(237);
+_dereq_(242);
+_dereq_(247);
+_dereq_(249);
+_dereq_(232);
+_dereq_(233);
+_dereq_(234);
+_dereq_(235);
+_dereq_(238);
+_dereq_(239);
+_dereq_(240);
+_dereq_(243);
+_dereq_(245);
+_dereq_(248);
+_dereq_(250);
+_dereq_(251);
+_dereq_(252);
+_dereq_(152);
+_dereq_(154);
+_dereq_(153);
+_dereq_(156);
+_dereq_(155);
+_dereq_(140);
+_dereq_(138);
+_dereq_(145);
+_dereq_(142);
+_dereq_(148);
+_dereq_(150);
+_dereq_(137);
+_dereq_(144);
+_dereq_(134);
+_dereq_(149);
+_dereq_(132);
+_dereq_(147);
+_dereq_(146);
+_dereq_(139);
+_dereq_(143);
+_dereq_(131);
+_dereq_(133);
+_dereq_(136);
+_dereq_(135);
+_dereq_(151);
+_dereq_(141);
+_dereq_(224);
+_dereq_(230);
+_dereq_(225);
+_dereq_(226);
+_dereq_(227);
+_dereq_(228);
+_dereq_(229);
+_dereq_(209);
+_dereq_(160);
+_dereq_(231);
+_dereq_(266);
+_dereq_(267);
+_dereq_(255);
+_dereq_(256);
+_dereq_(261);
+_dereq_(264);
+_dereq_(265);
+_dereq_(259);
+_dereq_(262);
+_dereq_(260);
+_dereq_(263);
+_dereq_(257);
+_dereq_(258);
+_dereq_(210);
+_dereq_(211);
+_dereq_(212);
+_dereq_(213);
+_dereq_(214);
+_dereq_(217);
+_dereq_(215);
+_dereq_(216);
+_dereq_(218);
+_dereq_(219);
+_dereq_(220);
+_dereq_(221);
+_dereq_(223);
+_dereq_(222);
+_dereq_(270);
+_dereq_(268);
+_dereq_(269);
+_dereq_(311);
+_dereq_(314);
+_dereq_(313);
+_dereq_(315);
+_dereq_(316);
+_dereq_(312);
+_dereq_(317);
+_dereq_(318);
+_dereq_(292);
+_dereq_(295);
+_dereq_(291);
+_dereq_(289);
+_dereq_(290);
+_dereq_(293);
+_dereq_(294);
+_dereq_(276);
+_dereq_(310);
+_dereq_(275);
+_dereq_(309);
+_dereq_(321);
+_dereq_(323);
+_dereq_(274);
+_dereq_(308);
+_dereq_(320);
+_dereq_(322);
+_dereq_(273);
+_dereq_(319);
+_dereq_(272);
+_dereq_(277);
+_dereq_(278);
+_dereq_(279);
+_dereq_(280);
+_dereq_(281);
+_dereq_(283);
+_dereq_(282);
+_dereq_(284);
+_dereq_(285);
+_dereq_(286);
+_dereq_(288);
+_dereq_(287);
+_dereq_(297);
+_dereq_(298);
+_dereq_(299);
+_dereq_(300);
+_dereq_(302);
+_dereq_(301);
+_dereq_(304);
+_dereq_(303);
+_dereq_(305);
+_dereq_(306);
+_dereq_(307);
+_dereq_(271);
+_dereq_(296);
+_dereq_(326);
+_dereq_(325);
+_dereq_(324);
+module.exports = _dereq_(23);
+
+},{"131":131,"132":132,"133":133,"134":134,"135":135,"136":136,"137":137,"138":138,"139":139,"140":140,"141":141,"142":142,"143":143,"144":144,"145":145,"146":146,"147":147,"148":148,"149":149,"150":150,"151":151,"152":152,"153":153,"154":154,"155":155,"156":156,"157":157,"158":158,"159":159,"160":160,"161":161,"162":162,"163":163,"164":164,"165":165,"166":166,"167":167,"168":168,"169":169,"170":170,"171":171,"172":172,"173":173,"174":174,"175":175,"176":176,"177":177,"178":178,"179":179,"180":180,"181":181,"182":182,"183":183,"184":184,"185":185,"186":186,"187":187,"188":188,"189":189,"190":190,"191":191,"192":192,"193":193,"194":194,"195":195,"196":196,"197":197,"198":198,"199":199,"200":200,"201":201,"202":202,"203":203,"204":204,"205":205,"206":206,"207":207,"208":208,"209":209,"210":210,"211":211,"212":212,"213":213,"214":214,"215":215,"216":216,"217":217,"218":218,"219":219,"220":220,"221":221,"222":222,"223":223,"224":224,"225":225,"226":226,"227":227,"228":228,"229":229,"23":23,"230":230,"231":231,"232":232,"233":233,"234":234,"235":235,"236":236,"237":237,"238":238,"239":239,"240":240,"241":241,"242":242,"243":243,"244":244,"245":245,"246":246,"247":247,"248":248,"249":249,"250":250,"251":251,"252":252,"253":253,"254":254,"255":255,"256":256,"257":257,"258":258,"259":259,"260":260,"261":261,"262":262,"263":263,"264":264,"265":265,"266":266,"267":267,"268":268,"269":269,"270":270,"271":271,"272":272,"273":273,"274":274,"275":275,"276":276,"277":277,"278":278,"279":279,"280":280,"281":281,"282":282,"283":283,"284":284,"285":285,"286":286,"287":287,"288":288,"289":289,"290":290,"291":291,"292":292,"293":293,"294":294,"295":295,"296":296,"297":297,"298":298,"299":299,"300":300,"301":301,"302":302,"303":303,"304":304,"305":305,"306":306,"307":307,"308":308,"309":309,"310":310,"311":311,"312":312,"313":313,"314":314,"315":315,"316":316,"317":317,"318":318,"319":319,"320":320,"321":321,"322":322,"323":323,"324":324,"325":325,"326":326}],328:[function(_dereq_,module,exports){
+(function (global){
+/**
+ * Copyright (c) 2014, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * https://raw.github.com/facebook/regenerator/master/LICENSE file. An
+ * additional grant of patent rights can be found in the PATENTS file in
+ * the same directory.
+ */
+
+!(function(global) {
+  "use strict";
+
+  var Op = Object.prototype;
+  var hasOwn = Op.hasOwnProperty;
+  var undefined; // More compressible than void 0.
+  var $Symbol = typeof Symbol === "function" ? Symbol : {};
+  var iteratorSymbol = $Symbol.iterator || "@@iterator";
+  var asyncIteratorSymbol = $Symbol.asyncIterator || "@@asyncIterator";
+  var toStringTagSymbol = $Symbol.toStringTag || "@@toStringTag";
+
+  var inModule = typeof module === "object";
+  var runtime = global.regeneratorRuntime;
+  if (runtime) {
+    if (inModule) {
+      // If regeneratorRuntime is defined globally and we're in a module,
+      // make the exports object identical to regeneratorRuntime.
+      module.exports = runtime;
+    }
+    // Don't bother evaluating the rest of this file if the runtime was
+    // already defined globally.
+    return;
+  }
+
+  // Define the runtime globally (as expected by generated code) as either
+  // module.exports (if we're in a module) or a new, empty object.
+  runtime = global.regeneratorRuntime = inModule ? module.exports : {};
+
+  function wrap(innerFn, outerFn, self, tryLocsList) {
+    // If outerFn provided and outerFn.prototype is a Generator, then outerFn.prototype instanceof Generator.
+    var protoGenerator = outerFn && outerFn.prototype instanceof Generator ? outerFn : Generator;
+    var generator = Object.create(protoGenerator.prototype);
+    var context = new Context(tryLocsList || []);
+
+    // The ._invoke method unifies the implementations of the .next,
+    // .throw, and .return methods.
+    generator._invoke = makeInvokeMethod(innerFn, self, context);
+
+    return generator;
+  }
+  runtime.wrap = wrap;
+
+  // Try/catch helper to minimize deoptimizations. Returns a completion
+  // record like context.tryEntries[i].completion. This interface could
+  // have been (and was previously) designed to take a closure to be
+  // invoked without arguments, but in all the cases we care about we
+  // already have an existing method we want to call, so there's no need
+  // to create a new function object. We can even get away with assuming
+  // the method takes exactly one argument, since that happens to be true
+  // in every case, so we don't have to touch the arguments object. The
+  // only additional allocation required is the completion record, which
+  // has a stable shape and so hopefully should be cheap to allocate.
+  function tryCatch(fn, obj, arg) {
+    try {
+      return { type: "normal", arg: fn.call(obj, arg) };
+    } catch (err) {
+      return { type: "throw", arg: err };
+    }
+  }
+
+  var GenStateSuspendedStart = "suspendedStart";
+  var GenStateSuspendedYield = "suspendedYield";
+  var GenStateExecuting = "executing";
+  var GenStateCompleted = "completed";
+
+  // Returning this object from the innerFn has the same effect as
+  // breaking out of the dispatch switch statement.
+  var ContinueSentinel = {};
+
+  // Dummy constructor functions that we use as the .constructor and
+  // .constructor.prototype properties for functions that return Generator
+  // objects. For full spec compliance, you may wish to configure your
+  // minifier not to mangle the names of these two functions.
+  function Generator() {}
+  function GeneratorFunction() {}
+  function GeneratorFunctionPrototype() {}
+
+  // This is a polyfill for %IteratorPrototype% for environments that
+  // don't natively support it.
+  var IteratorPrototype = {};
+  IteratorPrototype[iteratorSymbol] = function () {
+    return this;
+  };
+
+  var getProto = Object.getPrototypeOf;
+  var NativeIteratorPrototype = getProto && getProto(getProto(values([])));
+  if (NativeIteratorPrototype &&
+      NativeIteratorPrototype !== Op &&
+      hasOwn.call(NativeIteratorPrototype, iteratorSymbol)) {
+    // This environment has a native %IteratorPrototype%; use it instead
+    // of the polyfill.
+    IteratorPrototype = NativeIteratorPrototype;
+  }
+
+  var Gp = GeneratorFunctionPrototype.prototype =
+    Generator.prototype = Object.create(IteratorPrototype);
+  GeneratorFunction.prototype = Gp.constructor = GeneratorFunctionPrototype;
+  GeneratorFunctionPrototype.constructor = GeneratorFunction;
+  GeneratorFunctionPrototype[toStringTagSymbol] =
+    GeneratorFunction.displayName = "GeneratorFunction";
+
+  // Helper for defining the .next, .throw, and .return methods of the
+  // Iterator interface in terms of a single ._invoke method.
+  function defineIteratorMethods(prototype) {
+    ["next", "throw", "return"].forEach(function(method) {
+      prototype[method] = function(arg) {
+        return this._invoke(method, arg);
+      };
+    });
+  }
+
+  runtime.isGeneratorFunction = function(genFun) {
+    var ctor = typeof genFun === "function" && genFun.constructor;
+    return ctor
+      ? ctor === GeneratorFunction ||
+        // For the native GeneratorFunction constructor, the best we can
+        // do is to check its .name property.
+        (ctor.displayName || ctor.name) === "GeneratorFunction"
+      : false;
+  };
+
+  runtime.mark = function(genFun) {
+    if (Object.setPrototypeOf) {
+      Object.setPrototypeOf(genFun, GeneratorFunctionPrototype);
+    } else {
+      genFun.__proto__ = GeneratorFunctionPrototype;
+      if (!(toStringTagSymbol in genFun)) {
+        genFun[toStringTagSymbol] = "GeneratorFunction";
+      }
+    }
+    genFun.prototype = Object.create(Gp);
+    return genFun;
+  };
+
+  // Within the body of any async function, `await x` is transformed to
+  // `yield regeneratorRuntime.awrap(x)`, so that the runtime can test
+  // `hasOwn.call(value, "__await")` to determine if the yielded value is
+  // meant to be awaited.
+  runtime.awrap = function(arg) {
+    return { __await: arg };
+  };
+
+  function AsyncIterator(generator) {
+    function invoke(method, arg, resolve, reject) {
+      var record = tryCatch(generator[method], generator, arg);
+      if (record.type === "throw") {
+        reject(record.arg);
+      } else {
+        var result = record.arg;
+        var value = result.value;
+        if (value &&
+            typeof value === "object" &&
+            hasOwn.call(value, "__await")) {
+          return Promise.resolve(value.__await).then(function(value) {
+            invoke("next", value, resolve, reject);
+          }, function(err) {
+            invoke("throw", err, resolve, reject);
+          });
+        }
+
+        return Promise.resolve(value).then(function(unwrapped) {
+          // When a yielded Promise is resolved, its final value becomes
+          // the .value of the Promise<{value,done}> result for the
+          // current iteration. If the Promise is rejected, however, the
+          // result for this iteration will be rejected with the same
+          // reason. Note that rejections of yielded Promises are not
+          // thrown back into the generator function, as is the case
+          // when an awaited Promise is rejected. This difference in
+          // behavior between yield and await is important, because it
+          // allows the consumer to decide what to do with the yielded
+          // rejection (swallow it and continue, manually .throw it back
+          // into the generator, abandon iteration, whatever). With
+          // await, by contrast, there is no opportunity to examine the
+          // rejection reason outside the generator function, so the
+          // only option is to throw it from the await expression, and
+          // let the generator function handle the exception.
+          result.value = unwrapped;
+          resolve(result);
+        }, reject);
+      }
+    }
+
+    if (typeof global.process === "object" && global.process.domain) {
+      invoke = global.process.domain.bind(invoke);
+    }
+
+    var previousPromise;
+
+    function enqueue(method, arg) {
+      function callInvokeWithMethodAndArg() {
+        return new Promise(function(resolve, reject) {
+          invoke(method, arg, resolve, reject);
+        });
+      }
+
+      return previousPromise =
+        // If enqueue has been called before, then we want to wait until
+        // all previous Promises have been resolved before calling invoke,
+        // so that results are always delivered in the correct order. If
+        // enqueue has not been called before, then it is important to
+        // call invoke immediately, without waiting on a callback to fire,
+        // so that the async generator function has the opportunity to do
+        // any necessary setup in a predictable way. This predictability
+        // is why the Promise constructor synchronously invokes its
+        // executor callback, and why async functions synchronously
+        // execute code before the first await. Since we implement simple
+        // async functions in terms of async generators, it is especially
+        // important to get this right, even though it requires care.
+        previousPromise ? previousPromise.then(
+          callInvokeWithMethodAndArg,
+          // Avoid propagating failures to Promises returned by later
+          // invocations of the iterator.
+          callInvokeWithMethodAndArg
+        ) : callInvokeWithMethodAndArg();
+    }
+
+    // Define the unified helper method that is used to implement .next,
+    // .throw, and .return (see defineIteratorMethods).
+    this._invoke = enqueue;
+  }
+
+  defineIteratorMethods(AsyncIterator.prototype);
+  AsyncIterator.prototype[asyncIteratorSymbol] = function () {
+    return this;
+  };
+  runtime.AsyncIterator = AsyncIterator;
+
+  // Note that simple async functions are implemented on top of
+  // AsyncIterator objects; they just return a Promise for the value of
+  // the final result produced by the iterator.
+  runtime.async = function(innerFn, outerFn, self, tryLocsList) {
+    var iter = new AsyncIterator(
+      wrap(innerFn, outerFn, self, tryLocsList)
+    );
+
+    return runtime.isGeneratorFunction(outerFn)
+      ? iter // If outerFn is a generator, return the full iterator.
+      : iter.next().then(function(result) {
+          return result.done ? result.value : iter.next();
+        });
+  };
+
+  function makeInvokeMethod(innerFn, self, context) {
+    var state = GenStateSuspendedStart;
+
+    return function invoke(method, arg) {
+      if (state === GenStateExecuting) {
+        throw new Error("Generator is already running");
+      }
+
+      if (state === GenStateCompleted) {
+        if (method === "throw") {
+          throw arg;
+        }
+
+        // Be forgiving, per 25.3.3.3.3 of the spec:
+        // https://people.mozilla.org/~jorendorff/es6-draft.html#sec-generatorresume
+        return doneResult();
+      }
+
+      context.method = method;
+      context.arg = arg;
+
+      while (true) {
+        var delegate = context.delegate;
+        if (delegate) {
+          var delegateResult = maybeInvokeDelegate(delegate, context);
+          if (delegateResult) {
+            if (delegateResult === ContinueSentinel) continue;
+            return delegateResult;
+          }
+        }
+
+        if (context.method === "next") {
+          // Setting context._sent for legacy support of Babel's
+          // function.sent implementation.
+          context.sent = context._sent = context.arg;
+
+        } else if (context.method === "throw") {
+          if (state === GenStateSuspendedStart) {
+            state = GenStateCompleted;
+            throw context.arg;
+          }
+
+          context.dispatchException(context.arg);
+
+        } else if (context.method === "return") {
+          context.abrupt("return", context.arg);
+        }
+
+        state = GenStateExecuting;
+
+        var record = tryCatch(innerFn, self, context);
+        if (record.type === "normal") {
+          // If an exception is thrown from innerFn, we leave state ===
+          // GenStateExecuting and loop back for another invocation.
+          state = context.done
+            ? GenStateCompleted
+            : GenStateSuspendedYield;
+
+          if (record.arg === ContinueSentinel) {
+            continue;
+          }
+
+          return {
+            value: record.arg,
+            done: context.done
+          };
+
+        } else if (record.type === "throw") {
+          state = GenStateCompleted;
+          // Dispatch the exception by looping back around to the
+          // context.dispatchException(context.arg) call above.
+          context.method = "throw";
+          context.arg = record.arg;
+        }
+      }
+    };
+  }
+
+  // Call delegate.iterator[context.method](context.arg) and handle the
+  // result, either by returning a { value, done } result from the
+  // delegate iterator, or by modifying context.method and context.arg,
+  // setting context.delegate to null, and returning the ContinueSentinel.
+  function maybeInvokeDelegate(delegate, context) {
+    var method = delegate.iterator[context.method];
+    if (method === undefined) {
+      // A .throw or .return when the delegate iterator has no .throw
+      // method always terminates the yield* loop.
+      context.delegate = null;
+
+      if (context.method === "throw") {
+        if (delegate.iterator.return) {
+          // If the delegate iterator has a return method, give it a
+          // chance to clean up.
+          context.method = "return";
+          context.arg = undefined;
+          maybeInvokeDelegate(delegate, context);
+
+          if (context.method === "throw") {
+            // If maybeInvokeDelegate(context) changed context.method from
+            // "return" to "throw", let that override the TypeError below.
+            return ContinueSentinel;
+          }
+        }
+
+        context.method = "throw";
+        context.arg = new TypeError(
+          "The iterator does not provide a 'throw' method");
+      }
+
+      return ContinueSentinel;
+    }
+
+    var record = tryCatch(method, delegate.iterator, context.arg);
+
+    if (record.type === "throw") {
+      context.method = "throw";
+      context.arg = record.arg;
+      context.delegate = null;
+      return ContinueSentinel;
+    }
+
+    var info = record.arg;
+
+    if (! info) {
+      context.method = "throw";
+      context.arg = new TypeError("iterator result is not an object");
+      context.delegate = null;
+      return ContinueSentinel;
+    }
+
+    if (info.done) {
+      // Assign the result of the finished delegate to the temporary
+      // variable specified by delegate.resultName (see delegateYield).
+      context[delegate.resultName] = info.value;
+
+      // Resume execution at the desired location (see delegateYield).
+      context.next = delegate.nextLoc;
+
+      // If context.method was "throw" but the delegate handled the
+      // exception, let the outer generator proceed normally. If
+      // context.method was "next", forget context.arg since it has been
+      // "consumed" by the delegate iterator. If context.method was
+      // "return", allow the original .return call to continue in the
+      // outer generator.
+      if (context.method !== "return") {
+        context.method = "next";
+        context.arg = undefined;
+      }
+
+    } else {
+      // Re-yield the result returned by the delegate method.
+      return info;
+    }
+
+    // The delegate iterator is finished, so forget it and continue with
+    // the outer generator.
+    context.delegate = null;
+    return ContinueSentinel;
+  }
+
+  // Define Generator.prototype.{next,throw,return} in terms of the
+  // unified ._invoke helper method.
+  defineIteratorMethods(Gp);
+
+  Gp[toStringTagSymbol] = "Generator";
+
+  // A Generator should always return itself as the iterator object when the
+  // @@iterator function is called on it. Some browsers' implementations of the
+  // iterator prototype chain incorrectly implement this, causing the Generator
+  // object to not be returned from this call. This ensures that doesn't happen.
+  // See https://github.com/facebook/regenerator/issues/274 for more details.
+  Gp[iteratorSymbol] = function() {
+    return this;
+  };
+
+  Gp.toString = function() {
+    return "[object Generator]";
+  };
+
+  function pushTryEntry(locs) {
+    var entry = { tryLoc: locs[0] };
+
+    if (1 in locs) {
+      entry.catchLoc = locs[1];
+    }
+
+    if (2 in locs) {
+      entry.finallyLoc = locs[2];
+      entry.afterLoc = locs[3];
+    }
+
+    this.tryEntries.push(entry);
+  }
+
+  function resetTryEntry(entry) {
+    var record = entry.completion || {};
+    record.type = "normal";
+    delete record.arg;
+    entry.completion = record;
+  }
+
+  function Context(tryLocsList) {
+    // The root entry object (effectively a try statement without a catch
+    // or a finally block) gives us a place to store values thrown from
+    // locations where there is no enclosing try statement.
+    this.tryEntries = [{ tryLoc: "root" }];
+    tryLocsList.forEach(pushTryEntry, this);
+    this.reset(true);
+  }
+
+  runtime.keys = function(object) {
+    var keys = [];
+    for (var key in object) {
+      keys.push(key);
+    }
+    keys.reverse();
+
+    // Rather than returning an object with a next method, we keep
+    // things simple and return the next function itself.
+    return function next() {
+      while (keys.length) {
+        var key = keys.pop();
+        if (key in object) {
+          next.value = key;
+          next.done = false;
+          return next;
+        }
+      }
+
+      // To avoid creating an additional object, we just hang the .value
+      // and .done properties off the next function object itself. This
+      // also ensures that the minifier will not anonymize the function.
+      next.done = true;
+      return next;
+    };
+  };
+
+  function values(iterable) {
+    if (iterable) {
+      var iteratorMethod = iterable[iteratorSymbol];
+      if (iteratorMethod) {
+        return iteratorMethod.call(iterable);
+      }
+
+      if (typeof iterable.next === "function") {
+        return iterable;
+      }
+
+      if (!isNaN(iterable.length)) {
+        var i = -1, next = function next() {
+          while (++i < iterable.length) {
+            if (hasOwn.call(iterable, i)) {
+              next.value = iterable[i];
+              next.done = false;
+              return next;
+            }
+          }
+
+          next.value = undefined;
+          next.done = true;
+
+          return next;
+        };
+
+        return next.next = next;
+      }
+    }
+
+    // Return an iterator with no values.
+    return { next: doneResult };
+  }
+  runtime.values = values;
+
+  function doneResult() {
+    return { value: undefined, done: true };
+  }
+
+  Context.prototype = {
+    constructor: Context,
+
+    reset: function(skipTempReset) {
+      this.prev = 0;
+      this.next = 0;
+      // Resetting context._sent for legacy support of Babel's
+      // function.sent implementation.
+      this.sent = this._sent = undefined;
+      this.done = false;
+      this.delegate = null;
+
+      this.method = "next";
+      this.arg = undefined;
+
+      this.tryEntries.forEach(resetTryEntry);
+
+      if (!skipTempReset) {
+        for (var name in this) {
+          // Not sure about the optimal order of these conditions:
+          if (name.charAt(0) === "t" &&
+              hasOwn.call(this, name) &&
+              !isNaN(+name.slice(1))) {
+            this[name] = undefined;
+          }
+        }
+      }
+    },
+
+    stop: function() {
+      this.done = true;
+
+      var rootEntry = this.tryEntries[0];
+      var rootRecord = rootEntry.completion;
+      if (rootRecord.type === "throw") {
+        throw rootRecord.arg;
+      }
+
+      return this.rval;
+    },
+
+    dispatchException: function(exception) {
+      if (this.done) {
+        throw exception;
+      }
+
+      var context = this;
+      function handle(loc, caught) {
+        record.type = "throw";
+        record.arg = exception;
+        context.next = loc;
+
+        if (caught) {
+          // If the dispatched exception was caught by a catch block,
+          // then let that catch block handle the exception normally.
+          context.method = "next";
+          context.arg = undefined;
+        }
+
+        return !! caught;
+      }
+
+      for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+        var entry = this.tryEntries[i];
+        var record = entry.completion;
+
+        if (entry.tryLoc === "root") {
+          // Exception thrown outside of any try block that could handle
+          // it, so set the completion value of the entire function to
+          // throw the exception.
+          return handle("end");
+        }
+
+        if (entry.tryLoc <= this.prev) {
+          var hasCatch = hasOwn.call(entry, "catchLoc");
+          var hasFinally = hasOwn.call(entry, "finallyLoc");
+
+          if (hasCatch && hasFinally) {
+            if (this.prev < entry.catchLoc) {
+              return handle(entry.catchLoc, true);
+            } else if (this.prev < entry.finallyLoc) {
+              return handle(entry.finallyLoc);
+            }
+
+          } else if (hasCatch) {
+            if (this.prev < entry.catchLoc) {
+              return handle(entry.catchLoc, true);
+            }
+
+          } else if (hasFinally) {
+            if (this.prev < entry.finallyLoc) {
+              return handle(entry.finallyLoc);
+            }
+
+          } else {
+            throw new Error("try statement without catch or finally");
+          }
+        }
+      }
+    },
+
+    abrupt: function(type, arg) {
+      for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+        var entry = this.tryEntries[i];
+        if (entry.tryLoc <= this.prev &&
+            hasOwn.call(entry, "finallyLoc") &&
+            this.prev < entry.finallyLoc) {
+          var finallyEntry = entry;
+          break;
+        }
+      }
+
+      if (finallyEntry &&
+          (type === "break" ||
+           type === "continue") &&
+          finallyEntry.tryLoc <= arg &&
+          arg <= finallyEntry.finallyLoc) {
+        // Ignore the finally entry if control is not jumping to a
+        // location outside the try/catch block.
+        finallyEntry = null;
+      }
+
+      var record = finallyEntry ? finallyEntry.completion : {};
+      record.type = type;
+      record.arg = arg;
+
+      if (finallyEntry) {
+        this.method = "next";
+        this.next = finallyEntry.finallyLoc;
+        return ContinueSentinel;
+      }
+
+      return this.complete(record);
+    },
+
+    complete: function(record, afterLoc) {
+      if (record.type === "throw") {
+        throw record.arg;
+      }
+
+      if (record.type === "break" ||
+          record.type === "continue") {
+        this.next = record.arg;
+      } else if (record.type === "return") {
+        this.rval = this.arg = record.arg;
+        this.method = "return";
+        this.next = "end";
+      } else if (record.type === "normal" && afterLoc) {
+        this.next = afterLoc;
+      }
+
+      return ContinueSentinel;
+    },
+
+    finish: function(finallyLoc) {
+      for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+        var entry = this.tryEntries[i];
+        if (entry.finallyLoc === finallyLoc) {
+          this.complete(entry.completion, entry.afterLoc);
+          resetTryEntry(entry);
+          return ContinueSentinel;
+        }
+      }
+    },
+
+    "catch": function(tryLoc) {
+      for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+        var entry = this.tryEntries[i];
+        if (entry.tryLoc === tryLoc) {
+          var record = entry.completion;
+          if (record.type === "throw") {
+            var thrown = record.arg;
+            resetTryEntry(entry);
+          }
+          return thrown;
+        }
+      }
+
+      // The context.catch method must only be called with a location
+      // argument that corresponds to a known catch block.
+      throw new Error("illegal catch attempt");
+    },
+
+    delegateYield: function(iterable, resultName, nextLoc) {
+      this.delegate = {
+        iterator: values(iterable),
+        resultName: resultName,
+        nextLoc: nextLoc
+      };
+
+      if (this.method === "next") {
+        // Deliberately forget the last sent value so that we don't
+        // accidentally pass it on to the delegate.
+        this.arg = undefined;
+      }
+
+      return ContinueSentinel;
+    }
+  };
+})(
+  // Among the various tricks for obtaining a reference to the global
+  // object, this seems to be the most reliable technique that does not
+  // use indirect eval (which violates Content Security Policy).
+  typeof global === "object" ? global :
+  typeof window === "object" ? window :
+  typeof self === "object" ? self : this
+);
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}]},{},[1]);
+
 ;/*!
  * jQuery JavaScript Library v3.4.1
  * https://jquery.com/
@@ -65547,6 +73122,943 @@ function createDeprecatedModule(moduleId) {
 createDeprecatedModule('ember/resolver');
 createDeprecatedModule('resolver');
 
+;if (typeof FastBoot === 'undefined') {
+      var preferNative = false;
+      var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+(function (global) {
+  define('fetch', ['exports'], function (self) {
+    'use strict';
+
+    var Promise = global.Ember.RSVP.Promise;
+    var supportProps = ['FormData', 'FileReader', 'Blob', 'URLSearchParams', 'Symbol', 'ArrayBuffer'];
+    var polyfillProps = ['fetch', 'Headers', 'Request', 'Response', 'AbortController'];
+    var combinedProps = supportProps;
+    if (preferNative) {
+      combinedProps = supportProps.concat(polyfillProps);
+    }
+    combinedProps.forEach(function (prop) {
+      if (global[prop]) {
+        Object.defineProperty(self, prop, {
+          configurable: true,
+          get: function get() {
+            return global[prop];
+          },
+          set: function set(v) {
+            global[prop] = v;
+          }
+        });
+      }
+    });
+
+    (function () {
+      'use strict';
+
+      var Emitter = function () {
+        function Emitter() {
+          _classCallCheck(this, Emitter);
+
+          Object.defineProperty(this, 'listeners', { value: {}, writable: true, configurable: true });
+        }
+
+        _createClass(Emitter, [{
+          key: 'addEventListener',
+          value: function addEventListener(type, callback) {
+            if (!(type in this.listeners)) {
+              this.listeners[type] = [];
+            }
+            this.listeners[type].push(callback);
+          }
+        }, {
+          key: 'removeEventListener',
+          value: function removeEventListener(type, callback) {
+            if (!(type in this.listeners)) {
+              return;
+            }
+            var stack = this.listeners[type];
+            for (var i = 0, l = stack.length; i < l; i++) {
+              if (stack[i] === callback) {
+                stack.splice(i, 1);
+                return;
+              }
+            }
+          }
+        }, {
+          key: 'dispatchEvent',
+          value: function dispatchEvent(event) {
+            var _this = this;
+
+            if (!(event.type in this.listeners)) {
+              return;
+            }
+            var debounce = function debounce(callback) {
+              setTimeout(function () {
+                return callback.call(_this, event);
+              });
+            };
+            var stack = this.listeners[event.type];
+            for (var i = 0, l = stack.length; i < l; i++) {
+              debounce(stack[i]);
+            }
+            return !event.defaultPrevented;
+          }
+        }]);
+
+        return Emitter;
+      }();
+
+      var AbortSignal = function (_Emitter) {
+        _inherits(AbortSignal, _Emitter);
+
+        function AbortSignal() {
+          _classCallCheck(this, AbortSignal);
+
+          // Some versions of babel does not transpile super() correctly for IE <= 10, if the parent
+          // constructor has failed to run, then "this.listeners" will still be undefined and then we call
+          // the parent constructor directly instead as a workaround. For general details, see babel bug:
+          // https://github.com/babel/babel/issues/3041
+          // This hack was added as a fix for the issue described here:
+          // https://github.com/Financial-Times/polyfill-library/pull/59#issuecomment-477558042
+          var _this2 = _possibleConstructorReturn(this, (AbortSignal.__proto__ || Object.getPrototypeOf(AbortSignal)).call(this));
+
+          if (!_this2.listeners) {
+            Emitter.call(_this2);
+          }
+
+          // Compared to assignment, Object.defineProperty makes properties non-enumerable by default and
+          // we want Object.keys(new AbortController().signal) to be [] for compat with the native impl
+          Object.defineProperty(_this2, 'aborted', { value: false, writable: true, configurable: true });
+          Object.defineProperty(_this2, 'onabort', { value: null, writable: true, configurable: true });
+          return _this2;
+        }
+
+        _createClass(AbortSignal, [{
+          key: 'toString',
+          value: function toString() {
+            return '[object AbortSignal]';
+          }
+        }, {
+          key: 'dispatchEvent',
+          value: function dispatchEvent(event) {
+            if (event.type === 'abort') {
+              this.aborted = true;
+              if (typeof this.onabort === 'function') {
+                this.onabort.call(this, event);
+              }
+            }
+
+            _get(AbortSignal.prototype.__proto__ || Object.getPrototypeOf(AbortSignal.prototype), 'dispatchEvent', this).call(this, event);
+          }
+        }]);
+
+        return AbortSignal;
+      }(Emitter);
+
+      var AbortController = function () {
+        function AbortController() {
+          _classCallCheck(this, AbortController);
+
+          // Compared to assignment, Object.defineProperty makes properties non-enumerable by default and
+          // we want Object.keys(new AbortController()) to be [] for compat with the native impl
+          Object.defineProperty(this, 'signal', { value: new AbortSignal(), writable: true, configurable: true });
+        }
+
+        _createClass(AbortController, [{
+          key: 'abort',
+          value: function abort() {
+            var event = void 0;
+            try {
+              event = new Event('abort');
+            } catch (e) {
+              if (typeof document !== 'undefined') {
+                if (!document.createEvent) {
+                  // For Internet Explorer 8:
+                  event = document.createEventObject();
+                  event.type = 'abort';
+                } else {
+                  // For Internet Explorer 11:
+                  event = document.createEvent('Event');
+                  event.initEvent('abort', false, false);
+                }
+              } else {
+                // Fallback where document isn't available:
+                event = {
+                  type: 'abort',
+                  bubbles: false,
+                  cancelable: false
+                };
+              }
+            }
+            this.signal.dispatchEvent(event);
+          }
+        }, {
+          key: 'toString',
+          value: function toString() {
+            return '[object AbortController]';
+          }
+        }]);
+
+        return AbortController;
+      }();
+
+      if (typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+        // These are necessary to make sure that we get correct output for:
+        // Object.prototype.toString.call(new AbortController())
+        AbortController.prototype[Symbol.toStringTag] = 'AbortController';
+        AbortSignal.prototype[Symbol.toStringTag] = 'AbortSignal';
+      }
+
+      function polyfillNeeded(self) {
+        if (self.__FORCE_INSTALL_ABORTCONTROLLER_POLYFILL) {
+          console.log('__FORCE_INSTALL_ABORTCONTROLLER_POLYFILL=true is set, will force install polyfill');
+          return true;
+        }
+
+        // Note that the "unfetch" minimal fetch polyfill defines fetch() without
+        // defining window.Request, and this polyfill need to work on top of unfetch
+        // so the below feature detection needs the !self.AbortController part.
+        // The Request.prototype check is also needed because Safari versions 11.1.2
+        // up to and including 12.1.x has a window.AbortController present but still
+        // does NOT correctly implement abortable fetch:
+        // https://bugs.webkit.org/show_bug.cgi?id=174980#c2
+        return typeof self.Request === 'function' && !self.Request.prototype.hasOwnProperty('signal') || !self.AbortController;
+      }
+
+      (function (self) {
+
+        if (!polyfillNeeded(self)) {
+          return;
+        }
+
+        self.AbortController = AbortController;
+        self.AbortSignal = AbortSignal;
+      })(typeof self !== 'undefined' ? self : global);
+    })();
+
+    var WHATWGFetch = function (exports) {
+      'use strict';
+
+      var support = {
+        searchParams: 'URLSearchParams' in self,
+        iterable: 'Symbol' in self && 'iterator' in Symbol,
+        blob: 'FileReader' in self && 'Blob' in self && function () {
+          try {
+            new Blob();
+            return true;
+          } catch (e) {
+            return false;
+          }
+        }(),
+        formData: 'FormData' in self,
+        arrayBuffer: 'ArrayBuffer' in self
+      };
+
+      function isDataView(obj) {
+        return obj && DataView.prototype.isPrototypeOf(obj);
+      }
+
+      if (support.arrayBuffer) {
+        var viewClasses = ['[object Int8Array]', '[object Uint8Array]', '[object Uint8ClampedArray]', '[object Int16Array]', '[object Uint16Array]', '[object Int32Array]', '[object Uint32Array]', '[object Float32Array]', '[object Float64Array]'];
+
+        var isArrayBufferView = ArrayBuffer.isView || function (obj) {
+          return obj && viewClasses.indexOf(Object.prototype.toString.call(obj)) > -1;
+        };
+      }
+
+      function normalizeName(name) {
+        if (typeof name !== 'string') {
+          name = String(name);
+        }
+        if (/[^a-z0-9\-#$%&'*+.^_`|~]/i.test(name)) {
+          throw new TypeError('Invalid character in header field name');
+        }
+        return name.toLowerCase();
+      }
+
+      function normalizeValue(value) {
+        if (typeof value !== 'string') {
+          value = String(value);
+        }
+        return value;
+      }
+
+      // Build a destructive iterator for the value list
+      function iteratorFor(items) {
+        var iterator = {
+          next: function next() {
+            var value = items.shift();
+            return { done: value === undefined, value: value };
+          }
+        };
+
+        if (support.iterable) {
+          iterator[Symbol.iterator] = function () {
+            return iterator;
+          };
+        }
+
+        return iterator;
+      }
+
+      function Headers(headers) {
+        this.map = {};
+
+        if (headers instanceof Headers) {
+          headers.forEach(function (value, name) {
+            this.append(name, value);
+          }, this);
+        } else if (Array.isArray(headers)) {
+          headers.forEach(function (header) {
+            this.append(header[0], header[1]);
+          }, this);
+        } else if (headers) {
+          Object.getOwnPropertyNames(headers).forEach(function (name) {
+            this.append(name, headers[name]);
+          }, this);
+        }
+      }
+
+      Headers.prototype.append = function (name, value) {
+        name = normalizeName(name);
+        value = normalizeValue(value);
+        var oldValue = this.map[name];
+        this.map[name] = oldValue ? oldValue + ', ' + value : value;
+      };
+
+      Headers.prototype['delete'] = function (name) {
+        delete this.map[normalizeName(name)];
+      };
+
+      Headers.prototype.get = function (name) {
+        name = normalizeName(name);
+        return this.has(name) ? this.map[name] : null;
+      };
+
+      Headers.prototype.has = function (name) {
+        return this.map.hasOwnProperty(normalizeName(name));
+      };
+
+      Headers.prototype.set = function (name, value) {
+        this.map[normalizeName(name)] = normalizeValue(value);
+      };
+
+      Headers.prototype.forEach = function (callback, thisArg) {
+        for (var name in this.map) {
+          if (this.map.hasOwnProperty(name)) {
+            callback.call(thisArg, this.map[name], name, this);
+          }
+        }
+      };
+
+      Headers.prototype.keys = function () {
+        var items = [];
+        this.forEach(function (value, name) {
+          items.push(name);
+        });
+        return iteratorFor(items);
+      };
+
+      Headers.prototype.values = function () {
+        var items = [];
+        this.forEach(function (value) {
+          items.push(value);
+        });
+        return iteratorFor(items);
+      };
+
+      Headers.prototype.entries = function () {
+        var items = [];
+        this.forEach(function (value, name) {
+          items.push([name, value]);
+        });
+        return iteratorFor(items);
+      };
+
+      if (support.iterable) {
+        Headers.prototype[Symbol.iterator] = Headers.prototype.entries;
+      }
+
+      function consumed(body) {
+        if (body.bodyUsed) {
+          return Promise.reject(new TypeError('Already read'));
+        }
+        body.bodyUsed = true;
+      }
+
+      function fileReaderReady(reader) {
+        return new Promise(function (resolve, reject) {
+          reader.onload = function () {
+            resolve(reader.result);
+          };
+          reader.onerror = function () {
+            reject(reader.error);
+          };
+        });
+      }
+
+      function readBlobAsArrayBuffer(blob) {
+        var reader = new FileReader();
+        var promise = fileReaderReady(reader);
+        reader.readAsArrayBuffer(blob);
+        return promise;
+      }
+
+      function readBlobAsText(blob) {
+        var reader = new FileReader();
+        var promise = fileReaderReady(reader);
+        reader.readAsText(blob);
+        return promise;
+      }
+
+      function readArrayBufferAsText(buf) {
+        var view = new Uint8Array(buf);
+        var chars = new Array(view.length);
+
+        for (var i = 0; i < view.length; i++) {
+          chars[i] = String.fromCharCode(view[i]);
+        }
+        return chars.join('');
+      }
+
+      function bufferClone(buf) {
+        if (buf.slice) {
+          return buf.slice(0);
+        } else {
+          var view = new Uint8Array(buf.byteLength);
+          view.set(new Uint8Array(buf));
+          return view.buffer;
+        }
+      }
+
+      function Body() {
+        this.bodyUsed = false;
+
+        this._initBody = function (body) {
+          this._bodyInit = body;
+          if (!body) {
+            this._bodyText = '';
+          } else if (typeof body === 'string') {
+            this._bodyText = body;
+          } else if (support.blob && Blob.prototype.isPrototypeOf(body)) {
+            this._bodyBlob = body;
+          } else if (support.formData && FormData.prototype.isPrototypeOf(body)) {
+            this._bodyFormData = body;
+          } else if (support.searchParams && URLSearchParams.prototype.isPrototypeOf(body)) {
+            this._bodyText = body.toString();
+          } else if (support.arrayBuffer && support.blob && isDataView(body)) {
+            this._bodyArrayBuffer = bufferClone(body.buffer);
+            // IE 10-11 can't handle a DataView body.
+            this._bodyInit = new Blob([this._bodyArrayBuffer]);
+          } else if (support.arrayBuffer && (ArrayBuffer.prototype.isPrototypeOf(body) || isArrayBufferView(body))) {
+            this._bodyArrayBuffer = bufferClone(body);
+          } else {
+            this._bodyText = body = Object.prototype.toString.call(body);
+          }
+
+          if (!this.headers.get('content-type')) {
+            if (typeof body === 'string') {
+              this.headers.set('content-type', 'text/plain;charset=UTF-8');
+            } else if (this._bodyBlob && this._bodyBlob.type) {
+              this.headers.set('content-type', this._bodyBlob.type);
+            } else if (support.searchParams && URLSearchParams.prototype.isPrototypeOf(body)) {
+              this.headers.set('content-type', 'application/x-www-form-urlencoded;charset=UTF-8');
+            }
+          }
+        };
+
+        if (support.blob) {
+          this.blob = function () {
+            var rejected = consumed(this);
+            if (rejected) {
+              return rejected;
+            }
+
+            if (this._bodyBlob) {
+              return Promise.resolve(this._bodyBlob);
+            } else if (this._bodyArrayBuffer) {
+              return Promise.resolve(new Blob([this._bodyArrayBuffer]));
+            } else if (this._bodyFormData) {
+              throw new Error('could not read FormData body as blob');
+            } else {
+              return Promise.resolve(new Blob([this._bodyText]));
+            }
+          };
+
+          this.arrayBuffer = function () {
+            if (this._bodyArrayBuffer) {
+              return consumed(this) || Promise.resolve(this._bodyArrayBuffer);
+            } else {
+              return this.blob().then(readBlobAsArrayBuffer);
+            }
+          };
+        }
+
+        this.text = function () {
+          var rejected = consumed(this);
+          if (rejected) {
+            return rejected;
+          }
+
+          if (this._bodyBlob) {
+            return readBlobAsText(this._bodyBlob);
+          } else if (this._bodyArrayBuffer) {
+            return Promise.resolve(readArrayBufferAsText(this._bodyArrayBuffer));
+          } else if (this._bodyFormData) {
+            throw new Error('could not read FormData body as text');
+          } else {
+            return Promise.resolve(this._bodyText);
+          }
+        };
+
+        if (support.formData) {
+          this.formData = function () {
+            return this.text().then(decode);
+          };
+        }
+
+        this.json = function () {
+          return this.text().then(JSON.parse);
+        };
+
+        return this;
+      }
+
+      // HTTP methods whose capitalization should be normalized
+      var methods = ['DELETE', 'GET', 'HEAD', 'OPTIONS', 'POST', 'PUT'];
+
+      function normalizeMethod(method) {
+        var upcased = method.toUpperCase();
+        return methods.indexOf(upcased) > -1 ? upcased : method;
+      }
+
+      function Request(input, options) {
+        options = options || {};
+        var body = options.body;
+
+        if (input instanceof Request) {
+          if (input.bodyUsed) {
+            throw new TypeError('Already read');
+          }
+          this.url = input.url;
+          this.credentials = input.credentials;
+          if (!options.headers) {
+            this.headers = new Headers(input.headers);
+          }
+          this.method = input.method;
+          this.mode = input.mode;
+          this.signal = input.signal;
+          if (!body && input._bodyInit != null) {
+            body = input._bodyInit;
+            input.bodyUsed = true;
+          }
+        } else {
+          this.url = String(input);
+        }
+
+        this.credentials = options.credentials || this.credentials || 'same-origin';
+        if (options.headers || !this.headers) {
+          this.headers = new Headers(options.headers);
+        }
+        this.method = normalizeMethod(options.method || this.method || 'GET');
+        this.mode = options.mode || this.mode || null;
+        this.signal = options.signal || this.signal;
+        this.referrer = null;
+
+        if ((this.method === 'GET' || this.method === 'HEAD') && body) {
+          throw new TypeError('Body not allowed for GET or HEAD requests');
+        }
+        this._initBody(body);
+      }
+
+      Request.prototype.clone = function () {
+        return new Request(this, { body: this._bodyInit });
+      };
+
+      function decode(body) {
+        var form = new FormData();
+        body.trim().split('&').forEach(function (bytes) {
+          if (bytes) {
+            var split = bytes.split('=');
+            var name = split.shift().replace(/\+/g, ' ');
+            var value = split.join('=').replace(/\+/g, ' ');
+            form.append(decodeURIComponent(name), decodeURIComponent(value));
+          }
+        });
+        return form;
+      }
+
+      function parseHeaders(rawHeaders) {
+        var headers = new Headers();
+        // Replace instances of \r\n and \n followed by at least one space or horizontal tab with a space
+        // https://tools.ietf.org/html/rfc7230#section-3.2
+        var preProcessedHeaders = rawHeaders.replace(/\r?\n[\t ]+/g, ' ');
+        preProcessedHeaders.split(/\r?\n/).forEach(function (line) {
+          var parts = line.split(':');
+          var key = parts.shift().trim();
+          if (key) {
+            var value = parts.join(':').trim();
+            headers.append(key, value);
+          }
+        });
+        return headers;
+      }
+
+      Body.call(Request.prototype);
+
+      function Response(bodyInit, options) {
+        if (!options) {
+          options = {};
+        }
+
+        this.type = 'default';
+        this.status = options.status === undefined ? 200 : options.status;
+        this.ok = this.status >= 200 && this.status < 300;
+        this.statusText = 'statusText' in options ? options.statusText : 'OK';
+        this.headers = new Headers(options.headers);
+        this.url = options.url || '';
+        this._initBody(bodyInit);
+      }
+
+      Body.call(Response.prototype);
+
+      Response.prototype.clone = function () {
+        return new Response(this._bodyInit, {
+          status: this.status,
+          statusText: this.statusText,
+          headers: new Headers(this.headers),
+          url: this.url
+        });
+      };
+
+      Response.error = function () {
+        var response = new Response(null, { status: 0, statusText: '' });
+        response.type = 'error';
+        return response;
+      };
+
+      var redirectStatuses = [301, 302, 303, 307, 308];
+
+      Response.redirect = function (url, status) {
+        if (redirectStatuses.indexOf(status) === -1) {
+          throw new RangeError('Invalid status code');
+        }
+
+        return new Response(null, { status: status, headers: { location: url } });
+      };
+
+      exports.DOMException = self.DOMException;
+      try {
+        new exports.DOMException();
+      } catch (err) {
+        exports.DOMException = function (message, name) {
+          this.message = message;
+          this.name = name;
+          var error = Error(message);
+          this.stack = error.stack;
+        };
+        exports.DOMException.prototype = Object.create(Error.prototype);
+        exports.DOMException.prototype.constructor = exports.DOMException;
+      }
+
+      function fetch(input, init) {
+        return new Promise(function (resolve, reject) {
+          var request = new Request(input, init);
+
+          if (request.signal && request.signal.aborted) {
+            return reject(new exports.DOMException('Aborted', 'AbortError'));
+          }
+
+          var xhr = new XMLHttpRequest();
+
+          function abortXhr() {
+            xhr.abort();
+          }
+
+          xhr.onload = function () {
+            var options = {
+              status: xhr.status,
+              statusText: xhr.statusText,
+              headers: parseHeaders(xhr.getAllResponseHeaders() || '')
+            };
+            options.url = 'responseURL' in xhr ? xhr.responseURL : options.headers.get('X-Request-URL');
+            var body = 'response' in xhr ? xhr.response : xhr.responseText;
+            resolve(new Response(body, options));
+          };
+
+          xhr.onerror = function () {
+            reject(new TypeError('Network request failed'));
+          };
+
+          xhr.ontimeout = function () {
+            reject(new TypeError('Network request failed'));
+          };
+
+          xhr.onabort = function () {
+            reject(new exports.DOMException('Aborted', 'AbortError'));
+          };
+
+          xhr.open(request.method, request.url, true);
+
+          if (request.credentials === 'include') {
+            xhr.withCredentials = true;
+          } else if (request.credentials === 'omit') {
+            xhr.withCredentials = false;
+          }
+
+          if ('responseType' in xhr && support.blob) {
+            xhr.responseType = 'blob';
+          }
+
+          request.headers.forEach(function (value, name) {
+            xhr.setRequestHeader(name, value);
+          });
+
+          if (request.signal) {
+            request.signal.addEventListener('abort', abortXhr);
+
+            xhr.onreadystatechange = function () {
+              // DONE (success or failure)
+              if (xhr.readyState === 4) {
+                request.signal.removeEventListener('abort', abortXhr);
+              }
+            };
+          }
+
+          xhr.send(typeof request._bodyInit === 'undefined' ? null : request._bodyInit);
+        });
+      }
+
+      fetch.polyfill = true;
+
+      if (!self.fetch) {
+        self.fetch = fetch;
+        self.Headers = Headers;
+        self.Request = Request;
+        self.Response = Response;
+      }
+
+      exports.Headers = Headers;
+      exports.Request = Request;
+      exports.Response = Response;
+      exports.fetch = fetch;
+
+      return exports;
+    }({});
+
+    if (!self.fetch) {
+      throw new Error('fetch is not defined - maybe your browser targets are not covering everything you need?');
+    }
+
+    var pending = 0;
+    function decrement(result) {
+      pending--;
+      return result;
+    }
+
+    if (global.Ember.Test) {
+      global.Ember.Test.registerWaiter(function () {
+        return pending === 0;
+      });
+
+      self['default'] = function () {
+        pending++;
+
+        return self.fetch.apply(global, arguments).then(function (response) {
+          response.clone().blob().then(decrement, decrement);
+          return response;
+        }, function (reason) {
+          decrement(reason);
+          throw reason;
+        });
+      };
+    } else {
+      self['default'] = self.fetch;
+    }
+    supportProps.forEach(function (prop) {
+      delete self[prop];
+    });
+  });
+
+  define('fetch/ajax', ['exports'], function () {
+    throw new Error('You included `fetch/ajax` but it was renamed to `ember-fetch/ajax`');
+  });
+})(typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : this);
+    }
+;Ember.libraries.register('Ember Simple Auth', '1.9.2');
+;/*! http://mths.be/base64 v0.1.0 by @mathias | MIT license */
+;(function(root) {
+
+	// Detect free variables `exports`.
+	var freeExports = typeof exports == 'object' && exports;
+
+	// Detect free variable `module`.
+	var freeModule = typeof module == 'object' && module &&
+		module.exports == freeExports && module;
+
+	// Detect free variable `global`, from Node.js or Browserified code, and use
+	// it as `root`.
+	var freeGlobal = typeof global == 'object' && global;
+	if (freeGlobal.global === freeGlobal || freeGlobal.window === freeGlobal) {
+		root = freeGlobal;
+	}
+
+	/*--------------------------------------------------------------------------*/
+
+	var InvalidCharacterError = function(message) {
+		this.message = message;
+	};
+	InvalidCharacterError.prototype = new Error;
+	InvalidCharacterError.prototype.name = 'InvalidCharacterError';
+
+	var error = function(message) {
+		// Note: the error messages used throughout this file match those used by
+		// the native `atob`/`btoa` implementation in Chromium.
+		throw new InvalidCharacterError(message);
+	};
+
+	var TABLE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+	// http://whatwg.org/html/common-microsyntaxes.html#space-character
+	var REGEX_SPACE_CHARACTERS = /[\t\n\f\r ]/g;
+
+	// `decode` is designed to be fully compatible with `atob` as described in the
+	// HTML Standard. http://whatwg.org/html/webappapis.html#dom-windowbase64-atob
+	// The optimized base64-decoding algorithm used is based on @atk’s excellent
+	// implementation. https://gist.github.com/atk/1020396
+	var decode = function(input) {
+		input = String(input)
+			.replace(REGEX_SPACE_CHARACTERS, '');
+		var length = input.length;
+		if (length % 4 == 0) {
+			input = input.replace(/==?$/, '');
+			length = input.length;
+		}
+		if (
+			length % 4 == 1 ||
+			// http://whatwg.org/C#alphanumeric-ascii-characters
+			/[^+a-zA-Z0-9/]/.test(input)
+		) {
+			error(
+				'Invalid character: the string to be decoded is not correctly encoded.'
+			);
+		}
+		var bitCounter = 0;
+		var bitStorage;
+		var buffer;
+		var output = '';
+		var position = -1;
+		while (++position < length) {
+			buffer = TABLE.indexOf(input.charAt(position));
+			bitStorage = bitCounter % 4 ? bitStorage * 64 + buffer : buffer;
+			// Unless this is the first of a group of 4 characters…
+			if (bitCounter++ % 4) {
+				// …convert the first 8 bits to a single ASCII character.
+				output += String.fromCharCode(
+					0xFF & bitStorage >> (-2 * bitCounter & 6)
+				);
+			}
+		}
+		return output;
+	};
+
+	// `encode` is designed to be fully compatible with `btoa` as described in the
+	// HTML Standard: http://whatwg.org/html/webappapis.html#dom-windowbase64-btoa
+	var encode = function(input) {
+		input = String(input);
+		if (/[^\0-\xFF]/.test(input)) {
+			// Note: no need to special-case astral symbols here, as surrogates are
+			// matched, and the input is supposed to only contain ASCII anyway.
+			error(
+				'The string to be encoded contains characters outside of the ' +
+				'Latin1 range.'
+			);
+		}
+		var padding = input.length % 3;
+		var output = '';
+		var position = -1;
+		var a;
+		var b;
+		var c;
+		var d;
+		var buffer;
+		// Make sure any padding is handled outside of the loop.
+		var length = input.length - padding;
+
+		while (++position < length) {
+			// Read three bytes, i.e. 24 bits.
+			a = input.charCodeAt(position) << 16;
+			b = input.charCodeAt(++position) << 8;
+			c = input.charCodeAt(++position);
+			buffer = a + b + c;
+			// Turn the 24 bits into four chunks of 6 bits each, and append the
+			// matching character for each of them to the output.
+			output += (
+				TABLE.charAt(buffer >> 18 & 0x3F) +
+				TABLE.charAt(buffer >> 12 & 0x3F) +
+				TABLE.charAt(buffer >> 6 & 0x3F) +
+				TABLE.charAt(buffer & 0x3F)
+			);
+		}
+
+		if (padding == 2) {
+			a = input.charCodeAt(position) << 8;
+			b = input.charCodeAt(++position);
+			buffer = a + b;
+			output += (
+				TABLE.charAt(buffer >> 10) +
+				TABLE.charAt((buffer >> 4) & 0x3F) +
+				TABLE.charAt((buffer << 2) & 0x3F) +
+				'='
+			);
+		} else if (padding == 1) {
+			buffer = input.charCodeAt(position);
+			output += (
+				TABLE.charAt(buffer >> 2) +
+				TABLE.charAt((buffer << 4) & 0x3F) +
+				'=='
+			);
+		}
+
+		return output;
+	};
+
+	var base64 = {
+		'encode': encode,
+		'decode': decode,
+		'version': '0.1.0'
+	};
+
+	// Some AMD build optimizers, like r.js, check for specific condition patterns
+	// like the following:
+	if (
+		typeof define == 'function' &&
+		typeof define.amd == 'object' &&
+		define.amd
+	) {
+		define(function() {
+			return base64;
+		});
+	}	else if (freeExports && !freeExports.nodeType) {
+		if (freeModule) { // in Node.js or RingoJS v0.8.0+
+			freeModule.exports = base64;
+		} else { // in Narwhal or RingoJS v0.7.0-
+			for (var key in base64) {
+				base64.hasOwnProperty(key) && (freeExports[key] = base64[key]);
+			}
+		}
+	} else { // in Rhino or a web browser
+		root.base64 = base64;
+	}
+
+}(this));
+
 ;define('@ember-decorators/argument/-debug/decorators/immutable', ['exports', '@ember-decorators/argument/-debug/utils/validation-decorator'], function (exports, _validationDecorator) {
   'use strict';
 
@@ -68430,6 +76942,671 @@ createDeprecatedModule('resolver');
   var versionExtendedRegExp = exports.versionExtendedRegExp = /\d+[.]\d+[.]\d+-[a-z]*([.]\d+)?/; // Match the above but also hyphen followed by any number of lowercase letters, then optionally period and digits
   var shaRegExp = exports.shaRegExp = /[a-z\d]{8}$/; // Match 8 lowercase letters and digits, at the end of the string only (to avoid matching with version extended part)
 });
+;define("ember-cookies/services/cookies", ["exports"], function (_exports) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = void 0;
+
+  function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest(); }
+
+  function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance"); }
+
+  function _iterableToArrayLimit(arr, i) { if (!(Symbol.iterator in Object(arr) || Object.prototype.toString.call(arr) === "[object Arguments]")) { return; } var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
+
+  function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
+
+  var keys = Object.keys;
+  var assign = Object.assign || Ember.assign || Ember.merge;
+  var DEFAULTS = {
+    raw: false
+  };
+  var MAX_COOKIE_BYTE_LENGTH = 4096;
+
+  var _default = Ember.Service.extend({
+    _isFastBoot: Ember.computed.reads('_fastBoot.isFastBoot'),
+    _fastBoot: Ember.computed(function () {
+      var owner = Ember.getOwner(this);
+      return owner.lookup('service:fastboot');
+    }),
+    _document: Ember.computed(function () {
+      return document;
+    }),
+    _getDocumentCookies: function _getDocumentCookies() {
+      var all = this.get('_document.cookie').split(';');
+
+      var filtered = this._filterDocumentCookies(Ember.A(all));
+
+      return filtered.reduce(function (acc, cookie) {
+        if (!Ember.isEmpty(cookie)) {
+          var _cookie = _slicedToArray(cookie, 2),
+              key = _cookie[0],
+              value = _cookie[1];
+
+          acc[key.trim()] = (value || '').trim();
+        }
+
+        return acc;
+      }, {});
+    },
+    _getFastBootCookies: function _getFastBootCookies() {
+      var fastBootCookies = this.get('_fastBoot.request.cookies');
+      fastBootCookies = Ember.A(keys(fastBootCookies)).reduce(function (acc, name) {
+        var value = fastBootCookies[name];
+        acc[name] = {
+          value: value
+        };
+        return acc;
+      }, {});
+      var fastBootCookiesCache = this._fastBootCookiesCache || {};
+      fastBootCookies = assign({}, fastBootCookies, fastBootCookiesCache);
+      this._fastBootCookiesCache = fastBootCookies;
+      return this._filterCachedFastBootCookies(fastBootCookies);
+    },
+    read: function read(name) {
+      var _this = this;
+
+      var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      options = assign({}, DEFAULTS, options || {});
+      (true && !(Ember.isEmpty(options.domain) && Ember.isEmpty(options.expires) && Ember.isEmpty(options.maxAge) && Ember.isEmpty(options.path)) && Ember.assert('Domain, Expires, Max-Age, and Path options cannot be set when reading cookies', Ember.isEmpty(options.domain) && Ember.isEmpty(options.expires) && Ember.isEmpty(options.maxAge) && Ember.isEmpty(options.path)));
+      var all;
+
+      if (this.get('_isFastBoot')) {
+        all = this._getFastBootCookies();
+      } else {
+        all = this._getDocumentCookies();
+      }
+
+      if (name) {
+        return this._decodeValue(all[name], options.raw);
+      } else {
+        Ember.A(keys(all)).forEach(function (name) {
+          return all[name] = _this._decodeValue(all[name], options.raw);
+        });
+        return all;
+      }
+    },
+    write: function write(name, value) {
+      var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+      options = assign({}, DEFAULTS, options || {});
+      (true && !(!options.signed) && Ember.assert("Cookies cannot be set as signed as signed cookies would not be modifyable in the browser as it has no knowledge of the express server's signing key!", !options.signed));
+      (true && !(Ember.isEmpty(options.expires) || Ember.isEmpty(options.maxAge)) && Ember.assert('Cookies cannot be set with both maxAge and an explicit expiration time!', Ember.isEmpty(options.expires) || Ember.isEmpty(options.maxAge)));
+      value = this._encodeValue(value, options.raw);
+      (true && !(this._isCookieSizeAcceptable(value)) && Ember.assert("Cookies larger than ".concat(MAX_COOKIE_BYTE_LENGTH, " bytes are not supported by most browsers!"), this._isCookieSizeAcceptable(value)));
+
+      if (this.get('_isFastBoot')) {
+        this._writeFastBootCookie(name, value, options);
+      } else {
+        (true && !(!options.httpOnly) && Ember.assert('Cookies cannot be set to be HTTP-only from a browser!', !options.httpOnly));
+
+        this._writeDocumentCookie(name, value, options);
+      }
+    },
+    clear: function clear(name) {
+      var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      options = assign({}, options || {});
+      (true && !(Ember.isEmpty(options.expires) && Ember.isEmpty(options.maxAge) && Ember.isEmpty(options.raw)) && Ember.assert('Expires, Max-Age, and raw options cannot be set when clearing cookies', Ember.isEmpty(options.expires) && Ember.isEmpty(options.maxAge) && Ember.isEmpty(options.raw)));
+      options.expires = new Date('1970-01-01');
+      this.write(name, null, options);
+    },
+    exists: function exists(name) {
+      var all;
+
+      if (this.get('_isFastBoot')) {
+        all = this._getFastBootCookies();
+      } else {
+        all = this._getDocumentCookies();
+      }
+
+      return all.hasOwnProperty(name);
+    },
+    _writeDocumentCookie: function _writeDocumentCookie(name, value) {
+      var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
+      var serializedCookie = this._serializeCookie(name, value, options);
+
+      this.set('_document.cookie', serializedCookie);
+    },
+    _writeFastBootCookie: function _writeFastBootCookie(name, value) {
+      var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+      var responseHeaders = this.get('_fastBoot.response.headers');
+
+      var serializedCookie = this._serializeCookie.apply(this, arguments);
+
+      if (!Ember.isEmpty(options.maxAge)) {
+        options.maxAge *= 1000;
+      }
+
+      this._cacheFastBootCookie.apply(this, arguments);
+
+      var replaced = false;
+      var existing = responseHeaders.getAll('set-cookie');
+
+      for (var i = 0; i < existing.length; i++) {
+        if (existing[i].startsWith("".concat(name, "="))) {
+          existing[i] = serializedCookie;
+          replaced = true;
+          break;
+        }
+      }
+
+      if (!replaced) {
+        responseHeaders.append('set-cookie', serializedCookie);
+      }
+    },
+    _cacheFastBootCookie: function _cacheFastBootCookie(name, value) {
+      var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+      var fastBootCache = this._fastBootCookiesCache || {};
+      var cachedOptions = assign({}, options);
+
+      if (cachedOptions.maxAge) {
+        var expires = new Date();
+        expires.setSeconds(expires.getSeconds() + options.maxAge);
+        cachedOptions.expires = expires;
+        delete cachedOptions.maxAge;
+      }
+
+      fastBootCache[name] = {
+        value: value,
+        options: cachedOptions
+      };
+      this._fastBootCookiesCache = fastBootCache;
+    },
+    _filterCachedFastBootCookies: function _filterCachedFastBootCookies(fastBootCookies) {
+      var _this$get = this.get('_fastBoot.request'),
+          requestPath = _this$get.path,
+          protocol = _this$get.protocol; // cannot use deconstruct here
+
+
+      var host = this.get('_fastBoot.request.host');
+      return Ember.A(keys(fastBootCookies)).reduce(function (acc, name) {
+        var _fastBootCookies$name = fastBootCookies[name],
+            value = _fastBootCookies$name.value,
+            options = _fastBootCookies$name.options;
+        options = options || {};
+        var _options = options,
+            optionsPath = _options.path,
+            domain = _options.domain,
+            expires = _options.expires,
+            secure = _options.secure;
+
+        if (optionsPath && requestPath.indexOf(optionsPath) !== 0) {
+          return acc;
+        }
+
+        if (domain && host.indexOf(domain) + domain.length !== host.length) {
+          return acc;
+        }
+
+        if (expires && expires < new Date()) {
+          return acc;
+        }
+
+        if (secure && !(protocol || '').match(/^https/)) {
+          return acc;
+        }
+
+        acc[name] = value;
+        return acc;
+      }, {});
+    },
+    _encodeValue: function _encodeValue(value, raw) {
+      if (Ember.isNone(value)) {
+        return '';
+      } else if (raw) {
+        return value;
+      } else {
+        return encodeURIComponent(value);
+      }
+    },
+    _decodeValue: function _decodeValue(value, raw) {
+      if (Ember.isNone(value) || raw) {
+        return value;
+      } else {
+        return decodeURIComponent(value);
+      }
+    },
+    _filterDocumentCookies: function _filterDocumentCookies(unfilteredCookies) {
+      return unfilteredCookies.map(function (c) {
+        var separatorIndex = c.indexOf('=');
+        return [c.substring(0, separatorIndex), c.substring(separatorIndex + 1)];
+      }).filter(function (c) {
+        return c.length === 2 && Ember.isPresent(c[0]);
+      });
+    },
+    _serializeCookie: function _serializeCookie(name, value) {
+      var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+      var cookie = "".concat(name, "=").concat(value);
+
+      if (!Ember.isEmpty(options.domain)) {
+        cookie = "".concat(cookie, "; domain=").concat(options.domain);
+      }
+
+      if (Ember.typeOf(options.expires) === 'date') {
+        cookie = "".concat(cookie, "; expires=").concat(options.expires.toUTCString());
+      }
+
+      if (!Ember.isEmpty(options.maxAge)) {
+        cookie = "".concat(cookie, "; max-age=").concat(options.maxAge);
+      }
+
+      if (options.secure) {
+        cookie = "".concat(cookie, "; secure");
+      }
+
+      if (options.httpOnly) {
+        cookie = "".concat(cookie, "; httpOnly");
+      }
+
+      if (!Ember.isEmpty(options.path)) {
+        cookie = "".concat(cookie, "; path=").concat(options.path);
+      }
+
+      return cookie;
+    },
+    _isCookieSizeAcceptable: function _isCookieSizeAcceptable(value) {
+      // Counting bytes varies Pre-ES6 and in ES6
+      // This snippet counts the bytes in the value
+      // about to be stored as the cookie:
+      // See https://stackoverflow.com/a/25994411/6657064
+      var _byteCount = 0;
+      var i = 0;
+      var c;
+
+      while (c = value.charCodeAt(i++)) {
+        /* eslint-disable no-bitwise */
+        _byteCount += c >> 11 ? 3 : c >> 7 ? 2 : 1;
+        /* eslint-enable no-bitwise */
+      }
+
+      return _byteCount < MAX_COOKIE_BYTE_LENGTH;
+    }
+  });
+
+  _exports.default = _default;
+});
+;define('ember-fetch/ajax', ['exports', 'fetch'], function (exports, _fetch) {
+    'use strict';
+
+    Object.defineProperty(exports, "__esModule", {
+        value: true
+    });
+    exports.default = ajax;
+    function ajax(input, init) {
+        return (0, _fetch.default)(input, init).then(function (response) {
+            if (response.ok) {
+                return response.json();
+            }
+            throw response;
+        });
+    }
+});
+;define('ember-fetch/errors', ['exports'], function (exports) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.isUnauthorizedResponse = isUnauthorizedResponse;
+  exports.isForbiddenResponse = isForbiddenResponse;
+  exports.isInvalidResponse = isInvalidResponse;
+  exports.isBadRequestResponse = isBadRequestResponse;
+  exports.isNotFoundResponse = isNotFoundResponse;
+  exports.isGoneResponse = isGoneResponse;
+  exports.isAbortError = isAbortError;
+  exports.isConflictResponse = isConflictResponse;
+  exports.isServerErrorResponse = isServerErrorResponse;
+  /**
+   * Checks if the given response represents an unauthorized request error
+   */
+  function isUnauthorizedResponse(response) {
+    return response.status === 401;
+  }
+  /**
+   * Checks if the given response represents a forbidden request error
+   */
+  function isForbiddenResponse(response) {
+    return response.status === 403;
+  }
+  /**
+   * Checks if the given response represents an invalid request error
+   */
+  function isInvalidResponse(response) {
+    return response.status === 422;
+  }
+  /**
+   * Checks if the given response represents a bad request error
+   */
+  function isBadRequestResponse(response) {
+    return response.status === 400;
+  }
+  /**
+   * Checks if the given response represents a "not found" error
+   */
+  function isNotFoundResponse(response) {
+    return response.status === 404;
+  }
+  /**
+   * Checks if the given response represents a "gone" error
+   */
+  function isGoneResponse(response) {
+    return response.status === 410;
+  }
+  /**
+   * Checks if the given error is an "abort" error
+   */
+  function isAbortError(error) {
+    return error.name == 'AbortError';
+  }
+  /**
+   * Checks if the given response represents a conflict error
+   */
+  function isConflictResponse(response) {
+    return response.status === 409;
+  }
+  /**
+   * Checks if the given response represents a server error
+   */
+  function isServerErrorResponse(response) {
+    return response.status >= 500 && response.status < 600;
+  }
+});
+;define('ember-fetch/mixins/adapter-fetch', ['exports', 'fetch', 'ember-fetch/utils/mung-options-for-fetch', 'ember-fetch/utils/determine-body-promise'], function (exports, _fetch, _mungOptionsForFetch, _determineBodyPromise) {
+    'use strict';
+
+    Object.defineProperty(exports, "__esModule", {
+        value: true
+    });
+    exports.headersToObject = headersToObject;
+
+    /**
+     * Helper function to create a plain object from the response's Headers.
+     * Consumed by the adapter's `handleResponse`.
+     */
+    function headersToObject(headers) {
+        var headersObject = {};
+        if (headers) {
+            headers.forEach(function (value, key) {
+                return headersObject[key] = value;
+            });
+        }
+        return headersObject;
+    }
+    exports.default = Ember.Mixin.create({
+        headers: undefined,
+        init: function init() {
+            this._super.apply(this, arguments);
+            (true && !(false) && Ember.deprecate('FetchAdapter is deprecated, it is no longer required for ember-data>=3.9.2', false, {
+                id: 'deprecate-fetch-ember-data-support',
+                until: '7.0.0'
+            }));
+        },
+
+        /**
+         * @override
+         */
+        ajaxOptions: function ajaxOptions(url, type, options) {
+            var hash = options || {};
+            hash.url = url;
+            hash.type = type;
+            // Add headers set on the Adapter
+            var adapterHeaders = Ember.get(this, 'headers');
+            if (adapterHeaders) {
+                hash.headers = Ember.assign(hash.headers || {}, adapterHeaders);
+            }
+            var mungedOptions = (0, _mungOptionsForFetch.default)(hash);
+            // Mimics the default behavior in Ember Data's `ajaxOptions`, namely to set the
+            // 'Content-Type' header to application/json if it is not a GET request and it has a body.
+            if (mungedOptions.method !== 'GET' && mungedOptions.body && (mungedOptions.headers === undefined || !(mungedOptions.headers['Content-Type'] || mungedOptions.headers['content-type']))) {
+                mungedOptions.headers = mungedOptions.headers || {};
+                mungedOptions.headers['Content-Type'] = 'application/json; charset=utf-8';
+            }
+            return mungedOptions;
+        },
+
+        /**
+         * @override
+         */
+        ajax: function ajax(url, type, options) {
+            var _this = this;
+
+            var requestData = {
+                url: url,
+                method: type
+            };
+            var hash = this.ajaxOptions(url, type, options);
+            return this._ajaxRequest(hash)
+            // @ts-ignore
+            .catch(function (error, response, requestData) {
+                throw _this.ajaxError(_this, response, null, requestData, error);
+            }).then(function (response) {
+                return Ember.RSVP.hash({
+                    response: response,
+                    payload: (0, _determineBodyPromise.default)(response, requestData)
+                });
+            }).then(function (_ref) {
+                var response = _ref.response,
+                    payload = _ref.payload;
+
+                if (response.ok) {
+                    return _this.ajaxSuccess(_this, response, payload, requestData);
+                } else {
+                    throw _this.ajaxError(_this, response, payload, requestData);
+                }
+            });
+        },
+
+        /**
+         * Overrides the `_ajaxRequest` method to use `fetch` instead of jQuery.ajax
+         * @override
+         */
+        _ajaxRequest: function _ajaxRequest(options) {
+            return this._fetchRequest(options.url, options);
+        },
+
+        /**
+         * A hook into where `fetch` is called.
+         * Useful if you want to override this behavior, for example to multiplex requests.
+         */
+        _fetchRequest: function _fetchRequest(url, options) {
+            return (0, _fetch.default)(url, options);
+        },
+
+        /**
+         * @override
+         */
+        ajaxSuccess: function ajaxSuccess(adapter, response, payload, requestData) {
+            var returnResponse = adapter.handleResponse(response.status, headersToObject(response.headers),
+            // TODO: DS.RESTAdapter annotates payload: {}
+            // @ts-ignore
+            payload, requestData);
+            // TODO: DS.RESTAdapter annotates response: {}
+            // @ts-ignore
+            if (returnResponse && returnResponse.isAdapterError) {
+                return Ember.RSVP.reject(returnResponse);
+            } else {
+                return returnResponse;
+            }
+        },
+
+        /**
+         * Allows for the error to be selected from either the
+         * response object, or the response data.
+         */
+        parseFetchResponseForError: function parseFetchResponseForError(response, payload) {
+            return payload || response.statusText;
+        },
+
+        /**
+         * @override
+         */
+        ajaxError: function ajaxError(adapter, response, payload, requestData, error) {
+            if (error) {
+                return error;
+            } else {
+                var parsedResponse = adapter.parseFetchResponseForError(response, payload);
+                return adapter.handleResponse(response.status, headersToObject(response.headers),
+                // TODO: parseErrorResponse is DS.RESTAdapter private API
+                // @ts-ignore
+                adapter.parseErrorResponse(parsedResponse) || payload, requestData);
+            }
+        }
+    });
+});
+;define('ember-fetch/types', ['exports'], function (exports) {
+    'use strict';
+
+    Object.defineProperty(exports, "__esModule", {
+        value: true
+    });
+    exports.isPlainObject = isPlainObject;
+    function isPlainObject(obj) {
+        return Object.prototype.toString.call(obj) === '[object Object]';
+    }
+});
+;define('ember-fetch/utils/determine-body-promise', ['exports'], function (exports) {
+    'use strict';
+
+    Object.defineProperty(exports, "__esModule", {
+        value: true
+    });
+    exports.default = determineBodyPromise;
+    /**
+     * Function that always attempts to parse the response as json, and if an error is thrown,
+     * returns `undefined` if the response is successful and has a status code of 204 (No Content),
+     * or 205 (Reset Content) or if the request method was 'HEAD', and the plain payload otherwise.
+     */
+    function determineBodyPromise(response, requestData) {
+        return response.text().then(function (payload) {
+            var ret = payload;
+            try {
+                ret = JSON.parse(payload);
+            } catch (error) {
+                if (!(error instanceof SyntaxError)) {
+                    throw error;
+                }
+                var status = response.status;
+                if (response.ok && (status === 204 || status === 205 || requestData.method === 'HEAD')) {
+                    ret = undefined;
+                } else {
+                    console.warn('This response was unable to be parsed as json.', payload);
+                }
+            }
+            return ret;
+        });
+    }
+});
+;define('ember-fetch/utils/mung-options-for-fetch', ['exports', 'ember-fetch/utils/serialize-query-params', 'ember-fetch/types'], function (exports, _serializeQueryParams, _types) {
+    'use strict';
+
+    Object.defineProperty(exports, "__esModule", {
+        value: true
+    });
+    exports.default = mungOptionsForFetch;
+
+    /**
+     * Helper function that translates the options passed to `jQuery.ajax` into a format that `fetch` expects.
+     */
+    function mungOptionsForFetch(options) {
+        var hash = Ember.assign({
+            credentials: 'same-origin'
+        }, options);
+        // Default to 'GET' in case `type` is not passed in (mimics jQuery.ajax).
+        hash.method = (hash.method || hash.type || 'GET').toUpperCase();
+        if (hash.data) {
+            // GET and HEAD requests can't have a `body`
+            if (hash.method === 'GET' || hash.method === 'HEAD') {
+                // If no options are passed, Ember Data sets `data` to an empty object, which we test for.
+                if (Object.keys(hash.data).length) {
+                    // Test if there are already query params in the url (mimics jQuey.ajax).
+                    var queryParamDelimiter = hash.url.indexOf('?') > -1 ? '&' : '?';
+                    hash.url += '' + queryParamDelimiter + (0, _serializeQueryParams.serializeQueryParams)(hash.data);
+                }
+            } else {
+                // NOTE: a request's body cannot be a POJO, so we stringify it if it is.
+                // JSON.stringify removes keys with values of `undefined` (mimics jQuery.ajax).
+                // If the data is not a POJO (it's a String, FormData, etc), we just set it.
+                // If the data is a string, we assume it's a stringified object.
+                if ((0, _types.isPlainObject)(hash.data)) {
+                    hash.body = JSON.stringify(hash.data);
+                } else {
+                    hash.body = hash.data;
+                }
+            }
+        }
+        return hash;
+    }
+});
+;define('ember-fetch/utils/serialize-query-params', ['exports', 'ember-fetch/types'], function (exports, _types) {
+    'use strict';
+
+    Object.defineProperty(exports, "__esModule", {
+        value: true
+    });
+    exports.serializeQueryParams = serializeQueryParams;
+
+    var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
+        return typeof obj;
+    } : function (obj) {
+        return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+    };
+
+    var RBRACKET = /\[\]$/;
+    /**
+     * Helper function that turns the data/body of a request into a query param string.
+     * This is directly copied from jQuery.param.
+     */
+    function serializeQueryParams(queryParamsObject) {
+        var s = [];
+        function buildParams(prefix, obj) {
+            var i, len, key;
+            if (prefix) {
+                if (Array.isArray(obj)) {
+                    for (i = 0, len = obj.length; i < len; i++) {
+                        if (RBRACKET.test(prefix)) {
+                            add(s, prefix, obj[i]);
+                        } else {
+                            buildParams(prefix + '[' + (_typeof(obj[i]) === 'object' ? i : '') + ']', obj[i]);
+                        }
+                    }
+                } else if ((0, _types.isPlainObject)(obj)) {
+                    for (key in obj) {
+                        buildParams(prefix + '[' + key + ']', obj[key]);
+                    }
+                } else {
+                    add(s, prefix, obj);
+                }
+            } else if (Array.isArray(obj)) {
+                for (i = 0, len = obj.length; i < len; i++) {
+                    add(s, obj[i].name, obj[i].value);
+                }
+            } else {
+                for (key in obj) {
+                    buildParams(key, obj[key]);
+                }
+            }
+            return s;
+        }
+        return buildParams('', queryParamsObject).join('&').replace(/%20/g, '+');
+    }
+    /**
+     * Part of the `serializeQueryParams` helper function.
+     */
+    function add(s, k, v) {
+        // Strip out keys with undefined value and replace null values with
+        // empty strings (mimics jQuery.ajax)
+        if (v === undefined) {
+            return;
+        } else if (v === null) {
+            v = '';
+        }
+        v = typeof v === 'function' ? v() : v;
+        s[s.length] = encodeURIComponent(k) + '=' + encodeURIComponent(v);
+    }
+    exports.default = serializeQueryParams;
+});
 ;define('ember-get-config/index', ['exports', 'frontend/config/environment'], function (exports, _environment) {
   'use strict';
 
@@ -69604,6 +78781,3703 @@ define("ember-resolver/features", [], function () {
     delete cache['_dict'];
     return cache;
   }
+});
+;define('ember-simple-auth-token/authenticators/jwt', ['exports', 'ember-simple-auth-token/authenticators/token', 'ember-get-config'], function (exports, _token, _emberGetConfig) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
+    return typeof obj;
+  } : function (obj) {
+    return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+  };
+
+  var decode = function decode(str) {
+    if (typeof atob === 'function') {
+      return atob(str);
+    } else if ((typeof FastBoot === 'undefined' ? 'undefined' : _typeof(FastBoot)) === 'object') {
+      try {
+        var buffer = FastBoot.require('buffer');
+        return buffer.Buffer.from(str, 'base64').toString('utf-8');
+      } catch (err) {
+        throw new Error('buffer must be available for decoding base64 strings in FastBoot. Make sure to add buffer to your fastbootDependencies.');
+      }
+    } else {
+      throw new Error('Neither atob nor the FastBoot global are avaialble. Unable to decode base64 strings.');
+    }
+  };
+
+  /**
+    JWT (JSON Web Token) Authenticator that supports automatic token refresh.
+  
+    Inspired by [ember-simple-auth-oauth2](https://github.com/simplabs/ember-simple-auth/tree/master/packages/ember-simple-auth-oauth2)
+  
+    The factory for this authenticator is registered as 'authenticator:jwt` in Ember's container.
+  
+    @class JWT
+    @namespace SimpleAuth.Authenticators
+    @module ember-simple-auth-token/authenticators/jwt
+    @extends TokenAuthenticator
+  */
+  exports.default = _token.default.extend({
+    /**
+      @method init
+    */
+    init: function init() {
+      this._super.apply(this, arguments);
+      var conf = _emberGetConfig.default['ember-simple-auth-token'] || {};
+      this.tokenDataPropertyName = conf.tokenDataPropertyName || 'tokenData';
+      this.refreshAccessTokens = conf.refreshAccessTokens === false ? false : true;
+      this.tokenExpirationInvalidateSession = conf.tokenExpirationInvalidateSession === false ? false : true;
+      this.serverTokenRefreshEndpoint = conf.serverTokenRefreshEndpoint || '/api/token-refresh/';
+      this.refreshTokenPropertyName = conf.refreshTokenPropertyName || 'refresh_token';
+      this.tokenExpireName = conf.tokenExpireName || 'exp';
+      this.refreshLeeway = conf.refreshLeeway || 0;
+    },
+
+
+    /**
+      Restores the session from a set of session properties.
+       It will return a resolving promise if one of two conditions is met:
+       1) Both `data.token` and `data.expiresAt` are non-empty and `expiresAt` is greater than the calculated `now`.
+      2) If `data.token` is non-empty and the decoded token has a key for `tokenExpireName`.
+       If `refreshAccessTokens` is true, `scheduleAccessTokenRefresh` will be called and an automatic token refresh will be initiated.
+       @method restore
+      @param {Object} data The data to restore the session from
+      @return {Promise} A promise that when it resolves results in the session being authenticated
+    */
+    restore: function restore(data) {
+      var _this = this;
+
+      var dataObject = Ember.Object.create(data);
+
+      return new Ember.RSVP.Promise(function (resolve, reject) {
+        var now = _this.getCurrentTime();
+        var token = dataObject.get(_this.tokenPropertyName);
+        var refreshToken = dataObject.get(_this.refreshTokenPropertyName);
+        var expiresAt = dataObject.get(_this.tokenExpireName);
+
+        if (Ember.isEmpty(token)) {
+          return reject(new Error('empty token'));
+        }
+
+        if (Ember.isEmpty(expiresAt)) {
+          // Fetch the expire time from the token data since `expiresAt` wasn't included in the data object that was passed in.
+          var tokenData = _this.getTokenData(token);
+          expiresAt = tokenData[_this.tokenExpireName];
+          if (Ember.isEmpty(expiresAt)) {
+            return resolve(data);
+          }
+        }
+
+        if (expiresAt > now) {
+          var wait = (expiresAt - now - _this.refreshLeeway) * 1000;
+
+          if (_this.tokenExpirationInvalidateSession) {
+            _this.scheduleAccessTokenExpiration(expiresAt);
+          }
+
+          if (wait > 0) {
+            if (_this.refreshAccessTokens) {
+              _this.scheduleAccessTokenRefresh(dataObject.get(_this.tokenExpireName), refreshToken);
+            }
+            return resolve(data);
+          } else if (_this.refreshAccessTokens) {
+            return resolve(_this.refreshAccessToken(refreshToken));
+          } else {
+            return reject(new Error('unable to refresh token'));
+          }
+        } else {
+          // The refresh token might not be expired, we can't test this on the client so attempt to refresh the token. If the server rejects the token the user session will be invalidated
+          if (_this.refreshAccessTokens) {
+            return resolve(_this.refreshAccessToken(refreshToken));
+          } else {
+            return reject(new Error('token is expired'));
+          }
+        }
+      });
+    },
+
+
+    /**
+      Authenticates the session with the specified `credentials`.
+       It will return a resolving promise if it successfully posts a request to the `JWT.serverTokenEndpoint` with the valid credentials.
+       An automatic token refresh will be scheduled with the new expiration date from the returned refresh token. That expiration will be merged with the response and the promise resolved.
+       @method authenticate
+      @param {Object} credentials The credentials to authenticate the session with
+      @param {Object} headers Optional headers to send with the authentication request
+      @return {Promise} A promise that resolves when an auth token is successfully acquired from the server and rejects otherwise
+    */
+    authenticate: function authenticate(credentials, headers) {
+      var _this2 = this;
+
+      return this.makeRequest(this.serverTokenEndpoint, credentials, Ember.assign({}, this.headers, headers)).then(function (response) {
+        return _this2.handleAuthResponse(response.json);
+      });
+    },
+
+
+    /**
+      Schedules a token refresh request to be sent to the backend after a calculated `wait` time has passed.
+       If both `token` and `expiresAt` are non-empty, and `expiresAt` minus the optional refres leeway is greater than the calculated `now`, the token refresh will be scheduled through later.
+       @method scheduleAccessTokenRefresh
+    */
+    scheduleAccessTokenRefresh: function scheduleAccessTokenRefresh(expiresAt, refreshToken) {
+      if (this.refreshAccessTokens) {
+
+        var now = this.getCurrentTime();
+        var wait = (expiresAt - now - this.refreshLeeway) * 1000;
+
+        if (!Ember.isEmpty(refreshToken) && !Ember.isEmpty(expiresAt)) {
+          if (wait > 0) {
+            Ember.run.cancel(this._refreshTokenTimeout);
+            delete this._refreshTokenTimeout;
+            this._refreshTokenTimeout = Ember.run.later(this, this.refreshAccessToken, refreshToken, wait);
+          } else if (expiresAt > now) {
+            throw new Error('refreshLeeway is too large which is preventing token refresh.');
+          }
+        }
+      }
+    },
+
+
+    /**
+      Makes a refresh token request to grab a new authenticated JWT token from the server.
+       It will return a resolving promise if a successful POST is made to the `JWT.serverTokenRefreshEndpoint`.
+       After the new token is obtained it will schedule the next automatic token refresh based on the new `expiresAt` time.
+       The session will be updated via the trigger `sessionDataUpdated`.
+       @method refreshAccessToken
+    */
+    refreshAccessToken: function refreshAccessToken(token) {
+      var _this3 = this;
+
+      var data = this.makeRefreshData(token);
+
+      return this.makeRequest(this.serverTokenRefreshEndpoint, data, this.headers).then(function (response) {
+        var sessionData = _this3.handleAuthResponse(response.json);
+        _this3.trigger('sessionDataUpdated', sessionData);
+        return sessionData;
+      }).catch(function (error) {
+        _this3.handleTokenRefreshFail(error.status);
+        return Ember.RSVP.Promise.reject(error);
+      });
+    },
+
+
+    /**
+      Returns a nested object with the token property name.
+      Example:  If `refreshTokenPropertyName` is "data.user.refreshToken", `makeRefreshData` will return {data: {user: {refreshToken: "token goes here"}}}
+       @method makeRefreshData
+      @return {object} An object with the nested property name.
+    */
+    makeRefreshData: function makeRefreshData(refreshToken) {
+      var data = {};
+      var nestings = this.refreshTokenPropertyName.split('.');
+      var refreshTokenPropertyName = nestings.pop();
+      var lastObject = data;
+
+      nestings.forEach(function (nesting) {
+        lastObject[nesting] = {};
+        lastObject = lastObject[nesting];
+      });
+
+      lastObject[refreshTokenPropertyName] = refreshToken;
+
+      return data;
+    },
+
+
+    /**
+      Returns the decoded token with accessible returned values.
+       @method getTokenData
+      @return {object} An object with properties for the session.
+    */
+    getTokenData: function getTokenData(token) {
+      var payload = token.split('.')[1];
+      var decodedPayload = decode(payload.replace(/-/g, '+').replace(/_/g, '/'));
+      var tokenData = decodeURIComponent(window.escape(decodedPayload));
+
+      try {
+        return JSON.parse(tokenData);
+      } catch (error) {
+        return tokenData;
+      }
+    },
+
+
+    /**
+      Cancels any outstanding automatic token refreshes and returns a resolving promise.
+       @method invalidate
+      @param {Object} data The data of the session to be invalidated
+      @return {Promise} A resolving promise
+    */
+    invalidate: function invalidate() {
+      Ember.run.cancel(this._refreshTokenTimeout);
+      delete this._refreshTokenTimeout;
+      Ember.run.cancel(this._tokenExpirationTimeout);
+      delete this._tokenExpirationTimeout;
+      return Ember.RSVP.resolve();
+    },
+
+
+    /**
+      Returns the current time as a timestamp in seconds
+       @method getCurrentTime
+      @return {Integer} timestamp
+    */
+    getCurrentTime: function getCurrentTime() {
+      return Math.floor(new Date().getTime() / 1000);
+    },
+
+
+    /**
+      Handles authentication response from server, and returns session data
+       @method handleAuthResponse
+    */
+    handleAuthResponse: function handleAuthResponse(response) {
+      var token = Ember.get(response, this.tokenPropertyName);
+
+      if (Ember.isEmpty(token)) {
+        throw new Error('Token is empty. Please check your backend response.');
+      }
+
+      var tokenData = this.getTokenData(token);
+      var expiresAt = Ember.get(tokenData, this.tokenExpireName);
+      var tokenExpireData = {};
+
+      tokenExpireData[this.tokenExpireName] = expiresAt;
+
+      if (this.tokenExpirationInvalidateSession) {
+        this.scheduleAccessTokenExpiration(expiresAt);
+      }
+
+      if (this.refreshAccessTokens) {
+        var refreshToken = Ember.get(response, this.refreshTokenPropertyName);
+
+        if (Ember.isEmpty(refreshToken)) {
+          throw new Error('Refresh token is empty. Please check your backend response.');
+        }
+
+        this.scheduleAccessTokenRefresh(expiresAt, refreshToken);
+      }
+
+      return Ember.assign(response, tokenExpireData, { tokenData: tokenData });
+    },
+
+
+    /**
+      Handles token refresh fail status. If the server response to a token refresh has a status of 401 or 403 then the token in the session will be invalidated and the sessionInvalidated provided by ember-simple-auth will be triggered.
+       @method handleTokenRefreshFail
+    */
+    handleTokenRefreshFail: function handleTokenRefreshFail(refreshStatus) {
+      var _this4 = this;
+
+      if (refreshStatus === 401 || refreshStatus === 403) {
+        return this.invalidate().then(function () {
+          _this4.trigger('sessionDataInvalidated');
+        });
+      }
+    },
+
+
+    /**
+      Schedules session invalidation at the time token expires.
+       @method scheduleAccessTokenExpiration
+    */
+    scheduleAccessTokenExpiration: function scheduleAccessTokenExpiration(expiresAt) {
+      var now = this.getCurrentTime();
+      var wait = Math.max((expiresAt - now) * 1000, 0);
+
+      if (!Ember.isEmpty(expiresAt)) {
+        Ember.run.cancel(this._tokenExpirationTimeout);
+        delete this._tokenExpirationTimeout;
+        this._tokenExpirationTimeout = Ember.run.later(this, this.handleAccessTokenExpiration, wait);
+      }
+    },
+
+
+    /**
+      Handles access token expiration
+       @method handleAccessTokenExpiration
+    */
+    handleAccessTokenExpiration: function handleAccessTokenExpiration() {
+      var _this5 = this;
+
+      return this.invalidate().then(function () {
+        _this5.trigger('sessionDataInvalidated');
+      });
+    }
+  });
+});
+;define('ember-simple-auth-token/authenticators/token', ['exports', 'fetch', 'ember-simple-auth/authenticators/base', 'ember-get-config'], function (exports, _fetch, _base, _emberGetConfig) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = _base.default.extend({
+    /**
+      @method init
+    */
+    init: function init() {
+      this._super.apply(this, arguments);
+      var conf = _emberGetConfig.default['ember-simple-auth-token'] || {};
+      this.serverTokenEndpoint = conf.serverTokenEndpoint || '/api/token-auth/';
+      this.tokenPropertyName = conf.tokenPropertyName || 'token';
+      this.headers = conf.headers || {};
+    },
+
+
+    /**
+      Restores the session from a set of session properties; __will return a resolving promise when there's a non-empty `token` in the `properties`__ and a rejecting promise otherwise.
+       @method restore
+      @param {Object} properties The properties to restore the session from
+      @return {Promise} A promise that when it resolves results in the session being authenticated
+    */
+    restore: function restore(properties) {
+      var _this = this;
+
+      var propertiesObject = Ember.Object.create(properties);
+
+      return new Ember.RSVP.Promise(function (resolve, reject) {
+        if (!Ember.isEmpty(propertiesObject.get(_this.tokenPropertyName))) {
+          return resolve(properties);
+        } else {
+          return reject();
+        }
+      });
+    },
+
+
+    /**
+      Authenticates the session with the specified `credentials`; the credentials are `POST`ed to the [`Authenticators.Token#serverTokenEndpoint`](#SimpleAuth-Authenticators-Token-serverTokenEndpoint) and if they are valid the server returns an auth token in response. __If the credentials are valid and authentication succeeds, a promise that resolves with the server's response is returned__, otherwise a promise that rejects with the server error is returned.
+       @method authenticate
+      @param {Object} credentials The credentials to authenticate the session with
+      @param {Object} headers Optional headers to send with the authentication request
+      @return {Promise} A promise that resolves when an auth token is successfully acquired from the server and rejects otherwise
+    */
+    authenticate: function authenticate(credentials, headers) {
+      return this.makeRequest(this.serverTokenEndpoint, credentials, Ember.assign({}, this.headers, headers)).then(function (response) {
+        return response.json;
+      });
+    },
+
+
+    /**
+      Does nothing
+       @method invalidate
+      @return {Promise} A resolving promise
+    */
+    invalidate: function invalidate() {
+      return Ember.RSVP.resolve();
+    },
+
+
+    /**
+      @method makeRequest
+      @param {Object} url Server endpoint
+      @param {Object} data Object that will be sent to server
+      @param {Object} headers Additional headers that will be sent to server
+    */
+    makeRequest: function makeRequest(url, data, headers) {
+      return (0, _fetch.default)(url, {
+        method: 'POST',
+        headers: Ember.assign({
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }, headers),
+        body: JSON.stringify(data)
+      }).then(function (response) {
+        var res = {
+          statusText: response.statusText,
+          status: response.status,
+          headers: response.headers
+        };
+
+        return response.text().then(function (text) {
+          res.text = text;
+          try {
+            res.json = JSON.parse(text);
+          } catch (e) {
+            return Ember.RSVP.reject(res);
+          }
+
+          if (response.ok) {
+            return res;
+          } else {
+            return Ember.RSVP.reject(res);
+          }
+        }).catch(function () {
+          return Ember.RSVP.reject(res);
+        });
+      });
+    }
+  });
+});
+;define('ember-simple-auth-token/mixins/token-authorizer', ['exports', 'ember-simple-auth/mixins/data-adapter-mixin', 'ember-get-config'], function (exports, _dataAdapterMixin, _emberGetConfig) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = Ember.Mixin.create(_dataAdapterMixin.default, {
+    session: Ember.inject.service('session'),
+
+    /**
+      @method init
+    */
+    init: function init() {
+      this._super.apply(this, arguments);
+      var conf = _emberGetConfig.default['ember-simple-auth-token'] || {};
+      this.tokenPropertyName = conf.tokenPropertyName || 'token';
+      this.authorizationHeaderName = conf.authorizationHeaderName || 'Authorization';
+      this.authorizationPrefix = conf.authorizationPrefix === '' ? '' : conf.authorizationPrefix || 'Bearer ';
+    },
+
+
+    /**
+      Authorizes an XHR request by sending the `token` properties from the session in the `Authorization` header:
+       ```
+      Authorization: Bearer <token>
+      ```
+       @method authorize
+      @param {XMLHttpRequest} xhr
+    */
+    authorize: function authorize(xhr) {
+      var data = Ember.get(this, 'session.data.authenticated');
+      var token = Ember.get(data, this.get('tokenPropertyName'));
+      var prefix = this.get('authorizationPrefix');
+      var header = this.get('authorizationHeaderName');
+
+      if (this.get('session.isAuthenticated') && !Ember.isEmpty(token)) {
+        xhr.setRequestHeader(header, prefix + token);
+      }
+    }
+  });
+});
+;define('ember-simple-auth/authenticators/base', ['exports'], function (exports) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = Ember.Object.extend(Ember.Evented, {
+    /**
+      __Triggered when the authentication data is updated by the authenticator
+      due to an external or scheduled event__. This might happen, e.g., if the
+      authenticator refreshes an expired token or an event is triggered from an
+      external authentication provider that the authenticator uses. The session
+      handles that event, passes the updated data back to the authenticator's
+      {{#crossLink "BaseAuthenticator/restore:method"}}{{/crossLink}}
+      method and handles the result of that invocation accordingly.
+       @event sessionDataUpdated
+      @param {Object} data The updated session data
+      @public
+    */
+
+    /**
+      __Triggered when the authentication data is invalidated by the authenticator
+      due to an external or scheduled event__. This might happen, e.g., if a token
+      expires or an event is triggered from an external authentication provider
+      that the authenticator uses. The session handles the event and will
+      invalidate itself when it is triggered.
+       @event sessionDataInvalidated
+      @public
+    */
+
+    /**
+      Restores the session from a session data object. __This method is invoked
+      by the session either on application startup if session data is restored
+      from the session store__ or when properties in the store change due to
+      external events (e.g. in another tab) and the new session data needs to be
+      validated for whether it constitutes an authenticated session.
+       __This method returns a promise. A resolving promise results in the session
+      becoming or remaining authenticated.__ Any data the promise resolves with
+      will be saved in and accessible via the session service's
+      `data.authenticated` property (see
+      {{#crossLink "SessionService/data:property"}}{{/crossLink}}). A rejecting
+      promise indicates that `data` does not constitute a valid session and will
+      result in the session being invalidated or remaining unauthenticated.
+       The `BaseAuthenticator`'s implementation always returns a rejecting
+      promise. __This method must be overridden in subclasses.__
+       @method restore
+      @param {Object} data The data to restore the session from
+      @return {Ember.RSVP.Promise} A promise that when it resolves results in the session becoming or remaining authenticated
+      @public
+    */
+    restore: function restore() {
+      return Ember.RSVP.reject();
+    },
+
+
+    /**
+      Authenticates the session with the specified `args`. These options vary
+      depending on the actual authentication mechanism the authenticator
+      implements (e.g. a set of credentials or a Facebook account id etc.). __The
+      session will invoke this method in order to authenticate itself__ (see
+      {{#crossLink "SessionService/authenticate:method"}}{{/crossLink}}).
+       __This method returns a promise. A resolving promise will result in the
+      session becoming authenticated.__ Any data the promise resolves with will
+      be saved in and accessible via the session service's `data.authenticated`
+      property (see {{#crossLink "SessionService/data:property"}}{{/crossLink}}).
+      A rejecting promise indicates that authentication failed and will result in
+      the session remaining unauthenticated.
+       The `BaseAuthenticator`'s implementation always returns a rejecting promise
+      and thus never authenticates the session. __This method must be overridden
+      in subclasses__.
+       @method authenticate
+      @param {Any} [...args] The arguments that the authenticator requires to authenticate the session
+      @return {Ember.RSVP.Promise} A promise that when it resolves results in the session becoming authenticated
+      @public
+    */
+    authenticate: function authenticate() {
+      return Ember.RSVP.reject();
+    },
+
+
+    /**
+      This method is invoked as a callback when the session is invalidated. While
+      the session will invalidate itself and clear all authenticated session data,
+      it might be necessary for some authenticators to perform additional tasks
+      (e.g. invalidating an access token on the server side).
+       __This method returns a promise. A resolving promise will result in the
+      session becoming unauthenticated.__ A rejecting promise will result in
+      invalidation being intercepted and the session remaining authenticated.
+       The `BaseAuthenticator`'s implementation always returns a resolving promise
+      and thus never intercepts session invalidation. __This method doesn't have
+      to be overridden in custom authenticators__ if no actions need to be
+      performed on session invalidation.
+       @method invalidate
+      @param {Object} data The current authenticated session data
+      @param {Array} ...args additional arguments as required by the authenticator
+      @return {Ember.RSVP.Promise} A promise that when it resolves results in the session being invalidated
+      @public
+    */
+    invalidate: function invalidate() {
+      return Ember.RSVP.resolve();
+    }
+  });
+});
+;define('ember-simple-auth/authenticators/devise', ['exports', 'ember-simple-auth/authenticators/base', 'fetch'], function (exports, _base, _fetch) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+
+  var assign = Ember.assign || Ember.merge;
+
+  var JSON_CONTENT_TYPE = 'application/json';
+
+  /**
+    Authenticator that works with the Ruby gem
+    [devise](https://github.com/plataformatec/devise).
+  
+    __As token authentication is not actually part of devise anymore, the server
+    needs to implement some customizations__ to work with this authenticator -
+    see [this gist](https://gist.github.com/josevalim/fb706b1e933ef01e4fb6).
+  
+    @class DeviseAuthenticator
+    @module ember-simple-auth/authenticators/devise
+    @extends BaseAuthenticator
+    @public
+  */
+  exports.default = _base.default.extend({
+    /**
+      The endpoint on the server that the authentication request is sent to.
+       @property serverTokenEndpoint
+      @type String
+      @default '/users/sign_in'
+      @public
+    */
+    serverTokenEndpoint: '/users/sign_in',
+
+    /**
+      The devise resource name. __This will be used in the request and also be
+      expected in the server's response.__
+       @property resourceName
+      @type String
+      @default 'user'
+      @public
+    */
+    resourceName: 'user',
+
+    /**
+      The token attribute name. __This will be used in the request and also be
+      expected in the server's response.__
+       @property tokenAttributeName
+      @type String
+      @default 'token'
+      @public
+    */
+    tokenAttributeName: 'token',
+
+    /**
+      The identification attribute name. __This will be used in the request and
+      also be expected in the server's response.__
+       @property identificationAttributeName
+      @type String
+      @default 'email'
+      @public
+    */
+    identificationAttributeName: 'email',
+
+    /**
+      When authentication fails, the rejection callback is provided with the whole
+      Fetch API [Response](https://fetch.spec.whatwg.org/#response-class) object
+      instead of its responseJSON or responseText.
+       This is useful for cases when the backend provides additional context not
+      available in the response body.
+       @property rejectWithXhr
+      @type Boolean
+      @default false
+      @deprecated DeviseAuthenticator/rejectWithResponse:property
+      @public
+    */
+    rejectWithXhr: Ember.computed.deprecatingAlias('rejectWithResponse', {
+      id: 'ember-simple-auth.authenticator.reject-with-xhr',
+      until: '2.0.0'
+    }),
+
+    /**
+      When authentication fails, the rejection callback is provided with the whole
+      Fetch API [Response](https://fetch.spec.whatwg.org/#response-class) object
+      instead of its responseJSON or responseText.
+       This is useful for cases when the backend provides additional context not
+      available in the response body.
+       @property rejectWithResponse
+      @type Boolean
+      @default false
+      @public
+    */
+    rejectWithResponse: false,
+
+    /**
+      Restores the session from a session data object; __returns a resolving
+      promise when there are non-empty
+      {{#crossLink "DeviseAuthenticator/tokenAttributeName:property"}}token{{/crossLink}}
+      and
+      {{#crossLink "DeviseAuthenticator/identificationAttributeName:property"}}identification{{/crossLink}}
+      values in `data`__ and a rejecting promise otherwise.
+       @method restore
+      @param {Object} data The data to restore the session from
+      @return {Ember.RSVP.Promise} A promise that when it resolves results in the session becoming or remaining authenticated
+      @public
+    */
+    restore: function restore(data) {
+      // eslint-disable-next-line prefer-promise-reject-errors
+      return this._validate(data) ? Ember.RSVP.Promise.resolve(data) : Ember.RSVP.Promise.reject();
+    },
+
+
+    /**
+      Authenticates the session with the specified `identification` and
+      `password`; the credentials are `POST`ed to the
+      {{#crossLink "DeviseAuthenticator/serverTokenEndpoint:property"}}server{{/crossLink}}.
+      If the credentials are valid the server will responds with a
+      {{#crossLink "DeviseAuthenticator/tokenAttributeName:property"}}token{{/crossLink}}
+      and
+      {{#crossLink "DeviseAuthenticator/identificationAttributeName:property"}}identification{{/crossLink}}.
+      __If the credentials are valid and authentication succeeds, a promise that
+      resolves with the server's response is returned__, otherwise a promise that
+      rejects with the server error is returned.
+       @method authenticate
+      @param {String} identification The user's identification
+      @param {String} password The user's password
+      @return {Ember.RSVP.Promise} A promise that when it resolves results in the session becoming authenticated
+      @public
+    */
+    authenticate: function authenticate(identification, password) {
+      var _this = this;
+
+      return new Ember.RSVP.Promise(function (resolve, reject) {
+        var useResponse = _this.get('rejectWithResponse');
+
+        var _getProperties = _this.getProperties('resourceName', 'identificationAttributeName', 'tokenAttributeName'),
+            resourceName = _getProperties.resourceName,
+            identificationAttributeName = _getProperties.identificationAttributeName,
+            tokenAttributeName = _getProperties.tokenAttributeName;
+
+        var data = {};
+        data[resourceName] = { password: password };
+        data[resourceName][identificationAttributeName] = identification;
+
+        _this.makeRequest(data).then(function (response) {
+          if (response.ok) {
+            response.json().then(function (json) {
+              if (_this._validate(json)) {
+                var _resourceName = _this.get('resourceName');
+                var _json = json[_resourceName] ? json[_resourceName] : json;
+                Ember.run(null, resolve, _json);
+              } else {
+                Ember.run(null, reject, 'Check that server response includes ' + tokenAttributeName + ' and ' + identificationAttributeName);
+              }
+            });
+          } else {
+            if (useResponse) {
+              Ember.run(null, reject, response);
+            } else {
+              response.json().then(function (json) {
+                return Ember.run(null, reject, json);
+              });
+            }
+          }
+        }).catch(function (error) {
+          return Ember.run(null, reject, error);
+        });
+      });
+    },
+
+
+    /**
+      Does nothing
+       @method invalidate
+      @return {Ember.RSVP.Promise} A resolving promise
+      @public
+    */
+    invalidate: function invalidate() {
+      return Ember.RSVP.Promise.resolve();
+    },
+
+
+    /**
+      Makes a request to the Devise server using
+      [ember-fetch](https://github.com/stefanpenner/ember-fetch).
+       @method makeRequest
+      @param {Object} data The request data
+      @param {Object} options request options that are passed to `fetch`
+      @return {Promise} The promise returned by `fetch`
+      @protected
+    */
+    makeRequest: function makeRequest(data) {
+      var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+      var url = options.url || this.get('serverTokenEndpoint');
+      var requestOptions = {};
+      var body = JSON.stringify(data);
+      assign(requestOptions, {
+        body: body,
+        method: 'POST',
+        headers: {
+          'accept': JSON_CONTENT_TYPE,
+          'content-type': JSON_CONTENT_TYPE
+        }
+      });
+      assign(requestOptions, options || {});
+
+      return (0, _fetch.default)(url, requestOptions);
+    },
+    _validate: function _validate(data) {
+      var tokenAttributeName = this.get('tokenAttributeName');
+      var identificationAttributeName = this.get('identificationAttributeName');
+      var resourceName = this.get('resourceName');
+      var _data = data[resourceName] ? data[resourceName] : data;
+
+      return !Ember.isEmpty(_data[tokenAttributeName]) && !Ember.isEmpty(_data[identificationAttributeName]);
+    }
+  });
+});
+;define('ember-simple-auth/authenticators/oauth2-implicit-grant', ['exports', 'ember-simple-auth/authenticators/base'], function (exports, _base) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = _base.default.extend({
+    /**
+     Restores the session from a session data object; __will return a resolving
+     promise when there is a non-empty `access_token` in the session data__ and
+     a rejecting promise otherwise.
+      @method restore
+     @param {Object} data The data to restore the session from
+     @return {Ember.RSVP.Promise} A promise that when it resolves results in the session becoming or remaining authenticated
+     @public
+     */
+    restore: function restore(data) {
+      var _this = this;
+
+      return new Ember.RSVP.Promise(function (resolve, reject) {
+        if (!_this._validateData(data)) {
+          return reject('Could not restore session - "access_token" missing.');
+        }
+
+        return resolve(data);
+      });
+    },
+
+
+    /**
+     Authenticates the session using the specified location `hash`
+     (see https://tools.ietf.org/html/rfc6749#section-4.2.2).
+      __If the access token is valid and thus authentication succeeds, a promise that
+     resolves with the access token is returned__, otherwise a promise that rejects
+     with the error code as returned by the server is returned
+     (see https://tools.ietf.org/html/rfc6749#section-4.2.2.1).
+      @method authenticate
+     @param {Object} hash The location hash
+     @return {Ember.RSVP.Promise} A promise that when it resolves results in the session becoming authenticated
+     @public
+     */
+    authenticate: function authenticate(hash) {
+      var _this2 = this;
+
+      return new Ember.RSVP.Promise(function (resolve, reject) {
+        if (hash.error) {
+          reject(hash.error);
+        } else if (!_this2._validateData(hash)) {
+          reject('Invalid auth params - "access_token" missing.');
+        } else {
+          resolve(hash);
+        }
+      });
+    },
+
+
+    /**
+     This method simply returns a resolving promise.
+      @method invalidate
+     @return {Ember.RSVP.Promise} A promise that when it resolves results in the session being invalidated
+     @public
+     */
+    invalidate: function invalidate() {
+      return Ember.RSVP.Promise.resolve();
+    },
+    _validateData: function _validateData(data) {
+      // see https://tools.ietf.org/html/rfc6749#section-4.2.2
+
+      return !Ember.isEmpty(data) && !Ember.isEmpty(data.access_token);
+    }
+  });
+});
+;define('ember-simple-auth/authenticators/oauth2-password-grant', ['exports', 'ember-simple-auth/authenticators/base', 'fetch'], function (exports, _base, _fetch) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+
+  var assign = Ember.assign || Ember.merge;
+  var keys = Object.keys || Ember.keys; // Ember.keys deprecated in 1.13
+
+  /**
+    Authenticator that conforms to OAuth 2
+    ([RFC 6749](http://tools.ietf.org/html/rfc6749)), specifically the _"Resource
+    Owner Password Credentials Grant Type"_.
+  
+    This authenticator also automatically refreshes access tokens (see
+    [RFC 6749, section 6](http://tools.ietf.org/html/rfc6749#section-6)) if the
+    server supports it.
+  
+    @class OAuth2PasswordGrantAuthenticator
+    @module ember-simple-auth/authenticators/oauth2-password-grant
+    @extends BaseAuthenticator
+    @public
+  */
+  exports.default = _base.default.extend({
+    /**
+      Triggered when the authenticator refreshed the access token (see
+      [RFC 6749, section 6](http://tools.ietf.org/html/rfc6749#section-6)).
+       @event sessionDataUpdated
+      @param {Object} data The updated session data
+      @public
+    */
+
+    /**
+      The client_id to be sent to the authentication server (see
+      https://tools.ietf.org/html/rfc6749#appendix-A.1). __This should only be
+      used for statistics or logging etc. as it cannot actually be trusted since
+      it could have been manipulated on the client!__
+       @property clientId
+      @type String
+      @default null
+      @public
+    */
+    clientId: null,
+
+    /**
+     The OAuth2 standard is to send the client_id as a query parameter. This is a
+     feature flag that turns on the correct behavior for OAuth2 requests.
+      @property sendClientIdAsQueryParam
+     @type Boolean
+     @default false
+     @public
+    */
+    sendClientIdAsQueryParam: false,
+
+    /**
+      The endpoint on the server that authentication and token refresh requests
+      are sent to.
+       @property serverTokenEndpoint
+      @type String
+      @default '/token'
+      @public
+    */
+    serverTokenEndpoint: '/token',
+
+    /**
+      The endpoint on the server that token revocation requests are sent to. Only
+      set this if the server actually supports token revocation. If this is
+      `null`, the authenticator will not revoke tokens on session invalidation.
+       __If token revocation is enabled but fails, session invalidation will be
+      intercepted and the session will remain authenticated (see
+      {{#crossLink "OAuth2PasswordGrantAuthenticator/invalidate:method"}}{{/crossLink}}).__
+       @property serverTokenRevocationEndpoint
+      @type String
+      @default null
+      @public
+    */
+    serverTokenRevocationEndpoint: null,
+
+    /**
+      Sets whether the authenticator automatically refreshes access tokens if the
+      server supports it.
+       @property refreshAccessTokens
+      @type Boolean
+      @default true
+      @public
+    */
+    refreshAccessTokens: true,
+
+    /**
+      The offset time in milliseconds to refresh the access token. This must
+      return a random number. This randomization is needed because in case of
+      multiple tabs, we need to prevent the tabs from sending refresh token
+      request at the same exact moment.
+       __When overriding this property, make sure to mark the overridden property
+      as volatile so it will actually have a different value each time it is
+      accessed.__
+       @property tokenRefreshOffset
+      @type Integer
+      @default a random number between 5 and 10
+      @public
+    */
+    get tokenRefreshOffset() {
+      var min = 5;
+      var max = 10;
+
+      return (Math.floor(Math.random() * (max - min)) + min) * 1000;
+    },
+
+    _refreshTokenTimeout: null,
+
+    _clientIdHeader: Ember.computed('clientId', function () {
+      var clientId = this.get('clientId');
+      if (!Ember.isEmpty(clientId)) {
+        var base64ClientId = window.base64.encode(clientId.concat(':'));
+        return { Authorization: 'Basic ' + base64ClientId };
+      }
+    }),
+
+    /**
+      When authentication fails, the rejection callback is provided with the whole
+      Fetch API [Response](https://fetch.spec.whatwg.org/#response-class) object
+      instead of its responseJSON or responseText.
+       This is useful for cases when the backend provides additional context not
+      available in the response body.
+       @property rejectWithXhr
+      @type Boolean
+      @default false
+      @deprecated OAuth2PasswordGrantAuthenticator/rejectWithResponse:property
+      @public
+    */
+    rejectWithXhr: Ember.computed.deprecatingAlias('rejectWithResponse', {
+      id: 'ember-simple-auth.authenticator.reject-with-xhr',
+      until: '2.0.0'
+    }),
+
+    /**
+      When authentication fails, the rejection callback is provided with the whole
+      Fetch API [Response](https://fetch.spec.whatwg.org/#response-class) object
+      instead of its responseJSON or responseText.
+       This is useful for cases when the backend provides additional context not
+      available in the response body.
+       @property rejectWithResponse
+      @type Boolean
+      @default false
+      @public
+    */
+    rejectWithResponse: false,
+
+    /**
+      Restores the session from a session data object; __will return a resolving
+      promise when there is a non-empty `access_token` in the session data__ and
+      a rejecting promise otherwise.
+       If the server issues
+      [expiring access tokens](https://tools.ietf.org/html/rfc6749#section-5.1)
+      and there is an expired access token in the session data along with a
+      refresh token, the authenticator will try to refresh the access token and
+      return a promise that resolves with the new access token if the refresh was
+      successful. If there is no refresh token or the token refresh is not
+      successful, a rejecting promise will be returned.
+       @method restore
+      @param {Object} data The data to restore the session from
+      @return {Ember.RSVP.Promise} A promise that when it resolves results in the session becoming or remaining authenticated
+      @public
+    */
+    restore: function restore(data) {
+      var _this = this;
+
+      return new Ember.RSVP.Promise(function (resolve, reject) {
+        var now = new Date().getTime();
+        var refreshAccessTokens = _this.get('refreshAccessTokens');
+        if (!Ember.isEmpty(data['expires_at']) && data['expires_at'] < now) {
+          if (refreshAccessTokens) {
+            _this._refreshAccessToken(data['expires_in'], data['refresh_token']).then(resolve, reject);
+          } else {
+            reject();
+          }
+        } else {
+          if (!_this._validate(data)) {
+            reject();
+          } else {
+            _this._scheduleAccessTokenRefresh(data['expires_in'], data['expires_at'], data['refresh_token']);
+            resolve(data);
+          }
+        }
+      });
+    },
+
+
+    /**
+      Authenticates the session with the specified `identification`, `password`
+      and optional `scope`; issues a `POST` request to the
+      {{#crossLink "OAuth2PasswordGrantAuthenticator/serverTokenEndpoint:property"}}{{/crossLink}}
+      and receives the access token in response (see
+      http://tools.ietf.org/html/rfc6749#section-4.3).
+       __If the credentials are valid (and the optionally requested scope is
+      granted) and thus authentication succeeds, a promise that resolves with the
+      server's response is returned__, otherwise a promise that rejects with the
+      error as returned by the server is returned.
+       __If the
+      [server supports it](https://tools.ietf.org/html/rfc6749#section-5.1), this
+      method also schedules refresh requests for the access token before it
+      expires.__
+       The server responses are expected to look as defined in the spec (see
+      http://tools.ietf.org/html/rfc6749#section-5). The response to a successful
+      authentication request should be:
+       ```json
+      HTTP/1.1 200 OK
+      Content-Type: application/json;charset=UTF-8
+       {
+        "access_token":"2YotnFZFEjr1zCsicMWpAA",
+        "token_type":"bearer",
+        "expires_in":3600, // optional
+        "refresh_token":"tGzv3JOkF0XG5Qx2TlKWIA" // optional
+      }
+      ```
+       The response for a failing authentication request should be:
+       ```json
+      HTTP/1.1 400 Bad Request
+      Content-Type: application/json;charset=UTF-8
+       {
+        "error":"invalid_grant"
+      }
+      ```
+       A full list of error codes can be found
+      [here](https://tools.ietf.org/html/rfc6749#section-5.2).
+       @method authenticate
+      @param {String} identification The resource owner username
+      @param {String} password The resource owner password
+      @param {String|Array} scope The scope of the access request (see [RFC 6749, section 3.3](http://tools.ietf.org/html/rfc6749#section-3.3))
+      @param {Object} headers Optional headers that particular backends may require (for example sending 2FA challenge responses)
+      @return {Ember.RSVP.Promise} A promise that when it resolves results in the session becoming authenticated
+      @public
+    */
+    authenticate: function authenticate(identification, password) {
+      var _this2 = this;
+
+      var scope = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [];
+      var headers = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
+
+      if (!this.get('sendClientIdAsQueryParam')) {
+        Ember.deprecate('Ember Simple Auth: Client ID as Authorization Header is deprecated in favour of Client ID as Query String Parameter.', false, {
+          id: 'ember-simple-auth.oauth2-password-grant-authenticator.client-id-as-authorization',
+          until: '2.0.0',
+          url: 'https://github.com/simplabs/ember-simple-auth#deprecation-of-client-id-as-header'
+        });
+      }
+
+      return new Ember.RSVP.Promise(function (resolve, reject) {
+        var data = { 'grant_type': 'password', username: identification, password: password };
+        var serverTokenEndpoint = _this2.get('serverTokenEndpoint');
+        var useResponse = _this2.get('rejectWithResponse');
+        var scopesString = Ember.makeArray(scope).join(' ');
+        if (!Ember.isEmpty(scopesString)) {
+          data.scope = scopesString;
+        }
+        _this2.makeRequest(serverTokenEndpoint, data, headers).then(function (response) {
+          Ember.run(function () {
+            if (!_this2._validate(response)) {
+              reject('access_token is missing in server response');
+            }
+
+            var expiresAt = _this2._absolutizeExpirationTime(response['expires_in']);
+            _this2._scheduleAccessTokenRefresh(response['expires_in'], expiresAt, response['refresh_token']);
+            if (!Ember.isEmpty(expiresAt)) {
+              response = assign(response, { 'expires_at': expiresAt });
+            }
+
+            resolve(response);
+          });
+        }, function (response) {
+          Ember.run(null, reject, useResponse ? response : response.responseJSON || response.responseText);
+        });
+      });
+    },
+
+
+    /**
+      If token revocation is enabled, this will revoke the access token (and the
+      refresh token if present). If token revocation succeeds, this method
+      returns a resolving promise, otherwise it will return a rejecting promise,
+      thus intercepting session invalidation.
+       If token revocation is not enabled this method simply returns a resolving
+      promise.
+       @method invalidate
+      @param {Object} data The current authenticated session data
+      @return {Ember.RSVP.Promise} A promise that when it resolves results in the session being invalidated
+      @public
+    */
+    invalidate: function invalidate(data) {
+      var _this3 = this;
+
+      var serverTokenRevocationEndpoint = this.get('serverTokenRevocationEndpoint');
+      function success(resolve) {
+        Ember.run.cancel(this._refreshTokenTimeout);
+        delete this._refreshTokenTimeout;
+        resolve();
+      }
+      return new Ember.RSVP.Promise(function (resolve) {
+        if (Ember.isEmpty(serverTokenRevocationEndpoint)) {
+          success.apply(_this3, [resolve]);
+        } else {
+          var requests = [];
+          Ember.A(['access_token', 'refresh_token']).forEach(function (tokenType) {
+            var token = data[tokenType];
+            if (!Ember.isEmpty(token)) {
+              requests.push(_this3.makeRequest(serverTokenRevocationEndpoint, {
+                'token_type_hint': tokenType, token: token
+              }));
+            }
+          });
+          var succeed = function succeed() {
+            success.apply(_this3, [resolve]);
+          };
+          Ember.RSVP.all(requests).then(succeed, succeed);
+        }
+      });
+    },
+
+
+    /**
+      Makes a request to the OAuth 2.0 server.
+       @method makeRequest
+      @param {String} url The request URL
+      @param {Object} data The request data
+      @param {Object} headers Additional headers to send in request
+      @return {Promise} A promise that resolves with the response object
+      @protected
+    */
+    makeRequest: function makeRequest(url, data) {
+      var headers = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
+      headers['Content-Type'] = 'application/x-www-form-urlencoded';
+
+      if (this.get('sendClientIdAsQueryParam')) {
+        var clientId = this.get('clientId');
+        if (!Ember.isEmpty(clientId)) {
+          data['client_id'] = this.get('clientId');
+        }
+      }
+
+      var body = keys(data).map(function (key) {
+        return encodeURIComponent(key) + '=' + encodeURIComponent(data[key]);
+      }).join('&');
+
+      var options = {
+        body: body,
+        headers: headers,
+        method: 'POST'
+      };
+
+      if (!this.get('sendClientIdAsQueryParam')) {
+        var clientIdHeader = this.get('_clientIdHeader');
+        if (!Ember.isEmpty(clientIdHeader)) {
+          assign(options.headers, clientIdHeader);
+        }
+      }
+
+      return new Ember.RSVP.Promise(function (resolve, reject) {
+        (0, _fetch.default)(url, options).then(function (response) {
+          response.text().then(function (text) {
+            try {
+              var json = JSON.parse(text);
+              if (!response.ok) {
+                response.responseJSON = json;
+                reject(response);
+              } else {
+                resolve(json);
+              }
+            } catch (SyntaxError) {
+              response.responseText = text;
+              reject(response);
+            }
+          });
+        }).catch(reject);
+      });
+    },
+    _scheduleAccessTokenRefresh: function _scheduleAccessTokenRefresh(expiresIn, expiresAt, refreshToken) {
+      var refreshAccessTokens = this.get('refreshAccessTokens');
+      if (refreshAccessTokens) {
+        var now = new Date().getTime();
+        if (Ember.isEmpty(expiresAt) && !Ember.isEmpty(expiresIn)) {
+          expiresAt = new Date(now + expiresIn * 1000).getTime();
+        }
+        var offset = this.get('tokenRefreshOffset');
+        if (!Ember.isEmpty(refreshToken) && !Ember.isEmpty(expiresAt) && expiresAt > now - offset) {
+          Ember.run.cancel(this._refreshTokenTimeout);
+          delete this._refreshTokenTimeout;
+          if (!Ember.testing) {
+            this._refreshTokenTimeout = Ember.run.later(this, this._refreshAccessToken, expiresIn, refreshToken, expiresAt - now - offset);
+          }
+        }
+      }
+    },
+    _refreshAccessToken: function _refreshAccessToken(expiresIn, refreshToken) {
+      var _this4 = this;
+
+      var data = { 'grant_type': 'refresh_token', 'refresh_token': refreshToken };
+      var serverTokenEndpoint = this.get('serverTokenEndpoint');
+      return new Ember.RSVP.Promise(function (resolve, reject) {
+        _this4.makeRequest(serverTokenEndpoint, data).then(function (response) {
+          Ember.run(function () {
+            expiresIn = response['expires_in'] || expiresIn;
+            refreshToken = response['refresh_token'] || refreshToken;
+            var expiresAt = _this4._absolutizeExpirationTime(expiresIn);
+            var data = assign(response, { 'expires_in': expiresIn, 'expires_at': expiresAt, 'refresh_token': refreshToken });
+            _this4._scheduleAccessTokenRefresh(expiresIn, null, refreshToken);
+            _this4.trigger('sessionDataUpdated', data);
+            resolve(data);
+          });
+        }, function (response) {
+          (true && Ember.warn('Access token could not be refreshed - server responded with ' + response.responseJSON + '.', false, { id: 'ember-simple-auth.failedOAuth2TokenRefresh' }));
+
+          reject();
+        });
+      });
+    },
+    _absolutizeExpirationTime: function _absolutizeExpirationTime(expiresIn) {
+      if (!Ember.isEmpty(expiresIn)) {
+        return new Date(new Date().getTime() + expiresIn * 1000).getTime();
+      }
+    },
+    _validate: function _validate(data) {
+      return !Ember.isEmpty(data['access_token']);
+    }
+  });
+});
+;define('ember-simple-auth/authenticators/test', ['exports', 'ember-simple-auth/authenticators/base'], function (exports, _base) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = _base.default.extend({
+    restore: function restore(data) {
+      return Ember.RSVP.resolve(data);
+    },
+    authenticate: function authenticate(data) {
+      return Ember.RSVP.resolve(data);
+    },
+    invalidate: function invalidate() {
+      return Ember.RSVP.resolve();
+    }
+  });
+});
+;define('ember-simple-auth/authenticators/torii', ['exports', 'ember-simple-auth/authenticators/base'], function (exports, _base) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = _base.default.extend({
+    _provider: null,
+
+    /**
+      Restores the session by calling the torii provider's `fetch` method.
+       __Many torii providers do not implement the `fetch` method__. If the
+      provider in use does not implement the method simply add it as follows:
+       ```js
+      // app/torii-providers/facebook.js
+      import FacebookOauth2Provider from 'torii/providers/facebook-oauth2';
+       export default FacebookOauth2Provider.extend({
+        fetch(data) {
+          return data;
+        }
+      });
+      ```
+       @method restore
+      @param {Object} data The data to restore the session from
+      @return {Ember.RSVP.Promise} A promise that when it resolves results in the session becoming or remaining authenticated
+      @public
+    */
+    restore: function restore(data) {
+      var _this = this;
+
+      this._assertToriiIsPresent();
+
+      data = data || {};
+      if (!Ember.isEmpty(data.provider)) {
+        var _data = data,
+            provider = _data.provider;
+
+
+        return this.get('torii').fetch(data.provider, data).then(function (fetchedData) {
+          _this._authenticateWithProvider(provider, fetchedData);
+          return Ember.assign(data, fetchedData);
+        }, function (err) {
+          delete _this._provider;
+          throw err;
+        });
+      } else {
+        delete this._provider;
+        return Ember.RSVP.reject();
+      }
+    },
+
+
+    /**
+      Authenticates the session by opening the specified torii provider. For more
+      documentation on torii and its providers abstraction, see the
+      [project's README](https://github.com/Vestorly/torii#readme), specifically
+      the
+      [section on providers](https://github.com/Vestorly/torii#configuring-a-torii-provider).
+       @method authenticate
+      @param {String} provider The torii provider to authenticate the session with
+      @param {Object} options The options to pass to the torii provider
+      @return {Ember.RSVP.Promise} A promise that when it resolves results in the session becoming authenticated
+      @public
+    */
+    authenticate: function authenticate(provider, options) {
+      var _this2 = this;
+
+      this._assertToriiIsPresent();
+
+      return this.get('torii').open(provider, options || {}).then(function (data) {
+        _this2._authenticateWithProvider(provider, data);
+        return data;
+      });
+    },
+
+
+    /**
+      Closes the torii provider. If the provider is successfully closed, this
+      method returns a resolving promise, otherwise it will return a rejecting
+      promise, thus intercepting session invalidation.
+       @method invalidate
+      @return {Ember.RSVP.Promise} A promise that when it resolves results in the session being invalidated
+      @public
+    */
+    invalidate: function invalidate(data) {
+      var _this3 = this;
+
+      return this.get('torii').close(this._provider, data).then(function () {
+        delete _this3._provider;
+      });
+    },
+    _authenticateWithProvider: function _authenticateWithProvider(provider, data) {
+      data.provider = provider;
+      this._provider = data.provider;
+    },
+    _assertToriiIsPresent: function _assertToriiIsPresent() {
+      var torii = this.get('torii');
+      (true && !(Ember.isPresent(torii)) && Ember.assert('You are trying to use the torii authenticator but torii is not available. Inject torii into the authenticator with "torii: Ember.inject.service()".', Ember.isPresent(torii)));
+    }
+  });
+});
+;define('ember-simple-auth/authorizers/base', ['exports'], function (exports) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = Ember.Object.extend({
+    init: function init() {
+      this._super.apply(this, arguments);
+      Ember.deprecate('Ember Simple Auth: Authorizers are deprecated in favour of setting headers directly.', false, {
+        id: 'ember-simple-auth.baseAuthorizer',
+        until: '2.0.0',
+        url: 'https://github.com/simplabs/ember-simple-auth#deprecation-of-authorizers'
+      });
+    },
+
+    /**
+      Authorizes a block of code. This method will be invoked by the session
+      service's {{#crossLink "SessionService/authorize:method"}}{{/crossLink}}
+      method which will pass the current authenticated session data (see
+      {{#crossLink "SessionService/data:property"}}{{/crossLink}}) and a block.
+      Depending on the mechanism it implements, the authorizer transforms the
+      session data into authorization data and invokes the block with that data.
+       `BaseAuthorizer`'s implementation does nothing. __This method must be
+      overridden in custom authorizers.__
+       @method authorize
+      @param {Object} data The current authenticated session data
+      @param {Function} block The callback to call with the authorization data
+      @public
+    */
+    authorize: function authorize() {}
+  });
+});
+;define('ember-simple-auth/authorizers/devise', ['exports', 'ember-simple-auth/authorizers/base'], function (exports, _base) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = _base.default.extend({
+    /**
+      The token attribute name.
+       @property tokenAttributeName
+      @type String
+      @default 'token'
+      @public
+    */
+    tokenAttributeName: 'token',
+
+    /**
+      The identification attribute name.
+       @property identificationAttributeName
+      @type String
+      @default 'email'
+      @public
+    */
+    identificationAttributeName: 'email',
+
+    /**
+      Includes the user's token (see
+      {{#crossLink "DeviseAuthenticator/tokenAttributeName:property"}}{{/crossLink}})
+      and identification (see
+      {{#crossLink "DeviseAuthenticator/identificationAttributeName:property"}}{{/crossLink}})
+      in the `Authorization` header.
+       @method authorize
+      @param {Object} data The data that the session currently holds
+      @param {Function} block(headerName,headerContent) The callback to call with the authorization data; will receive the header name and header content as arguments.
+      @public
+    */
+    authorize: function authorize(data, block) {
+      var _getProperties = this.getProperties('tokenAttributeName', 'identificationAttributeName'),
+          tokenAttributeName = _getProperties.tokenAttributeName,
+          identificationAttributeName = _getProperties.identificationAttributeName;
+
+      var userToken = data[tokenAttributeName];
+      var userIdentification = data[identificationAttributeName];
+
+      if (!Ember.isEmpty(userToken) && !Ember.isEmpty(userIdentification)) {
+        var authData = tokenAttributeName + '="' + userToken + '", ' + identificationAttributeName + '="' + userIdentification + '"';
+        block('Authorization', 'Token ' + authData);
+      }
+    }
+  });
+});
+;define('ember-simple-auth/authorizers/oauth2-bearer', ['exports', 'ember-simple-auth/authorizers/base'], function (exports, _base) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = _base.default.extend({
+    /**
+      Includes the access token from the session data into the `Authorization`
+      header as a Bearer token, e.g.:
+       ```
+      Authorization: Bearer 234rtgjneroigne4
+      ```
+       @method authorize
+      @param {Object} data The data that the session currently holds
+      @param {Function} block(headerName,headerContent) The callback to call with the authorization data; will receive the header name and header content as arguments
+      @public
+    */
+    authorize: function authorize(data, block) {
+      var accessToken = data['access_token'];
+
+      if (!Ember.isEmpty(accessToken)) {
+        block('Authorization', 'Bearer ' + accessToken);
+      }
+    }
+  });
+});
+;define('ember-simple-auth/configuration', ['exports'], function (exports) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+
+  var DEFAULTS = {
+    rootURL: '',
+    authenticationRoute: 'login',
+    routeAfterAuthentication: 'index',
+    routeIfAlreadyAuthenticated: 'index'
+  };
+
+  /**
+    Ember Simple Auth's configuration object.
+  
+    @class Configuration
+    @extends Object
+    @module ember-simple-auth/configuration
+    @public
+  */
+  exports.default = {
+    /**
+      The root URL of the application as configured in `config/environment.js`.
+       @property rootURL
+      @readOnly
+      @static
+      @type String
+      @default ''
+      @public
+    */
+    rootURL: DEFAULTS.rootURL,
+
+    /**
+      The base URL of the application as configured in `config/environment.js`.
+       @property baseURL
+      @readOnly
+      @static
+      @type String
+      @default ''
+      @public
+    */
+    get baseURL() {
+      Ember.deprecate('The baseURL property should no longer be used. Instead, use rootURL.', false, {
+        id: 'ember-simple-auth.configuration.base-url',
+        until: '2.0.0'
+      });
+      return this.rootURL;
+    },
+
+    /**
+      The route to transition to for authentication. The
+      {{#crossLink "AuthenticatedRouteMixin"}}{{/crossLink}} will transition to
+      this route when a route that implements the mixin is accessed when the
+      route is not authenticated.
+       @property authenticationRoute
+      @deprecated AuthenticatedRouteMixin/authenticationRoute:property
+      @readOnly
+      @static
+      @type String
+      @default 'login'
+      @public
+    */
+    authenticationRoute: DEFAULTS.authenticationRoute,
+
+    /**
+      The route to transition to after successful authentication.
+       @property routeAfterAuthentication
+      @deprecated ApplicationRouteMixin/routeAfterAuthentication:property
+      @readOnly
+      @static
+      @type String
+      @default 'index'
+      @public
+    */
+    routeAfterAuthentication: DEFAULTS.routeAfterAuthentication,
+
+    /**
+      The route to transition to if a route that implements the
+      {{#crossLink "UnauthenticatedRouteMixin"}}{{/crossLink}} is accessed when
+      the session is authenticated.
+       @property routeIfAlreadyAuthenticated
+      @deprecated UnauthenticatedRouteMixin/routeIfAlreadyAuthenticated:property
+      @readOnly
+      @static
+      @type String
+      @default 'index'
+      @public
+    */
+    routeIfAlreadyAuthenticated: DEFAULTS.routeIfAlreadyAuthenticated,
+
+    load: function load(config) {
+      var _this = this;
+
+      Ember.A(['rootURL', 'authenticationRoute', 'routeAfterAuthentication', 'routeIfAlreadyAuthenticated']).forEach(function (property) {
+        if (['authenticationRoute', 'routeAfterAuthentication', 'routeIfAlreadyAuthenticated'].indexOf(property) >= 0 && DEFAULTS[property] !== _this[property]) {
+          Ember.deprecate('Ember Simple Auth: ' + property + ' should no longer be overridden in the configuration. Instead, override the ' + property + ' property in the route.', false, {
+            id: 'ember-simple-auth.configuration.routes',
+            until: '2.0.0'
+          });
+        }
+
+        _this[property] = Ember.getWithDefault(config, property, DEFAULTS[property]);
+      });
+    }
+  };
+});
+;define('ember-simple-auth/initializers/setup-session-restoration', ['exports'], function (exports) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = setupSessionRestoration;
+  function setupSessionRestoration(registry) {
+    var ApplicationRoute = registry.resolveRegistration ? registry.resolveRegistration('route:application') : registry.resolve('route:application');
+
+    ApplicationRoute.reopen({
+      init: function init() {
+        this._super.apply(this, arguments);
+
+        var originalBeforeModel = this.beforeModel;
+        this.beforeModel = function () {
+          var _this = this,
+              _arguments = arguments;
+
+          var session = Ember.getOwner(this).lookup('session:main');
+
+          return session.restore().then(function () {
+            return originalBeforeModel.apply(_this, _arguments);
+          }, function () {
+            return originalBeforeModel.apply(_this, _arguments);
+          });
+        };
+      }
+    });
+  }
+});
+;define('ember-simple-auth/initializers/setup-session-service', ['exports', 'ember-simple-auth/utils/inject'], function (exports, _inject) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = setupSessionStore;
+  function setupSessionStore(registry) {
+    (0, _inject.default)(registry, 'service:session', 'session', 'session:main');
+  }
+});
+;define('ember-simple-auth/initializers/setup-session', ['exports', 'ember-simple-auth/internal-session', 'ember-simple-auth/session-stores/ephemeral', 'ember-simple-auth/utils/inject'], function (exports, _internalSession, _ephemeral, _inject) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = setupSession;
+  function setupSession(registry) {
+    registry.register('session:main', _internalSession.default);
+
+    var store = 'session-store:application';
+    if (Ember.testing) {
+      store = 'session-store:test';
+      registry.register(store, _ephemeral.default);
+    }
+
+    (0, _inject.default)(registry, 'session:main', 'store', store);
+  }
+});
+;define('ember-simple-auth/internal-session', ['exports'], function (exports) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+  function _toConsumableArray(arr) {
+    if (Array.isArray(arr)) {
+      for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) {
+        arr2[i] = arr[i];
+      }
+
+      return arr2;
+    } else {
+      return Array.from(arr);
+    }
+  }
+
+  var assign = Ember.assign || Ember.merge;
+
+  exports.default = Ember.ObjectProxy.extend(Ember.Evented, {
+    authenticator: null,
+    store: null,
+    isAuthenticated: false,
+    attemptedTransition: null,
+
+    init: function init() {
+      this._super.apply(this, arguments);
+      this.set('content', { authenticated: {} });
+      this._busy = false;
+      this._bindToStoreEvents();
+    },
+    authenticate: function authenticate(authenticatorFactory) {
+      var _this = this;
+
+      this._busy = true;
+      (true && !(!Ember.isEmpty(authenticatorFactory)) && Ember.assert('Session#authenticate requires the authenticator to be specified, was "' + authenticatorFactory + '"!', !Ember.isEmpty(authenticatorFactory)));
+
+      var authenticator = this._lookupAuthenticator(authenticatorFactory);
+      (true && !(!Ember.isNone(authenticator)) && Ember.assert('No authenticator for factory "' + authenticatorFactory + '" could be found!', !Ember.isNone(authenticator)));
+
+      for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+        args[_key - 1] = arguments[_key];
+      }
+
+      return authenticator.authenticate.apply(authenticator, _toConsumableArray(args)).then(function (content) {
+        _this._busy = false;
+        return _this._setup(authenticatorFactory, content, true);
+      }, function (error) {
+        var rejectWithError = function rejectWithError() {
+          return Ember.RSVP.Promise.reject(error);
+        };
+
+        _this._busy = false;
+        return _this._clear().then(rejectWithError, rejectWithError);
+      });
+    },
+    invalidate: function invalidate() {
+      var _this2 = this;
+
+      this._busy = true;
+
+      if (!this.get('isAuthenticated')) {
+        this._busy = false;
+        return Ember.RSVP.Promise.resolve();
+      }
+
+      var authenticator = this._lookupAuthenticator(this.authenticator);
+      return authenticator.invalidate.apply(authenticator, [this.content.authenticated].concat(Array.prototype.slice.call(arguments))).then(function () {
+        authenticator.off('sessionDataUpdated', _this2, _this2._onSessionDataUpdated);
+        _this2._busy = false;
+        return _this2._clear(true);
+      }, function (error) {
+        _this2.trigger('sessionInvalidationFailed', error);
+        _this2._busy = false;
+        return Ember.RSVP.Promise.reject(error);
+      });
+    },
+    restore: function restore() {
+      var _this3 = this;
+
+      this._busy = true;
+      var reject = function reject() {
+        return Ember.RSVP.Promise.reject();
+      };
+
+      return this._callStoreAsync('restore').then(function (restoredContent) {
+        var _ref = restoredContent.authenticated || {},
+            authenticatorFactory = _ref.authenticator;
+
+        if (authenticatorFactory) {
+          delete restoredContent.authenticated.authenticator;
+          var authenticator = _this3._lookupAuthenticator(authenticatorFactory);
+          return authenticator.restore(restoredContent.authenticated).then(function (content) {
+            _this3.set('content', restoredContent);
+            _this3._busy = false;
+            return _this3._setup(authenticatorFactory, content);
+          }, function (err) {
+            Ember.debug('The authenticator "' + authenticatorFactory + '" rejected to restore the session - invalidating\u2026');
+            if (err) {
+              Ember.debug(err);
+            }
+            _this3._busy = false;
+            return _this3._clearWithContent(restoredContent).then(reject, reject);
+          });
+        } else {
+          delete (restoredContent || {}).authenticated;
+          _this3._busy = false;
+          return _this3._clearWithContent(restoredContent).then(reject, reject);
+        }
+      }, function () {
+        _this3._busy = false;
+        return _this3._clear().then(reject, reject);
+      });
+    },
+    _callStoreAsync: function _callStoreAsync(method) {
+      var _store;
+
+      for (var _len2 = arguments.length, params = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
+        params[_key2 - 1] = arguments[_key2];
+      }
+
+      var result = (_store = this.store)[method].apply(_store, _toConsumableArray(params));
+
+      if (typeof result === 'undefined' || typeof result.then === 'undefined') {
+        Ember.deprecate('Ember Simple Auth: Synchronous stores have been deprecated. Make sure your custom store\'s ' + method + ' method returns a promise.', false, {
+          id: 'ember-simple-auth.session-store.synchronous-' + method,
+          until: '2.0.0'
+        });
+        return Ember.RSVP.Promise.resolve(result);
+      } else {
+        return result;
+      }
+    },
+    _setup: function _setup(authenticator, authenticatedContent, trigger) {
+      var _this4 = this;
+
+      trigger = Boolean(trigger) && !this.get('isAuthenticated');
+      this.setProperties({
+        isAuthenticated: true,
+        authenticator: authenticator,
+        'content.authenticated': authenticatedContent
+      });
+      this._bindToAuthenticatorEvents();
+
+      return this._updateStore().then(function () {
+        if (trigger) {
+          _this4.trigger('authenticationSucceeded');
+        }
+      }, function () {
+        _this4.setProperties({
+          isAuthenticated: false,
+          authenticator: null,
+          'content.authenticated': {}
+        });
+      });
+    },
+    _clear: function _clear(trigger) {
+      var _this5 = this;
+
+      trigger = Boolean(trigger) && this.get('isAuthenticated');
+      this.setProperties({
+        isAuthenticated: false,
+        authenticator: null,
+        'content.authenticated': {}
+      });
+
+      return this._updateStore().then(function () {
+        if (trigger) {
+          _this5.trigger('invalidationSucceeded');
+        }
+      });
+    },
+    _clearWithContent: function _clearWithContent(content, trigger) {
+      this.set('content', content);
+      return this._clear(trigger);
+    },
+    setUnknownProperty: function setUnknownProperty(key, value) {
+      (true && !(key !== 'authenticated') && Ember.assert('"authenticated" is a reserved key used by Ember Simple Auth!', key !== 'authenticated'));
+
+      var result = this._super(key, value);
+      if (!/^_/.test(key)) {
+        this._updateStore();
+      }
+      return result;
+    },
+    _updateStore: function _updateStore() {
+      var data = this.content;
+      if (!Ember.isEmpty(this.authenticator)) {
+        Ember.set(data, 'authenticated', assign({ authenticator: this.authenticator }, data.authenticated || {}));
+      }
+      return this._callStoreAsync('persist', data);
+    },
+    _bindToAuthenticatorEvents: function _bindToAuthenticatorEvents() {
+      var authenticator = this._lookupAuthenticator(this.authenticator);
+      authenticator.on('sessionDataUpdated', this, this._onSessionDataUpdated);
+      authenticator.on('sessionDataInvalidated', this, this._onSessionDataInvalidated);
+    },
+    _onSessionDataUpdated: function _onSessionDataUpdated(content) {
+      this._setup(this.authenticator, content);
+    },
+    _onSessionDataInvalidated: function _onSessionDataInvalidated() {
+      this._clear(true);
+    },
+    _bindToStoreEvents: function _bindToStoreEvents() {
+      var _this6 = this;
+
+      this.store.on('sessionDataUpdated', function (content) {
+        if (!_this6._busy) {
+          _this6._busy = true;
+
+          var _ref2 = content.authenticated || {},
+              authenticatorFactory = _ref2.authenticator;
+
+          if (authenticatorFactory) {
+            delete content.authenticated.authenticator;
+            var authenticator = _this6._lookupAuthenticator(authenticatorFactory);
+            authenticator.restore(content.authenticated).then(function (authenticatedContent) {
+              _this6.set('content', content);
+              _this6._busy = false;
+              _this6._setup(authenticatorFactory, authenticatedContent, true);
+            }, function (err) {
+              Ember.debug('The authenticator "' + authenticatorFactory + '" rejected to restore the session - invalidating\u2026');
+              if (err) {
+                Ember.debug(err);
+              }
+              _this6._busy = false;
+              _this6._clearWithContent(content, true);
+            });
+          } else {
+            _this6._busy = false;
+            _this6._clearWithContent(content, true);
+          }
+        }
+      });
+    },
+    _lookupAuthenticator: function _lookupAuthenticator(authenticator) {
+      return Ember.getOwner(this).lookup(authenticator);
+    }
+  });
+});
+;define('ember-simple-auth/mixins/application-route-mixin', ['exports', 'ember-simple-auth/configuration', 'ember-simple-auth/utils/is-fastboot'], function (exports, _configuration, _isFastboot) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+  var _slicedToArray = function () {
+    function sliceIterator(arr, i) {
+      var _arr = [];
+      var _n = true;
+      var _d = false;
+      var _e = undefined;
+
+      try {
+        for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) {
+          _arr.push(_s.value);
+
+          if (i && _arr.length === i) break;
+        }
+      } catch (err) {
+        _d = true;
+        _e = err;
+      } finally {
+        try {
+          if (!_n && _i["return"]) _i["return"]();
+        } finally {
+          if (_d) throw _e;
+        }
+      }
+
+      return _arr;
+    }
+
+    return function (arr, i) {
+      if (Array.isArray(arr)) {
+        return arr;
+      } else if (Symbol.iterator in Object(arr)) {
+        return sliceIterator(arr, i);
+      } else {
+        throw new TypeError("Invalid attempt to destructure non-iterable instance");
+      }
+    };
+  }();
+
+  exports.default = Ember.Mixin.create({
+    /**
+      The session service.
+       @property session
+      @readOnly
+      @type SessionService
+      @public
+    */
+    session: Ember.inject.service('session'),
+
+    _isFastBoot: (0, _isFastboot.default)(),
+
+    /**
+      The route to transition to after successful authentication.
+       @property routeAfterAuthentication
+      @type String
+      @default 'index'
+      @public
+    */
+    routeAfterAuthentication: Ember.computed(function () {
+      return _configuration.default.routeAfterAuthentication;
+    }),
+
+    init: function init() {
+      this._super.apply(this, arguments);
+      this._subscribeToSessionEvents();
+    },
+    _subscribeToSessionEvents: function _subscribeToSessionEvents() {
+      var _this = this;
+
+      Ember.A([['authenticationSucceeded', 'sessionAuthenticated'], ['invalidationSucceeded', 'sessionInvalidated']]).forEach(function (_ref) {
+        var _ref2 = _slicedToArray(_ref, 2),
+            event = _ref2[0],
+            method = _ref2[1];
+
+        _this.get('session').on(event, function () {
+          return _this[method].apply(_this, arguments);
+        });
+      });
+    },
+
+
+    /**
+      This method handles the session's
+      {{#crossLink "SessionService/authenticationSucceeded:event"}}{{/crossLink}}
+      event. If there is a transition that was previously intercepted by the
+      {{#crossLink "AuthenticatedRouteMixin/beforeModel:method"}}
+      AuthenticatedRouteMixin's `beforeModel` method{{/crossLink}} it will retry
+      it. If there is no such transition, the `ember_simple_auth-redirectTarget`
+      cookie will be checked for a url that represents an attemptedTransition
+      that was aborted in Fastboot mode, otherwise this action transitions to the
+      {{#crossLink "Configuration/routeAfterAuthentication:property"}}{{/crossLink}}.
+        @method sessionAuthenticated
+      @public
+    */
+    sessionAuthenticated: function sessionAuthenticated() {
+      var attemptedTransition = this.get('session.attemptedTransition');
+      var cookies = Ember.getOwner(this).lookup('service:cookies');
+      var redirectTarget = cookies.read('ember_simple_auth-redirectTarget');
+
+      if (attemptedTransition) {
+        attemptedTransition.retry();
+        this.set('session.attemptedTransition', null);
+      } else if (redirectTarget) {
+        this.transitionTo(redirectTarget);
+        cookies.clear('ember_simple_auth-redirectTarget');
+      } else {
+        this.transitionTo(this.get('routeAfterAuthentication'));
+      }
+    },
+
+
+    /**
+      This method handles the session's
+      {{#crossLink "SessionService/invalidationSucceeded:event"}}{{/crossLink}}
+      event. __It reloads the Ember.js application__ by redirecting the browser
+      to the application's root URL so that all in-memory data (such as Ember
+      Data stores etc.) gets cleared.
+       If the Ember.js application will be used in an environment where the users
+      don't have direct access to any data stored on the client (e.g.
+      [cordova](http://cordova.apache.org)) this action can be overridden to e.g.
+      simply transition to the index route.
+       @method sessionInvalidated
+      @public
+    */
+    sessionInvalidated: function sessionInvalidated() {
+      if (!Ember.testing) {
+        if (this.get('_isFastBoot')) {
+          this.transitionTo(_configuration.default.rootURL);
+        } else {
+          window.location.replace(_configuration.default.rootURL);
+        }
+      }
+    }
+  });
+});
+;define('ember-simple-auth/mixins/authenticated-route-mixin', ['exports', 'ember-simple-auth/configuration', 'ember-simple-auth/utils/is-fastboot'], function (exports, _configuration, _isFastboot) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+
+  /**
+   * If the user is unauthenticated, invoke `callback`
+   *
+   * @param {ApplicationInstance} owner The ApplicationInstance that owns the service (and possibly fastboot and cookie) service(s)
+   * @param {Transition} transition Transition for the user's original navigation
+   * @param {(...args: []any) => any} callback Callback that will be invoked if the user is unauthenticated
+   */
+  function runIfUnauthenticated(owner, transition, callback) {
+    var isFb = (0, _isFastboot.isFastBoot)(owner);
+    var sessionSvc = owner.lookup('service:session');
+    if (!sessionSvc.get('isAuthenticated')) {
+      if (isFb) {
+        var fastboot = owner.lookup('service:fastboot');
+        var cookies = owner.lookup('service:cookies');
+        cookies.write('ember_simple_auth-redirectTarget', transition.intent.url, {
+          path: '/',
+          secure: fastboot.get('request.protocol') === 'https'
+        });
+      } else {
+        sessionSvc.set('attemptedTransition', transition);
+      }
+      callback();
+      return true;
+    }
+  }
+
+  /**
+    __This mixin is used to make routes accessible only if the session is
+    authenticated.__ It defines a `beforeModel` method that aborts the current
+    transition and instead transitions to the
+    {{#crossLink "Configuration/authenticationRoute:property"}}{{/crossLink}} if
+    the session is not authenticated.
+  
+    ```js
+    // app/routes/protected.js
+    import AuthenticatedRouteMixin from 'ember-simple-auth/mixins/authenticated-route-mixin';
+  
+    export default Ember.Route.extend(AuthenticatedRouteMixin);
+    ```
+  
+    @class AuthenticatedRouteMixin
+    @module ember-simple-auth/mixins/authenticated-route-mixin
+    @extends Ember.Mixin
+    @public
+  */
+  exports.default = Ember.Mixin.create({
+    /**
+      The session service.
+       @property session
+      @readOnly
+      @type SessionService
+      @public
+    */
+    session: Ember.inject.service('session'),
+
+    _authRouter: Ember.computed(function () {
+      var owner = Ember.getOwner(this);
+      return owner.lookup('service:router') || owner.lookup('router:main');
+    }),
+
+    _isFastBoot: (0, _isFastboot.default)(),
+
+    /**
+      The route to transition to for authentication. The
+      {{#crossLink "AuthenticatedRouteMixin"}}{{/crossLink}} will transition to
+      this route when a route that implements the mixin is accessed when the
+      route is not authenticated.
+       @property authenticationRoute
+      @type String
+      @default 'login'
+      @public
+    */
+    authenticationRoute: Ember.computed(function () {
+      return _configuration.default.authenticationRoute;
+    }),
+
+    /**
+      Checks whether the session is authenticated and if it is not aborts the
+      current transition and instead transitions to the
+      {{#crossLink "Configuration/authenticationRoute:property"}}{{/crossLink}}.
+      If the current transition is aborted, this method will save it in the
+      session service's
+      {{#crossLink "SessionService/attemptedTransition:property"}}{{/crossLink}}
+      property so that  it can be retried after the session is authenticated
+      (see
+      {{#crossLink "ApplicationRouteMixin/sessionAuthenticated:method"}}{{/crossLink}}).
+      If the transition is aborted in Fastboot mode, the transition's target
+      URL will be saved in a `ember_simple_auth-redirectTarget` cookie for use by
+      the browser after authentication is complete.
+       __If `beforeModel` is overridden in a route that uses this mixin, the route's
+     implementation must call `this._super(...arguments)`__ so that the mixin's
+     `beforeModel` method is actually executed.
+       @method beforeModel
+      @param {Transition} transition The transition that lead to this route
+      @public
+    */
+    beforeModel: function beforeModel(transition) {
+      var _this = this;
+
+      var didRedirect = runIfUnauthenticated(Ember.getOwner(this), transition, function () {
+        _this.triggerAuthentication();
+      });
+      if (!didRedirect) {
+        return this._super.apply(this, arguments);
+      }
+    },
+
+
+    /**
+      Triggers authentication; by default this method transitions to the
+      `authenticationRoute`. In case the application uses an authentication
+      mechanism that does not use an authentication route, this method can be
+      overridden.
+       @method triggerAuthentication
+      @protected
+    */
+    triggerAuthentication: function triggerAuthentication() {
+      var authenticationRoute = this.get('authenticationRoute');
+      (true && !(this.get('routeName') !== authenticationRoute) && Ember.assert('The route configured as Configuration.authenticationRoute cannot implement the AuthenticatedRouteMixin mixin as that leads to an infinite transitioning loop!', this.get('routeName') !== authenticationRoute));
+
+
+      this.get('_authRouter').transitionTo(authenticationRoute);
+    }
+  });
+});
+;define('ember-simple-auth/mixins/data-adapter-mixin', ['exports'], function (exports) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = Ember.Mixin.create({
+    /**
+      The session service.
+       @property session
+      @readOnly
+      @type SessionService
+      @public
+    */
+    session: Ember.inject.service('session'),
+
+    /**
+      The authorizer that is used to authorize API requests. The authorizer has
+      to call the authorization callback (see
+      {{#crossLink "BaseAuthorizer/authorize:method"}}{{/crossLink}}) with header
+      name and header content arguments. __This property must be overridden in
+      adapters using this mixin.__
+       When used with `ember-fetch` the `authorize` method will not be called and
+      the `headers` computed property must be used instead, e.g.:
+       ```js
+      export default DS.JSONAPIAdapter.extend(AdapterFetch, DataAdapterMixin, {
+        headers: computed('session.data.authenticated.token', function() {
+          const headers = {};
+          if (this.session.isAuthenticated) {
+            headers['Authorization'] = `Bearer ${this.session.data.authenticated.token}`;
+          }
+           return headers;
+        }),
+      });
+      ```
+       @property authorizer
+      @type String
+      @default null
+      @public
+    */
+    authorizer: null,
+
+    /**
+      Defines a `beforeSend` hook (see http://api.jquery.com/jQuery.ajax/) that
+      injects a request header containing the authorization data as constructed
+      by the {{#crossLink "DataAdapterMixin/authorizer:property"}}{{/crossLink}}
+      (see
+      {{#crossLink "SessionService/authorize:method"}}{{/crossLink}}). The
+      specific header name and contents depend on the actual authorizer that is
+      used.
+       Until [emberjs/rfcs#171](https://github.com/emberjs/rfcs/pull/171)
+      gets resolved and [ds-improved-ajax](https://github.com/emberjs/data/pull/3099)
+      [feature flag](https://github.com/emberjs/data/blob/master/FEATURES.md#feature-flags)
+      is enabled, this method will be called for **every** ember-data version.
+      `headersForRequest` *should* replace it after the resolution of the RFC.
+       @method ajaxOptions
+      @protected
+    */
+    ajaxOptions: function ajaxOptions() {
+      var _this = this;
+
+      var hash = this._super.apply(this, arguments);
+      var beforeSend = hash.beforeSend;
+
+
+      hash.beforeSend = function (xhr) {
+        if (_this.get('authorizer')) {
+          var authorizer = _this.get('authorizer');
+          _this.get('session').authorize(authorizer, function (headerName, headerValue) {
+            xhr.setRequestHeader(headerName, headerValue);
+          });
+        } else {
+          _this.authorize(xhr);
+        }
+
+        if (beforeSend) {
+          beforeSend(xhr);
+        }
+      };
+      return hash;
+    },
+    authorize: function authorize() {
+      (true && !(false) && Ember.assert('The `authorize` method should be overridden in your application adapter. It should accept a single argument, the request object.'));
+    },
+
+
+    /**
+      Adds request headers containing the authorization data as constructed
+      by the {{#crossLink "DataAdapterMixin/authorizer:property"}}{{/crossLink}}.
+       Until [emberjs/rfcs#171](https://github.com/emberjs/rfcs/pull/171)
+      gets resolved and [ds-improved-ajax](https://github.com/emberjs/data/pull/3099)
+      [feature flag](https://github.com/emberjs/data/blob/master/FEATURES.md#feature-flags)
+      is enabled, this method will **not** be used.
+      See `ajaxOptions` instead.
+       @method headersForRequest
+      @protected
+     */
+    headersForRequest: function headersForRequest() {
+      var authorizer = this.get('authorizer');
+      (true && !(Ember.isPresent(authorizer)) && Ember.assert("You're using the DataAdapterMixin without specifying an authorizer. Please add `authorizer: 'authorizer:application'` to your adapter.", Ember.isPresent(authorizer)));
+
+
+      var headers = this._super.apply(this, arguments);
+      headers = Object(headers);
+      this.get('session').authorize(authorizer, function (headerName, headerValue) {
+        headers[headerName] = headerValue;
+      });
+      return headers;
+    },
+
+
+    /**
+      This method is called for every response that the adapter receives from the
+      API. If the response has a 401 status code it invalidates the session (see
+      {{#crossLink "SessionService/invalidate:method"}}{{/crossLink}}).
+       @method handleResponse
+      @param {Number} status The response status as received from the API
+      @param  {Object} headers HTTP headers as received from the API
+      @param {Any} payload The response body as received from the API
+      @param {Object} requestData the original request information
+      @protected
+    */
+    handleResponse: function handleResponse(status, headers, payload, requestData) {
+      this.ensureResponseAuthorized(status, headers, payload, requestData);
+      return this._super.apply(this, arguments);
+    },
+
+
+    /**
+     The default implementation for handleResponse.
+     If the response has a 401 status code it invalidates the session (see
+      {{#crossLink "SessionService/invalidate:method"}}{{/crossLink}}).
+      Override this method if you want custom invalidation logic for incoming responses.
+     @method ensureResponseAuthorized
+     @param {Number} status The response status as received from the API
+     @param  {Object} headers HTTP headers as received from the API
+     @param {Any} payload The response body as received from the API
+     @param {Object} requestData the original request information
+    */
+    ensureResponseAuthorized: function ensureResponseAuthorized(status /* ,headers, payload, requestData */) {
+      if (status === 401 && this.get('session.isAuthenticated')) {
+        this.get('session').invalidate();
+      }
+    }
+  });
+});
+;define('ember-simple-auth/mixins/oauth2-implicit-grant-callback-route-mixin', ['exports', 'ember-simple-auth/utils/location', 'ember-simple-auth/utils/is-fastboot'], function (exports, _location, _isFastboot) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+
+  function _parseResponse(locationHash) {
+    var params = {};
+    var query = locationHash.substring(locationHash.indexOf('?'));
+    var regex = /([^#?&=]+)=([^&]*)/g;
+    var match = void 0;
+
+    // decode all parameter pairs
+    while ((match = regex.exec(query)) !== null) {
+      params[decodeURIComponent(match[1])] = decodeURIComponent(match[2]);
+    }
+
+    return params;
+  }
+
+  /**
+    __This mixin is used in the callback route when using OAuth 2.0 Implicit
+    Grant authentication.__ It implements the
+    {{#crossLink "OAuth2ImplicitGrantCallbackRouteMixin/activate:method"}}{{/crossLink}}
+    method that retrieves and processes authentication parameters, such as
+    `access_token`, from the hash parameters provided in the callback URL by
+    the authentication server. The parameters are then passed to the
+    {{#crossLink "OAuth2ImplicitGrantAuthenticator"}}{{/crossLink}}
+  
+    @class OAuth2ImplicitGrantCallbackRouteMixin
+    @module ember-simple-auth/mixins/oauth2-implicit-grant-callback-route-mixin
+    @extends Ember.Mixin
+    @public
+  */
+
+  exports.default = Ember.Mixin.create({
+    /**
+     The session service.
+      @property session
+     @readOnly
+     @type SessionService
+     @public
+     */
+    session: Ember.inject.service('session'),
+
+    /**
+      The authenticator that should be used to authenticate the callback. This
+      must be a subclass of the
+      {{#crossLink "OAuth2ImplicitGrantAuthenticator"}}{{/crossLink}}
+      authenticator.
+       @property authenticator
+      @type String
+      @default null
+      @public
+    */
+    authenticator: null,
+
+    /**
+      Any error that potentially occurs during authentication will be stored in
+      this property.
+       @property error
+      @type String
+      @default null
+      @public
+    */
+    error: null,
+
+    /**
+      Passes the hash received with the redirection from the authentication
+      server to the
+      {{#crossLink "OAuth2ImplicitGrantAuthenticator"}}{{/crossLink}} and
+      authenticates the session with the authenticator.
+       @method activate
+      @public
+    */
+    activate: function activate() {
+      var _this = this;
+
+      if (this.get('_isFastBoot')) {
+        return;
+      }
+
+      var authenticator = this.get('authenticator');
+
+      var hash = _parseResponse((0, _location.default)().hash);
+
+      this.get('session').authenticate(authenticator, hash).catch(function (err) {
+        _this.set('error', err);
+      });
+    },
+
+
+    _isFastBoot: (0, _isFastboot.default)()
+  });
+});
+;define('ember-simple-auth/mixins/unauthenticated-route-mixin', ['exports', 'ember-simple-auth/configuration', 'ember-simple-auth/utils/is-fastboot'], function (exports, _configuration, _isFastboot) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+
+  /**
+   *
+   * @param {ApplicationInstance} owner The ApplicationInstance that owns the session service
+   * @param {(...args: [any]) => any} callback Callback that will be invoked if the user is authenticated
+   */
+  function runIfAuthenticated(owner, callback) {
+    var sessionSvc = owner.lookup('service:session');
+    if (sessionSvc.get('isAuthenticated')) {
+      callback();
+      return true;
+    }
+  }
+
+  /**
+    __This mixin is used to make routes accessible only if the session is
+    not authenticated__ (e.g., login and registration routes). It defines a
+    `beforeModel` method that aborts the current transition and instead
+    transitions to the
+    {{#crossLink "Configuration/routeIfAlreadyAuthenticated:property"}}{{/crossLink}}
+    if the session is authenticated.
+  
+    ```js
+    // app/routes/login.js
+    import UnauthenticatedRouteMixin from 'ember-simple-auth/mixins/unauthenticated-route-mixin';
+  
+    export default Ember.Route.extend(UnauthenticatedRouteMixin);
+    ```
+  
+    @class UnauthenticatedRouteMixin
+    @module ember-simple-auth/mixins/unauthenticated-route-mixin
+    @extends Ember.Mixin
+    @public
+  */
+  exports.default = Ember.Mixin.create({
+    /**
+      The session service.
+       @property session
+      @readOnly
+      @type SessionService
+      @public
+    */
+    session: Ember.inject.service('session'),
+
+    _isFastBoot: (0, _isFastboot.default)(),
+
+    /**
+      The route to transition to if a route that implements the
+      {{#crossLink "UnauthenticatedRouteMixin"}}{{/crossLink}} is accessed when
+      the session is authenticated.
+       @property routeIfAlreadyAuthenticated
+      @type String
+      @default 'index'
+      @public
+    */
+    routeIfAlreadyAuthenticated: Ember.computed(function () {
+      return _configuration.default.routeIfAlreadyAuthenticated;
+    }),
+
+    /**
+      Checks whether the session is authenticated and if it is aborts the current
+      transition and instead transitions to the
+      {{#crossLink "Configuration/routeIfAlreadyAuthenticated:property"}}{{/crossLink}}.
+       __If `beforeModel` is overridden in a route that uses this mixin, the route's
+     implementation must call `this._super(...arguments)`__ so that the mixin's
+     `beforeModel` method is actually executed.
+       @method beforeModel
+      @public
+    */
+    beforeModel: function beforeModel() {
+      var _this = this;
+
+      var didRedirect = runIfAuthenticated(Ember.getOwner(this), function () {
+        var routeIfAlreadyAuthenticated = _this.get('routeIfAlreadyAuthenticated');
+        (true && !(_this.get('routeName') !== routeIfAlreadyAuthenticated) && Ember.assert('The route configured as Configuration.routeIfAlreadyAuthenticated cannot implement the UnauthenticatedRouteMixin mixin as that leads to an infinite transitioning loop!', _this.get('routeName') !== routeIfAlreadyAuthenticated));
+
+
+        _this.transitionTo(routeIfAlreadyAuthenticated);
+      });
+      if (!didRedirect) {
+        return this._super.apply(this, arguments);
+      }
+    }
+  });
+});
+;define('ember-simple-auth/services/session', ['exports'], function (exports) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+
+  var SESSION_DATA_KEY_PREFIX = /^data\./;
+
+  /**
+    __The session service provides access to the current session as well as
+    methods to authenticate it, invalidate it, etc.__ It is the main interface for
+    the application to Ember Simple Auth's functionality. It can be injected via
+  
+    ```js
+    // app/components/login-form.js
+    import Ember from 'ember';
+  
+    export default Ember.Component.extend({
+      session: Ember.inject.service('session')
+    });
+    ```
+  
+    @class SessionService
+    @module ember-simple-auth/services/session
+    @extends Ember.Service
+    @uses Ember.Evented
+    @public
+  */
+  exports.default = Ember.Service.extend(Ember.Evented, {
+    /**
+      Triggered whenever the session is successfully authenticated. This happens
+      when the session gets authenticated via
+      {{#crossLink "SessionService/authenticate:method"}}{{/crossLink}} but also
+      when the session is authenticated in another tab or window of the same
+      application and the session state gets synchronized across tabs or windows
+      via the store (see
+      {{#crossLink "BaseStore/sessionDataUpdated:event"}}{{/crossLink}}).
+       When using the {{#crossLink "ApplicationRouteMixin"}}{{/crossLink}} this
+      event will automatically get handled (see
+      {{#crossLink "ApplicationRouteMixin/sessionAuthenticated:method"}}{{/crossLink}}).
+       @event authenticationSucceeded
+      @public
+    */
+
+    /**
+      Triggered whenever the session is successfully invalidated. This happens
+      when the session gets invalidated via
+      {{#crossLink "SessionService/invalidate:method"}}{{/crossLink}} but also
+      when the session is invalidated in another tab or window of the same
+      application and the session state gets synchronized across tabs or windows
+      via the store (see
+      {{#crossLink "BaseStore/sessionDataUpdated:event"}}{{/crossLink}}).
+       When using the {{#crossLink "ApplicationRouteMixin"}}{{/crossLink}} this
+      event will automatically get handled (see
+      {{#crossLink "ApplicationRouteMixin/sessionInvalidated:method"}}{{/crossLink}}).
+       @event invalidationSucceeded
+      @public
+    */
+
+    /**
+      Returns whether the session is currently authenticated.
+       @property isAuthenticated
+      @type Boolean
+      @readOnly
+      @default false
+      @public
+    */
+    isAuthenticated: Ember.computed.oneWay('session.isAuthenticated'),
+
+    /**
+      The current session data as a plain object. The
+      `authenticated` key holds the session data that the authenticator resolved
+      with when the session was authenticated (see
+      {{#crossLink "BaseAuthenticator/authenticate:method"}}{{/crossLink}}) and
+      that will be cleared when the session is invalidated. This data cannot be
+      written. All other session data is writable and will not be cleared when
+      the session is invalidated.
+       @property data
+      @type Object
+      @readOnly
+      @default { authenticated: {} }
+      @public
+    */
+    data: Ember.computed.oneWay('session.content'),
+
+    /**
+      The session store.
+       @property store
+      @type BaseStore
+      @readOnly
+      @default null
+      @public
+    */
+    store: Ember.computed.oneWay('session.store'),
+
+    /**
+      A previously attempted but intercepted transition (e.g. by the
+      {{#crossLink "AuthenticatedRouteMixin"}}{{/crossLink}}). If an attempted
+      transition is present, the
+      {{#crossLink "ApplicationRouteMixin"}}{{/crossLink}} will retry it when the
+      session becomes authenticated (see
+      {{#crossLink "ApplicationRouteMixin/sessionAuthenticated:method"}}{{/crossLink}}).
+       @property attemptedTransition
+      @type Transition
+      @default null
+      @public
+    */
+    attemptedTransition: Ember.computed.alias('session.attemptedTransition'),
+
+    init: function init() {
+      this._super.apply(this, arguments);
+      this._forwardSessionEvents();
+    },
+    set: function set(key, value) {
+      var setsSessionData = SESSION_DATA_KEY_PREFIX.test(key);
+      if (setsSessionData) {
+        var sessionDataKey = 'session.' + key.replace(SESSION_DATA_KEY_PREFIX, '');
+        return this._super(sessionDataKey, value);
+      } else {
+        return this._super.apply(this, arguments);
+      }
+    },
+    _forwardSessionEvents: function _forwardSessionEvents() {
+      var _this = this,
+          _arguments = arguments;
+
+      Ember.A(['authenticationSucceeded', 'invalidationSucceeded']).forEach(function (event) {
+        var session = _this.get('session');
+        // the internal session won't be available in route unit tests
+        if (session) {
+          session.on(event, function () {
+            _this.trigger.apply(_this, [event].concat(Array.prototype.slice.call(_arguments)));
+          });
+        }
+      });
+    },
+
+
+    /**
+      __Authenticates the session with an `authenticator`__ and appropriate
+      arguments. The authenticator implements the actual steps necessary to
+      authenticate the session (see
+      {{#crossLink "BaseAuthenticator/authenticate:method"}}{{/crossLink}}) and
+      returns a promise after doing so. The session handles the returned promise
+      and when it resolves becomes authenticated, otherwise remains
+      unauthenticated. All data the authenticator resolves with will be
+      accessible via the
+      {{#crossLink "SessionService/data:property"}}session data's{{/crossLink}}
+      `authenticated` property.
+       __This method returns a promise. A resolving promise indicates that the
+      session was successfully authenticated__ while a rejecting promise
+      indicates that authentication failed and the session remains
+      unauthenticated. The promise does not resolve with a value; instead, the
+      data returned from the authenticator is available via the
+      {{#crossLink "SessionService/data:property"}}{{/crossLink}} property.
+       When authentication succeeds this will trigger the
+      {{#crossLink "SessionService/authenticationSucceeded:event"}}{{/crossLink}}
+      event.
+       @method authenticate
+      @param {String} authenticator The authenticator to use to authenticate the session
+      @param {Any} [...args] The arguments to pass to the authenticator; depending on the type of authenticator these might be a set of credentials, a Facebook OAuth Token, etc.
+      @return {Ember.RSVP.Promise} A promise that resolves when the session was authenticated successfully and rejects otherwise
+      @public
+    */
+    authenticate: function authenticate() {
+      var session = this.get('session');
+
+      return session.authenticate.apply(session, arguments);
+    },
+
+
+    /**
+      __Invalidates the session with the authenticator it is currently
+      authenticated with__ (see
+      {{#crossLink "SessionService/authenticate:method"}}{{/crossLink}}). This
+      invokes the authenticator's
+      {{#crossLink "BaseAuthenticator/invalidate:method"}}{{/crossLink}} method
+      and handles the returned promise accordingly.
+       This method returns a promise. A resolving promise indicates that the
+      session was successfully invalidated while a rejecting promise indicates
+      that invalidation failed and the session remains authenticated. Once the
+      session is successfully invalidated it clears all of its authenticated data
+      (see {{#crossLink "SessionService/data:property"}}{{/crossLink}}).
+       When invalidation succeeds this will trigger the
+      {{#crossLink "SessionService/invalidationSucceeded:event"}}{{/crossLink}}
+      event.
+       When calling the {{#crossLink "BaseAuthenticator/invalidate:method"}}{{/crossLink}}
+      on an already unauthenticated session, the method will return a resolved Promise
+      immediately.
+       @method invalidate
+      @param {Array} ...args arguments that will be passed to the authenticator
+      @return {Ember.RSVP.Promise} A promise that resolves when the session was invalidated successfully and rejects otherwise
+      @public
+    */
+    invalidate: function invalidate() {
+      var session = this.get('session');
+
+      return session.invalidate.apply(session, arguments);
+    },
+
+
+    /**
+      Authorizes a block of code with an authorizer (see
+      {{#crossLink "BaseAuthorizer/authorize:method"}}{{/crossLink}}) if the
+      session is authenticated. If the session is not currently authenticated
+      this method does nothing.
+       ```js
+      this.get('session').authorize('authorizer:oauth2-bearer', (headerName, headerValue) => {
+        xhr.setRequestHeader(headerName, headerValue);
+      });
+      ```
+       @method authorize
+      @param {String} authorizer The authorizer to authorize the block with
+      @param {Function} block The block of code to call with the authorization data generated by the authorizer
+      @deprecated Session/authorize:method
+      @public
+    */
+    authorize: function authorize(authorizerFactory, block) {
+      Ember.deprecate('Ember Simple Auth: \'authorize\' is deprecated.', false, {
+        id: 'ember-simple-auth.session.authorize',
+        until: '2.0.0',
+        url: 'https://github.com/simplabs/ember-simple-auth#authorizers'
+      });
+      if (this.get('isAuthenticated')) {
+        var authorizer = Ember.getOwner(this).lookup(authorizerFactory);
+        (true && !(!Ember.isNone(authorizer)) && Ember.assert('No authorizer for factory ' + authorizerFactory + ' could be found!', !Ember.isNone(authorizer)));
+
+        var sessionData = this.get('data.authenticated');
+        authorizer.authorize(sessionData, block);
+      }
+    }
+  });
+});
+;define('ember-simple-auth/session-stores/adaptive', ['exports', 'ember-simple-auth/session-stores/base', 'ember-simple-auth/session-stores/local-storage', 'ember-simple-auth/session-stores/cookie'], function (exports, _base, _localStorage, _cookie) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+
+  var LOCAL_STORAGE_TEST_KEY = '_ember_simple_auth_test_key';
+
+  var proxyToInternalStore = function proxyToInternalStore() {
+    return Ember.computed({
+      get: function get(key) {
+        return this.get('_' + key);
+      },
+      set: function set(key, value) {
+        this.set('_' + key, value);
+        var _store = this.get('_store');
+        if (_store) {
+          _store.set(key, value);
+        }
+        return value;
+      }
+    });
+  };
+
+  /**
+    Session store that persists data in the browser's `localStorage` (see
+    {{#crossLink "LocalStorageStore"}}{{/crossLink}}) if that is available or in
+    a cookie (see {{#crossLink "CookieStore"}}{{/crossLink}}) if it is not.
+  
+    __This is the default store that Ember Simple Auth will use when the
+    application doesn't define a custom store.__
+  
+    __This session store does not work with FastBoot. In order to use Ember
+    Simple Auth with FastBoot, configure the
+    {{#crossLink "CookieStore"}}{{/crossLink}} as the application's session
+    store.__
+  
+    @class AdaptiveStore
+    @module ember-simple-auth/session-stores/adaptive
+    @extends BaseStore
+    @public
+  */
+  exports.default = _base.default.extend({
+    /**
+      The `localStorage` key the store persists data in if `localStorage` is
+      available.
+       @property localStorageKey
+      @type String
+      @default 'ember_simple_auth-session'
+      @public
+    */
+    localStorageKey: 'ember_simple_auth-session',
+
+    /**
+      The domain to use for the cookie if `localStorage` is not available, e.g.,
+      "example.com", ".example.com" (which includes all subdomains) or
+      "subdomain.example.com". If not explicitly set, the cookie domain defaults
+      to the domain the session was authenticated on.
+       @property cookieDomain
+      @type String
+      @default null
+      @public
+    */
+    _cookieDomain: null,
+    cookieDomain: proxyToInternalStore(),
+
+    /**
+      The name of the cookie to use if `localStorage` is not available.
+       @property cookieName
+      @type String
+      @default ember_simple_auth-session
+      @public
+    */
+    _cookieName: 'ember_simple_auth-session',
+    cookieName: proxyToInternalStore(),
+
+    /**
+      The path to use for the cookie, e.g., "/", "/something".
+       @property cookiePath
+      @type String
+      @default '/'
+      @public
+    */
+    _cookiePath: '/',
+    cookiePath: proxyToInternalStore(),
+
+    /**
+      The expiration time for the cookie in seconds if `localStorage` is not
+      available. A value of `null` will make the cookie a session cookie that
+      expires and gets deleted when the browser is closed.
+       @property cookieExpirationTime
+      @default null
+      @type Integer
+      @public
+    */
+    _cookieExpirationTime: null,
+    cookieExpirationTime: proxyToInternalStore(),
+
+    _cookies: Ember.inject.service('cookies'),
+
+    _fastboot: Ember.computed(function () {
+      var owner = Ember.getOwner(this);
+
+      return owner && owner.lookup('service:fastboot');
+    }),
+
+    _isLocalStorageAvailable: Ember.computed(function () {
+      try {
+        localStorage.setItem(LOCAL_STORAGE_TEST_KEY, true);
+        localStorage.removeItem(LOCAL_STORAGE_TEST_KEY);
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }),
+
+    init: function init() {
+      this._super.apply(this, arguments);
+
+      var store = void 0;
+      if (this.get('_isLocalStorageAvailable')) {
+        var options = { key: this.get('localStorageKey') };
+        options._isFastBoot = false;
+        store = this._createStore(_localStorage.default, options);
+      } else {
+        var _options = this.getProperties('cookieDomain', 'cookieName', 'cookieExpirationTime', 'cookiePath');
+        _options._fastboot = this.get('_fastboot');
+        _options._cookies = this.get('_cookies');
+
+        store = this._createStore(_cookie.default, _options);
+        this.set('cookieExpirationTime', store.get('cookieExpirationTime'));
+      }
+      this.set('_store', store);
+    },
+    _createStore: function _createStore(storeType, options) {
+      var _this = this;
+
+      var owner = Ember.getOwner(this);
+      var store = storeType.create(owner.ownerInjection(), options);
+
+      store.on('sessionDataUpdated', function (data) {
+        _this.trigger('sessionDataUpdated', data);
+      });
+      return store;
+    },
+
+
+    /**
+      Persists the `data` in the `localStorage` if it is available or in a cookie
+      if it is not.
+       @method persist
+      @param {Object} data The data to persist
+      @return {Ember.RSVP.Promise} A promise that resolves when the data has successfully been persisted and rejects otherwise.
+      @public
+    */
+    persist: function persist() {
+      var _get;
+
+      return (_get = this.get('_store')).persist.apply(_get, arguments);
+    },
+
+
+    /**
+      Returns all data currently stored in the `localStorage` if that is
+      available - or if it is not, in the cookie - as a plain object.
+       @method restore
+      @return {Ember.RSVP.Promise} A promise that resolves with the data currently persisted in the store when the data has been restored successfully and rejects otherwise.
+      @public
+    */
+    restore: function restore() {
+      return this.get('_store').restore();
+    },
+
+
+    /**
+      Clears the store by deleting the
+      {{#crossLink "LocalStorageStore/key:property"}}{{/crossLink}} from
+      `localStorage` if that is available or by deleting the cookie if it is not.
+       @method clear
+      @return {Ember.RSVP.Promise} A promise that resolves when the store has been cleared successfully and rejects otherwise.
+      @public
+    */
+    clear: function clear() {
+      return this.get('_store').clear();
+    }
+  });
+});
+;define('ember-simple-auth/session-stores/base', ['exports'], function (exports) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = Ember.Object.extend(Ember.Evented, {
+    /**
+      Triggered when the session store's data changes due to an external event,
+      e.g., from another tab or window of the same application. The session
+      handles that event, passes the updated data to its authenticator's
+      {{#crossLink "BaseAuthenticator/restore:method"}}{{/crossLink}} method and
+      handles the result of that invocation accordingly.
+       @event sessionDataUpdated
+      @param {Object} data The updated session data
+      @public
+    */
+
+    /**
+      Persists the `data`. This replaces all currently stored data.
+       `BaseStores`'s implementation always returns a rejecting promise. __This
+      method must be overridden in subclasses__.
+       @method persist
+      @param {Object} data The data to persist
+      @return {Ember.RSVP.Promise} A promise that resolves when the data has successfully been persisted and rejects otherwise.
+      @public
+    */
+    persist: function persist() {
+      return Ember.RSVP.reject();
+    },
+
+
+    /**
+      Returns all data currently stored as a plain object.
+       `BaseStores`'s implementation always returns a rejecting promise. __This
+      method must be overridden in subclasses__.
+       @method restore
+      @return {Ember.RSVP.Promise} A promise that resolves with the data currently persisted in the store when the data has been restored successfully and rejects otherwise.
+      @public
+    */
+    restore: function restore() {
+      return Ember.RSVP.reject();
+    },
+
+
+    /**
+      Clears the store.
+       `BaseStores`'s implementation always returns a rejecting promise. __This
+      method must be overridden in subclasses__.
+       @method clear
+      @return {Ember.RSVP.Promise} A promise that resolves when the store has been cleared successfully and rejects otherwise.
+      @public
+    */
+    clear: function clear() {
+      return Ember.RSVP.reject();
+    }
+  });
+});
+;define('ember-simple-auth/session-stores/cookie', ['exports', 'ember-simple-auth/session-stores/base', 'ember-simple-auth/utils/objects-are-equal'], function (exports, _base, _objectsAreEqual) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+
+  var persistingProperty = function persistingProperty() {
+    var beforeSet = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : function () {};
+
+    return Ember.computed({
+      get: function get(key) {
+        return this.get('_' + key);
+      },
+      set: function set(key, value) {
+        beforeSet.apply(this, [key, value]);
+        this.set('_' + key, value);
+        Ember.run.scheduleOnce('actions', this, this.rewriteCookie);
+        return value;
+      }
+    });
+  };
+
+  /**
+    Session store that persists data in a cookie.
+  
+    By default the cookie session store uses a session cookie that expires and is
+    deleted when the browser is closed. The cookie expiration period can be
+    configured by setting the
+    {{#crossLink "CookieStore/cookieExpirationTime:property"}}{{/crossLink}}
+    property. This can be used to implement "remember me" functionality that will
+    either store the session persistently or in a session cookie depending on
+    whether the user opted in or not:
+  
+    ```js
+    // app/controllers/login.js
+    export default Ember.Controller.extend({
+      rememberMe: computed({
+        get(key) {
+          return false;
+        },
+        set(key, value) {
+          let expirationTime = value ? (14 * 24 * 60 * 60) : null;
+          this.set('session.store.cookieExpirationTime', expirationTime);
+          return value;
+        }
+      })
+    });
+    ```
+  
+    __Applications that use FastBoot must use this session store by defining the
+    application session store like this:__
+  
+    ```js
+    // app/session-stores/application.js
+    import CookieStore from 'ember-simple-auth/session-stores/cookie';
+  
+    export default CookieStore.extend();
+    ```
+  
+    @class CookieStore
+    @module ember-simple-auth/session-stores/cookie
+    @extends BaseStore
+    @public
+  */
+  exports.default = _base.default.extend({
+    _syncDataTimeout: null,
+    _renewExpirationTimeout: null,
+
+    /**
+      The domain to use for the cookie, e.g., "example.com", ".example.com"
+      (which includes all subdomains) or "subdomain.example.com". If not
+      explicitly set, the cookie domain defaults to the domain the session was
+      authenticated on.
+       @property cookieDomain
+      @type String
+      @default null
+      @public
+    */
+    _cookieDomain: null,
+    cookieDomain: persistingProperty(),
+
+    /**
+      The name of the cookie.
+       @property cookieName
+      @type String
+      @default ember_simple_auth-session
+      @public
+    */
+    _cookieName: 'ember_simple_auth-session',
+    cookieName: persistingProperty(function () {
+      this._oldCookieName = this._cookieName;
+    }),
+
+    /**
+      The path to use for the cookie, e.g., "/", "/something".
+       @property cookiePath
+      @type String
+      @default '/'
+      @public
+    */
+    _cookiePath: '/',
+    cookiePath: persistingProperty(),
+
+    /**
+      The expiration time for the cookie in seconds. A value of `null` will make
+      the cookie a session cookie that expires and gets deleted when the browser
+      is closed.
+       The recommended minimum value is 90 seconds. If your value is less than
+      that, the cookie may expire before its expiration time is extended
+      (expiration time is extended every 60 seconds).
+       @property cookieExpirationTime
+      @default null
+      @type Integer
+      @public
+    */
+    _cookieExpirationTime: null,
+    cookieExpirationTime: persistingProperty(function (key, value) {
+      // When nulling expiry time on purpose, we need to clear the cached value.
+      // Otherwise, `_calculateExpirationTime` will reuse it.
+      if (Ember.isNone(value)) {
+        this.get('_cookies').clear(this.get('cookieName') + '-expiration_time');
+      } else if (value < 90) {
+        (true && Ember.warn('The recommended minimum value for `cookieExpirationTime` is 90 seconds. If your value is less than that, the cookie may expire before its expiration time is extended (expiration time is extended every 60 seconds).', false, { id: 'ember-simple-auth.cookieExpirationTime' }));
+      }
+    }),
+
+    _cookies: Ember.inject.service('cookies'),
+
+    _fastboot: Ember.computed(function () {
+      var owner = Ember.getOwner(this);
+
+      return owner && owner.lookup('service:fastboot');
+    }),
+
+    _secureCookies: function _secureCookies() {
+      if (this.get('_fastboot.isFastBoot')) {
+        return this.get('_fastboot.request.protocol') === 'https';
+      }
+
+      return window.location.protocol === 'https:';
+    },
+    _isPageVisible: function _isPageVisible() {
+      if (this.get('_fastboot.isFastBoot')) {
+        return false;
+      } else {
+        var visibilityState = typeof document !== 'undefined' ? document.visibilityState || 'visible' : false;
+        return visibilityState === 'visible';
+      }
+    },
+    init: function init() {
+      var _this = this;
+
+      this._super.apply(this, arguments);
+
+      var cachedExpirationTime = this._read(this.get('cookieName') + '-expiration_time');
+      if (cachedExpirationTime) {
+        this.set('cookieExpirationTime', parseInt(cachedExpirationTime, 10));
+      }
+
+      if (!this.get('_fastboot.isFastBoot')) {
+        Ember.run.next(function () {
+          _this._syncData().then(function () {
+            _this._renewExpiration();
+          });
+        });
+      } else {
+        this._renew();
+      }
+    },
+
+
+    /**
+      Persists the `data` in the cookie.
+       @method persist
+      @param {Object} data The data to persist
+      @return {Ember.RSVP.Promise} A promise that resolves when the data has successfully been persisted and rejects otherwise.
+      @public
+    */
+    persist: function persist(data) {
+      this._lastData = data;
+      data = JSON.stringify(data || {});
+      var expiration = this._calculateExpirationTime();
+      this._write(data, expiration);
+      return Ember.RSVP.resolve();
+    },
+
+
+    /**
+      Returns all data currently stored in the cookie as a plain object.
+       @method restore
+      @return {Ember.RSVP.Promise} A promise that resolves with the data currently persisted in the store when the data has been restored successfully and rejects otherwise.
+      @public
+    */
+    restore: function restore() {
+      var data = this._read(this.get('cookieName'));
+      if (Ember.isEmpty(data)) {
+        return Ember.RSVP.resolve({});
+      } else {
+        return Ember.RSVP.resolve(JSON.parse(data));
+      }
+    },
+
+
+    /**
+      Clears the store by deleting the cookie.
+       @method clear
+      @return {Ember.RSVP.Promise} A promise that resolves when the store has been cleared successfully and rejects otherwise.
+      @public
+    */
+    clear: function clear() {
+      this._write('', 0);
+      this._lastData = {};
+      return Ember.RSVP.resolve();
+    },
+    _read: function _read(name) {
+      return this.get('_cookies').read(name) || '';
+    },
+    _calculateExpirationTime: function _calculateExpirationTime() {
+      var cachedExpirationTime = this._read(this.get('cookieName') + '-expiration_time');
+      cachedExpirationTime = cachedExpirationTime ? new Date().getTime() + cachedExpirationTime * 1000 : null;
+      return this.get('cookieExpirationTime') ? new Date().getTime() + this.get('cookieExpirationTime') * 1000 : cachedExpirationTime;
+    },
+    _write: function _write(value, expiration) {
+      var _this2 = this;
+
+      var cookieOptions = {
+        domain: this.get('cookieDomain'),
+        expires: Ember.isEmpty(expiration) ? null : new Date(expiration),
+        path: this.get('cookiePath'),
+        secure: this._secureCookies()
+      };
+      if (this._oldCookieName) {
+        Ember.A([this._oldCookieName, this._oldCookieName + '-expiration_time']).forEach(function (oldCookie) {
+          _this2.get('_cookies').clear(oldCookie);
+        });
+        delete this._oldCookieName;
+      }
+      this.get('_cookies').write(this.get('cookieName'), value, cookieOptions);
+      if (!Ember.isEmpty(expiration)) {
+        var expirationCookieName = this.get('cookieName') + '-expiration_time';
+        var cachedExpirationTime = this.get('_cookies').read(expirationCookieName);
+        this.get('_cookies').write(expirationCookieName, this.get('cookieExpirationTime') || cachedExpirationTime, cookieOptions);
+      }
+    },
+    _syncData: function _syncData() {
+      var _this3 = this;
+
+      return this.restore().then(function (data) {
+        if (!(0, _objectsAreEqual.default)(data, _this3._lastData)) {
+          _this3._lastData = data;
+          _this3.trigger('sessionDataUpdated', data);
+        }
+        if (!Ember.testing) {
+          Ember.run.cancel(_this3._syncDataTimeout);
+          _this3._syncDataTimeout = Ember.run.later(_this3, _this3._syncData, 500);
+        }
+      });
+    },
+    _renew: function _renew() {
+      var _this4 = this;
+
+      return this.restore().then(function (data) {
+        if (!Ember.isEmpty(data) && data !== {}) {
+          data = Ember.typeOf(data) === 'string' ? data : JSON.stringify(data || {});
+          var expiration = _this4._calculateExpirationTime();
+          _this4._write(data, expiration);
+        }
+      });
+    },
+    _renewExpiration: function _renewExpiration() {
+      if (!Ember.testing) {
+        Ember.run.cancel(this._renewExpirationTimeout);
+        this._renewExpirationTimeout = Ember.run.later(this, this._renewExpiration, 60000);
+      }
+      if (this._isPageVisible()) {
+        return this._renew();
+      } else {
+        return Ember.RSVP.resolve();
+      }
+    },
+    rewriteCookie: function rewriteCookie() {
+      // if `cookieName` has not been renamed, `oldCookieName` will be nil
+      var cookieName = this._oldCookieName || this._cookieName;
+      var data = this._read(cookieName);
+      if (Ember.isPresent(data)) {
+        var expiration = this._calculateExpirationTime();
+        this._write(data, expiration);
+      }
+    }
+  });
+});
+;define('ember-simple-auth/session-stores/ephemeral', ['exports', 'ember-simple-auth/session-stores/base'], function (exports, _base) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = _base.default.extend({
+    init: function init() {
+      this._super.apply(this, arguments);
+      this.clear();
+    },
+
+
+    /**
+      Persists `data`. This replaces all currently stored data.
+       @method persist
+      @param {Object} data The data to persist
+      @return {Ember.RSVP.Promise} A promise that resolves when the data has successfully been persisted and rejects otherwise.
+      @public
+    */
+    persist: function persist(data) {
+      this._data = JSON.stringify(data || {});
+
+      return Ember.RSVP.resolve();
+    },
+
+
+    /**
+      Returns all data currently stored as a plain object.
+       @method restore
+      @return {Ember.RSVP.Promise} A promise that resolves with the data currently persisted in the store when the data has been restored successfully and rejects otherwise.
+      @public
+    */
+    restore: function restore() {
+      var data = JSON.parse(this._data) || {};
+
+      return Ember.RSVP.resolve(data);
+    },
+
+
+    /**
+      Clears the store.
+       @method clear
+      @return {Ember.RSVP.Promise} A promise that resolves when the store has been cleared successfully and rejects otherwise.
+      @public
+    */
+    clear: function clear() {
+      delete this._data;
+      this._data = '{}';
+
+      return Ember.RSVP.resolve();
+    }
+  });
+});
+;define('ember-simple-auth/session-stores/local-storage', ['exports', 'ember-simple-auth/session-stores/base', 'ember-simple-auth/utils/objects-are-equal', 'ember-simple-auth/utils/is-fastboot'], function (exports, _base, _objectsAreEqual, _isFastboot) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = _base.default.extend({
+    _isFastBoot: (0, _isFastboot.default)(),
+
+    /**
+      The `localStorage` key the store persists data in.
+       @property key
+      @type String
+      @default 'ember_simple_auth-session'
+      @public
+    */
+    key: 'ember_simple_auth-session',
+
+    init: function init() {
+      this._super.apply(this, arguments);
+
+      this._boundHandler = Ember.run.bind(this, this._handleStorageEvent);
+      if (!this.get('_isFastBoot')) {
+        window.addEventListener('storage', this._boundHandler);
+      }
+    },
+    willDestroy: function willDestroy() {
+      if (!this.get('_isFastBoot')) {
+        window.removeEventListener('storage', this._boundHandler);
+      }
+    },
+
+
+    /**
+      Persists the `data` in the `localStorage`.
+       @method persist
+      @param {Object} data The data to persist
+      @return {Ember.RSVP.Promise} A promise that resolves when the data has successfully been persisted and rejects otherwise.
+      @public
+    */
+    persist: function persist(data) {
+      this._lastData = data;
+      data = JSON.stringify(data || {});
+      localStorage.setItem(this.key, data);
+
+      return Ember.RSVP.resolve();
+    },
+
+
+    /**
+      Returns all data currently stored in the `localStorage` as a plain object.
+       @method restore
+      @return {Ember.RSVP.Promise} A promise that resolves with the data currently persisted in the store when the data has been restored successfully and rejects otherwise.
+      @public
+    */
+    restore: function restore() {
+      var data = localStorage.getItem(this.key);
+
+      return Ember.RSVP.resolve(JSON.parse(data) || {});
+    },
+
+
+    /**
+      Clears the store by deleting the
+      {{#crossLink "LocalStorageStore/key:property"}}{{/crossLink}} from
+      `localStorage`.
+       @method clear
+      @return {Ember.RSVP.Promise} A promise that resolves when the store has been cleared successfully and rejects otherwise.
+      @public
+    */
+    clear: function clear() {
+      localStorage.removeItem(this.key);
+      this._lastData = {};
+
+      return Ember.RSVP.resolve();
+    },
+    _handleStorageEvent: function _handleStorageEvent(e) {
+      var _this = this;
+
+      if (e.key === this.get('key')) {
+        this.restore().then(function (data) {
+          if (!(0, _objectsAreEqual.default)(data, _this._lastData)) {
+            _this._lastData = data;
+            _this.trigger('sessionDataUpdated', data);
+          }
+        });
+      }
+    }
+  });
+});
+;define('ember-simple-auth/session-stores/session-storage', ['exports', 'ember-simple-auth/session-stores/base', 'ember-simple-auth/utils/objects-are-equal', 'ember-simple-auth/utils/is-fastboot'], function (exports, _base, _objectsAreEqual, _isFastboot) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = _base.default.extend({
+    _isFastBoot: (0, _isFastboot.default)(),
+
+    /**
+      The `sessionStorage` key the store persists data in.
+       @property key
+      @type String
+      @default 'ember_simple_auth-session'
+      @public
+    */
+    key: 'ember_simple_auth-session',
+
+    init: function init() {
+      this._super.apply(this, arguments);
+
+      if (!this.get('_isFastBoot')) {
+        window.addEventListener('storage', Ember.run.bind(this, this._handleStorageEvent));
+      }
+    },
+    willDestroy: function willDestroy() {
+      if (!this.get('_isFastBoot')) {
+        window.removeEventListener('storage', Ember.run.bind(this, this._handleStorageEvent));
+      }
+    },
+
+
+    /**
+      Persists the `data` in the `sessionStorage`.
+       @method persist
+      @param {Object} data The data to persist
+      @return {Ember.RSVP.Promise} A promise that resolves when the data has successfully been persisted and rejects otherwise.
+      @public
+    */
+    persist: function persist(data) {
+      this._lastData = data;
+      data = JSON.stringify(data || {});
+      sessionStorage.setItem(this.key, data);
+
+      return Ember.RSVP.resolve();
+    },
+
+
+    /**
+      Returns all data currently stored in the `sessionStorage` as a plain object.
+       @method restore
+      @return {Ember.RSVP.Promise} A promise that resolves with the data currently persisted in the store when the data has been restored successfully and rejects otherwise.
+      @public
+    */
+    restore: function restore() {
+      var data = sessionStorage.getItem(this.key);
+
+      return Ember.RSVP.resolve(JSON.parse(data) || {});
+    },
+
+
+    /**
+      Clears the store by deleting the
+      {{#crossLink "sessionStorageStore/key:property"}}{{/crossLink}} from
+      `sessionStorage`.
+       @method clear
+      @return {Ember.RSVP.Promise} A promise that resolves when the store has been cleared successfully and rejects otherwise.
+      @public
+    */
+    clear: function clear() {
+      sessionStorage.removeItem(this.key);
+      this._lastData = {};
+
+      return Ember.RSVP.resolve();
+    },
+    _handleStorageEvent: function _handleStorageEvent(e) {
+      var _this = this;
+
+      if (e.key === this.get('key')) {
+        this.restore().then(function (data) {
+          if (!(0, _objectsAreEqual.default)(data, _this._lastData)) {
+            _this._lastData = data;
+            _this.trigger('sessionDataUpdated', data);
+          }
+        });
+      }
+    }
+  });
+});
+;define("ember-simple-auth/utils/inject", ["exports"], function (exports) {
+  "use strict";
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+  exports.default = function (registry, factoryNameOrType, property, injectionName) {
+    var inject = registry.inject || registry.injection;
+    inject.call(registry, factoryNameOrType, property, injectionName);
+  };
+});
+;define('ember-simple-auth/utils/is-fastboot', ['exports'], function (exports) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = isFastBootCPM;
+  exports.isFastBoot = isFastBoot;
+
+
+  /**
+   * @return {ComputedProperty<boolean>}
+   */
+  function isFastBootCPM() {
+    return Ember.computed(function () {
+      return isFastBoot(Ember.getOwner(this));
+    });
+  }
+
+  /**
+   *
+   * @param {ApplicationInstance} owner
+   * @return {boolean}
+   */
+  function isFastBoot(owner) {
+    (true && !(owner && typeof owner.lookup === 'function') && Ember.assert('You may only use isFastBoot() on a container-aware object', owner && typeof owner.lookup === 'function'));
+
+    var fastboot = owner.lookup('service:fastboot');
+    return fastboot ? fastboot.get('isFastBoot') : false;
+  }
+});
+;define("ember-simple-auth/utils/location", ["exports"], function (exports) {
+  "use strict";
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+  exports.default = function () {
+    return window.location;
+  };
+});
+;define('ember-simple-auth/utils/objects-are-equal', ['exports'], function (exports) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = objectsAreEqual;
+
+  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
+    return typeof obj;
+  } : function (obj) {
+    return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+  };
+
+  function objectsAreEqual(a, b) {
+    function compare(x, y) {
+      var property = void 0;
+      if (isNaN(x) && isNaN(y) && typeof x === 'number' && typeof y === 'number') {
+        return true;
+      }
+
+      if (x === y) {
+        return true;
+      }
+
+      if (!(x instanceof Object && y instanceof Object)) {
+        return false;
+      }
+
+      for (property in y) {
+        if (y.hasOwnProperty(property) !== x.hasOwnProperty(property)) {
+          return false;
+        } else if (_typeof(y[property]) !== _typeof(x[property])) {
+          return false;
+        }
+      }
+
+      for (property in x) {
+        if (y.hasOwnProperty(property) !== x.hasOwnProperty(property)) {
+          return false;
+        } else if (_typeof(y[property]) !== _typeof(x[property])) {
+          return false;
+        }
+
+        switch (_typeof(x[property])) {
+          case 'object':
+            if (!compare(x[property], y[property])) {
+              return false;
+            }
+            break;
+          default:
+            if (x[property] !== y[property]) {
+              return false;
+            }
+            break;
+        }
+      }
+
+      return true;
+    }
+
+    return compare(a, b);
+  }
+});
+;define('ember-simple-auth/utils/symbol', ['exports'], function (exports) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  /**
+   * This symbol provides a Symbol replacement for browsers that do not have it
+   * (eg. IE 11).
+   *
+   * The replacement is different from the native Symbol in some ways. It is a
+   * function that produces an output:
+   * - iterable;
+   * - that is a string, not a symbol.
+   *
+   * @internal
+   */
+  var symbol = exports.symbol = typeof Symbol !== 'undefined' ? Symbol : function (key) {
+    return '__' + key + Math.floor(Math.random() * Date.now()) + '__';
+  };
 });
 ;define('ember-welcome-page/components/welcome-page', ['exports', 'ember-welcome-page/templates/components/welcome-page'], function (exports, _welcomePage) {
   'use strict';

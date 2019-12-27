@@ -10,6 +10,11 @@ define('frontend/tests/app.lint-test', [], function () {
     assert.ok(true, 'adapters/application.js should pass ESLint\n\n');
   });
 
+  QUnit.test('adapters/user.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'adapters/user.js should pass ESLint\n\n');
+  });
+
   QUnit.test('app.js', function (assert) {
     assert.expect(1);
     assert.ok(true, 'app.js should pass ESLint\n\n');
@@ -20,9 +25,29 @@ define('frontend/tests/app.lint-test', [], function () {
     assert.ok(true, 'components/main-todo.js should pass ESLint\n\n');
   });
 
+  QUnit.test('controllers/application.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'controllers/application.js should pass ESLint\n\n');
+  });
+
+  QUnit.test('controllers/index.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'controllers/index.js should pass ESLint\n\n');
+  });
+
+  QUnit.test('controllers/login.js', function (assert) {
+    assert.expect(1);
+    assert.ok(false, 'controllers/login.js should pass ESLint\n\n15:13 - \'email\' is assigned a value but never used. (no-unused-vars)\n15:20 - \'password\' is assigned a value but never used. (no-unused-vars)');
+  });
+
   QUnit.test('models/main-todo.js', function (assert) {
     assert.expect(1);
     assert.ok(true, 'models/main-todo.js should pass ESLint\n\n');
+  });
+
+  QUnit.test('models/user.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'models/user.js should pass ESLint\n\n');
   });
 
   QUnit.test('resolver.js', function (assert) {
@@ -39,6 +64,16 @@ define('frontend/tests/app.lint-test', [], function () {
     assert.expect(1);
     assert.ok(true, 'routes/application.js should pass ESLint\n\n');
   });
+
+  QUnit.test('routes/index.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'routes/index.js should pass ESLint\n\n');
+  });
+
+  QUnit.test('services/current-user.js', function (assert) {
+    assert.expect(1);
+    assert.ok(true, 'services/current-user.js should pass ESLint\n\n');
+  });
 });
 define('frontend/tests/helpers/destroy-app', ['exports'], function (exports) {
   'use strict';
@@ -49,6 +84,47 @@ define('frontend/tests/helpers/destroy-app', ['exports'], function (exports) {
   exports.default = destroyApp;
   function destroyApp(application) {
     Ember.run(application, 'destroy');
+  }
+});
+define('frontend/tests/helpers/ember-simple-auth', ['exports', 'ember-simple-auth/authenticators/test'], function (exports, _test) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.authenticateSession = authenticateSession;
+  exports.currentSession = currentSession;
+  exports.invalidateSession = invalidateSession;
+
+
+  var TEST_CONTAINER_KEY = 'authenticator:test';
+
+  function ensureAuthenticator(app, container) {
+    var authenticator = container.lookup(TEST_CONTAINER_KEY);
+    if (!authenticator) {
+      app.register(TEST_CONTAINER_KEY, _test.default);
+    }
+  }
+
+  function authenticateSession(app, sessionData) {
+    var container = app.__container__;
+
+    var session = container.lookup('service:session');
+    ensureAuthenticator(app, container);
+    session.authenticate(TEST_CONTAINER_KEY, sessionData);
+    return app.testHelpers.wait();
+  }
+
+  function currentSession(app) {
+    return app.__container__.lookup('service:session');
+  }
+
+  function invalidateSession(app) {
+    var session = app.__container__.lookup('service:session');
+    if (session.get('isAuthenticated')) {
+      session.invalidate();
+    }
+    return app.testHelpers.wait();
   }
 });
 define('frontend/tests/helpers/module-for-acceptance', ['exports', 'qunit', 'frontend/tests/helpers/start-app', 'frontend/tests/helpers/destroy-app'], function (exports, _qunit, _startApp, _destroyApp) {

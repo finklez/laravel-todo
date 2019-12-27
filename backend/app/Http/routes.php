@@ -35,3 +35,8 @@ $api->version('v1', function($api) {
     });
 
 });
+
+// quick fix for ember route on refresh
+Route::get('login', function () {
+    return redirect('/');
+});
