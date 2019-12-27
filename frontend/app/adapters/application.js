@@ -7,8 +7,9 @@ import TokenAuthorizerMixin from 'ember-simple-auth-token/mixins/token-authorize
 
 export default DS.RESTAdapter.extend(TokenAuthorizerMixin, {
 	host: ENV.apiBaseUrl,
-	authorizer: 'authorizer:token',
+	// authorizer: 'authorizer:token',
 	namespace:'api',
+  // crossOriginWhitelist: ['http://localhost:8000'],
 });
 // export default DS.JSONAPIAdapter.extend(DataAdapterMixin,{
 // 	host: ENV.apiBaseUrl,

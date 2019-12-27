@@ -149,7 +149,7 @@ return [
         Dingo\Api\Provider\LaravelServiceProvider::class,
 
         // JWTAuth
-        Tymon\JWTAuth\Providers\JWTAuthServiceProvider::class,
+        'Tymon\JWTAuth\Providers\JWTAuthServiceProvider'
 
     ],
 
@@ -200,8 +200,8 @@ return [
         'View'      => Illuminate\Support\Facades\View::class,
 
         //other aliases
-        'JWTAuth' => Tymon\JWTAuth\Facades\JWTAuth::class,
-        'JWTFactory' => Tymon\JWTAuthFacades\JWTFactory::class,
+        'JWTAuth' => 'Tymon\JWTAuth\Facades\JWTAuth',
+        'JWTFactory' => 'Tymon\JWTAuth\Facades\JWTFactory'
     ],
 
 ];

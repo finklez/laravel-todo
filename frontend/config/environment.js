@@ -25,10 +25,12 @@ module.exports = function(environment) {
   ENV.apiBaseUrl = null;
 
   ENV['ember-simple-auth-token'] = {
-    // serverTokenEndpoint: '/api/token-auth/', // Server endpoint to send authenticate request
+    serverTokenEndpoint: (ENV.apiBaseUrl || '') + '/api/auth/login', // Server endpoint to send authenticate request
+    // serverTokenRefreshEndpoint: (ENV.apiBaseUrl || '') + '/api/token-refresh/', // Server endpoint to send refresh request
     // tokenPropertyName: 'token', // Key in server response that contains the access token
     // headers: {}, // Headers to add to the
     refreshAccessTokens: true,
+    // crossOriginWhitelist: ['http://localhost:8000'],
     refreshLeeway: 300 // refresh 5 minutes (300 seconds) before expiration
   };
 

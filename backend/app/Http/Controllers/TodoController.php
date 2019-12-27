@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Todo;
+use JWTAuth;
 
 class TodoController extends Controller
 {
@@ -14,9 +15,51 @@ class TodoController extends Controller
      */
     public function index()
     {
-        $todos = Todo::all();
+        $user = $this->getAuthenticatedUser2();
+        $todos = [];
+        if ($user) {
+            $todos = Todo::where('user_id', $user->id)->get();
+//            $todos = Todo::all();
+        }
 
         return response()->json(['mainTodos' => $todos]);
+    }
+
+    public function getAuthenticatedUser2()
+    {
+        try {
+            if (! $user = JWTAuth::parseToken()->authenticate()) {
+                return null; // response()->json(['user_not_found'], 404);
+            }
+//        } catch (\Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
+//            return response()->json(['token_expired'], $e->getStatusCode());
+//        } catch (\Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
+//            return response()->json(['token_invalid'], $e->getStatusCode());
+        } catch (\Tymon\JWTAuth\Exceptions\JWTException $e) {
+            return null; // response()->json(['token_absent'], $e->getStatusCode());
+        }
+
+        // the token is valid and we have found the user via the sub claim
+//        return response()->json(compact('user'));
+        return $user;
+    }
+    public function getAuthenticatedUser()
+    {
+        try {
+            if (! $user = JWTAuth::parseToken()->authenticate()) {
+                return response()->json(['user_not_found'], 404);
+            }
+        } catch (\Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
+            return response()->json(['token_expired'], $e->getStatusCode());
+        } catch (\Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
+            return response()->json(['token_invalid'], $e->getStatusCode());
+        } catch (\Tymon\JWTAuth\Exceptions\JWTException $e) {
+            return response()->json(['token_absent'], $e->getStatusCode());
+        }
+
+        // the token is valid and we have found the user via the sub claim
+        return response()->json(compact('user'));
+//        return $user;
     }
 
     /**
@@ -45,6 +88,7 @@ class TodoController extends Controller
         $todo = new Todo;
         $todo->text = $request->input('mainTodo.text');
         $todo->done = $request->input('mainTodo.done', false);
+        $todo->user_id = $this->getAuthenticatedUser()->id;
         $todo->save();
 
         return response()->json(['mainTodo' => $todo]);

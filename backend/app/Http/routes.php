@@ -17,7 +17,7 @@ Route::get('/', function () {
     return File::get(public_path() . '/dist/index.html'); // serve ember
 });
 
-$api->version('v1',function($api) {
+$api->version('v1', function($api) {
     header('Access-Control-Allow-Origin: http://localhost:4200');
     header('Access-Control-Allow-Headers: Origin, Content-Type, Authorization');
     header('Access-Control-Allow-Methods: POST, GET, OPTIONS, PUT, PATCH, DELETE');
@@ -26,18 +26,12 @@ $api->version('v1',function($api) {
     $api->group(['namespace'=>'App\Http\Controllers'],function($api){
         $api->resource('mainTodos', "TodoController");
     });
-});
 
-Route::group([
+    // API
+    $api->group(['namespace'=>'App\Http\Controllers'],function($api) {
+        // Auth
+        $api->post('auth/login', 'Auth\AuthController@authenticate');
+//        $api->post('auth/logout', 'Auth\AuthController@logout');
 
-    'middleware' => 'api',
-    'prefix' => 'auth'
-
-], function ($router) {
-
-    Route::post('login', 'AuthController@login');
-    Route::post('logout', 'AuthController@logout');
-    Route::post('refresh', 'AuthController@refresh');
-    Route::post('me', 'AuthController@me');
-
+    });
 });

@@ -3,40 +3,18 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use Tymon\JWTAuth\Contracts\JWTSubject;
-use Illuminate\Notifications\Notifiable;
-use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Auth\Authenticatable;
+use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 
-class User extends Authenticatable implements JWTSubject
-
-//class User extends Model
+class User extends Model implements AuthenticatableContract
 {
-    use Notifiable;
 
-    // Rest omitted for brevity
+    use Authenticatable;
 
-    /**
-     * Get the identifier that will be stored in the subject claim of the JWT.
-     *
-     * @return mixed
-     */
-    public function getJWTIdentifier()
+    public function todos()
     {
-        return $this->getKey();
+        return $this->hasMany('App\Todo');
     }
-
-    /**
-     * Return a key value array, containing any custom claims to be added to the JWT.
-     *
-     * @return array
-     */
-    public function getJWTCustomClaims()
-    {
-        return [];
-    }
-
-
-
 
     /**
      * The database table used by the model.
@@ -60,5 +38,4 @@ class User extends Authenticatable implements JWTSubject
     protected $attributes = [
         'done' => false,
     ];
-
 }

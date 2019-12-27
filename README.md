@@ -23,6 +23,14 @@
 - Run migrations
       
       php artisan migrate
+      
+- Run seeds
+
+      php artisan db:seed
+      
+    ```*``` in case of data issues use the following:
+    
+        php artisan migrate:fresh --seed 
     
 - Run server
 
