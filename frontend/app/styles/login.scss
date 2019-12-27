@@ -1,3 +1,12 @@
 .login-form {
  margin: 50px 0;
 }
+
+.err-msg {
+  direction: ltr;
+  text-align: left;
+  color: red;
+  border: 1px solid red;
+  padding: 0 20px;
+  margin: 40px 0 0;
+}

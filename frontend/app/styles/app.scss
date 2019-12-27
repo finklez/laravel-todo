@@ -14,7 +14,7 @@ ul, ol {
 .menu {
   height: 30px;
   line-height: 30px;
-  width: 400px;
+  width: 500px;
   padding: 0 10px;
   color: red;
   font-size: 12px;
@@ -24,6 +24,10 @@ ul, ol {
   &:hover {
     color: crimson;
   }
+}
+
+.main {
+  width: 500px;
 }
 
 .btn {
